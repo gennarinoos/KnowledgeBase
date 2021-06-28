@@ -2,7 +2,7 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:Csqlite3">
+      location = "group:SQLite3">
    </FileRef>
    <FileRef
       location = "group:KnowledgeBase">

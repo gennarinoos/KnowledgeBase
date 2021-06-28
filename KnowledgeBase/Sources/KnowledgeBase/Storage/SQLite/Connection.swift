@@ -22,6 +22,9 @@
 // THE SOFTWARE.
 //
 
+import SQLite3
+import Foundation
+
 /// A connection to SQLite.
 final class Connection {
 
@@ -671,7 +674,6 @@ extension Result : CustomStringConvertible {
     }
 }
 
-@available(iOS 10.0, OSX 10.12, tvOS 10.0, watchOS 3.0, *)
 extension Connection {
     fileprivate func trace_v2(_ callback: ((String) -> Void)?) {
         guard let callback = callback else {

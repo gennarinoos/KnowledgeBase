@@ -4,28 +4,20 @@
 import PackageDescription
 
 let package = Package(
-    name: "KnowledgeBase",
-    platforms: [
-        .macOS(.v10_12), .iOS(.v11), .tvOS(.v10), .watchOS(.v3)
-    ],
+    name: "SQLite3",
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
-            name: "KnowledgeBase",
-            targets: ["KnowledgeBase"]),
+            name: "SQLite3",
+            targets: ["SQLite3"]),
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
-        .package(name: "SQLite3", path: "../SQLite3")
+        // .package(url: /* package url */, from: "1.0.0"),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
-        .target(
-            name: "KnowledgeBase",
-            dependencies: []),
-        .testTarget(
-            name: "KnowledgeBaseTests",
-            dependencies: ["KnowledgeBase"]),
+        .systemLibrary(name: "SQLite3")
     ]
 )

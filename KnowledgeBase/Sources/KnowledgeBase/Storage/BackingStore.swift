@@ -11,9 +11,6 @@ import Foundation
 protocol KBBackingStore {
    
    var name: String { get }
-   
-   func verify(path: KBPath) async -> Bool
-   
    func writeBatch() -> KBKnowledgeStoreWriteBatch
     
     // KVS SELECT
@@ -32,7 +29,7 @@ protocol KBBackingStore {
     func triplesComponents(matching condition: KBTripleCondition?) async throws -> [KBTriple]
     
     // KVS INSERT
-    func setValue(_: Any?, forKey: String)
+    func setValue(_: Any?, forKey: String) async throws
     
     // KVS DELETE
     func removeValue(forKey key: String) async throws
@@ -41,24 +38,29 @@ protocol KBBackingStore {
     func removeAllValues() async throws
    
    // GRAPH LINKS
+    func verify(path: KBPath) async throws -> Bool
+    
    func setWeight(forLinkWithLabel predicate: String,
                   between subjectIdentifier: String,
                   and objectIdentifier: String,
-                  toValue newValue: Int) async
+                  toValue newValue: Int) async throws
    func increaseWeight(forLinkWithLabel predicate: String,
                        between subjectIdentifier: String,
-                       and objectIdentifier: String) async -> Int
+                       and objectIdentifier: String) async throws -> Int
    func decreaseWeight(forLinkWithLabel predicate: Label,
                        between subjectIdentifier: Label,
-                       and objectIdentifier: Label) async -> Int
+                       and objectIdentifier: Label) async throws -> Int
    func dropLink(withLabel predicate: String,
                  between subjectIdentifier: String,
-                 and objectIdentifier: String) async
+                 and objectIdentifier: String) async throws
    func dropLinks(withLabel predicate: String?,
-                  from subjectIdentifier: String) async
+                  from subjectIdentifier: String) async throws
    func dropLinks(between subjectIdentifier: String,
-                  and objectIdentifier: String) async
+                  and objectIdentifier: String) async throws
    
-   func disableSyncAndDeleteCloudData() async
+   func disableSyncAndDeleteCloudData() async throws
 }
 
+protocol KBPersistentBackingStore: KBBackingStore {
+    var storeHandler: KBPersistentStoreHandler { get }
+}

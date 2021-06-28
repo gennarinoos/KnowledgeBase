@@ -8,8 +8,7 @@
 import Foundation
 
 
-public var DatabaseExtension = "db"
-private var StoreLocationForMacOS = "/private/var/db";
+let KnowledgeBaseXPCServiceBundleIdentifier = "com.gf.knowledgebase.storage.service"
 
 internal func NSNullToNil(_ v: Any) -> Any? {
     if v is NSNull {
@@ -25,17 +24,18 @@ internal func nilToNSNull(_ v: Any?) -> Any {
     return v!
 }
 
-class KBSQLBackingStore : KBBackingStore {
+#if os(macOS)
+class KBSQLXPCBackingStore : KBBackingStore {
     var name: String
     let connection: NSXPCConnection
 
     @objc required init(name: String) {
         self.name = name
         
-            self.connection = NSXPCConnection(machServiceName: KnowledgeBaseDaemonBundleIdentifier,
+            self.connection = NSXPCConnection(machServiceName: KnowledgeBaseXPCServiceBundleIdentifier,
                                               options: NSXPCConnection.Options(rawValue: 0))
             
-            self.connection.remoteObjectInterface = KnowledgeBaseXPCUtils.CKServiceXPCInterface()
+            self.connection.remoteObjectInterface = KnowledgeBaseXPCUtils.KBServiceXPCInterface()
             
             self.connection.interruptionHandler = {
                 log.info("XPC connection interrupted")
@@ -57,11 +57,11 @@ class KBSQLBackingStore : KBBackingStore {
         return self.init(name: KnowledgeBaseSQLDefaultIdentifier)
     }
     
-    func daemon(errorHandler: @escaping (Error) -> ()) -> CKDaemonInterface? {
+    func daemon(errorHandler: @escaping (Error) -> ()) -> KBStorageXPCInterface? {
         return self.connection.remoteObjectProxyWithErrorHandler { (error) in
             log.fault("XPC connection error %s", error.localizedDescription)
             errorHandler(error)
-            } as? CKDaemonInterface
+            } as? KBStorageXPCInterface
     }
     
     @objc static var directory: URL? = {
@@ -149,7 +149,7 @@ class KBSQLBackingStore : KBBackingStore {
             }
     }
     
-    func dictionaryRepresentation(completionHandler: @escaping (Error?, CKJSONObject) -> ()) {
+    func dictionaryRepresentation(completionHandler: @escaping (Error?, KBJSONObject) -> ()) {
             self.daemon(errorHandler: KBErrorHandler(completionHandler))?
                 .keysAndValues(inStoreWithIdentifier: self.name) {
                     (error, keysAndValues) in
@@ -158,7 +158,7 @@ class KBSQLBackingStore : KBBackingStore {
             }
     }
     
-    func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Error?, CKJSONObject) -> ()) {
+    func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Error?, KBJSONObject) -> ()) {
             self.daemon(errorHandler: KBErrorHandler(completionHandler))?
                 .keysAndValues(forKeysMatching: condition,
                                inStoreWithIdentifier: self.name) {
@@ -199,7 +199,7 @@ class KBSQLBackingStore : KBBackingStore {
     }
 
     func writeBatch() -> KBKnowledgeStoreWriteBatch {
-        return CKSQLWriteBatch(backingStore: self)
+        return KBSQLXPCWriteBatch(backingStore: self)
     }
 
     func setWeight(forLinkWithLabel predicate: String,
@@ -319,8 +319,7 @@ class KBSQLBackingStore : KBBackingStore {
     }
     
     func dropLinks(between subjectIdentifier: String,
-                   and objectIdentifier: String,
-                   completionHandler: @escaping CKActionCompletion){
+                   and objectIdentifier: String) async throws {
             self.daemon(errorHandler: completionHandler)?
                 .dropLinks(between: subjectIdentifier,
                            and: objectIdentifier,
@@ -331,8 +330,9 @@ class KBSQLBackingStore : KBBackingStore {
             }
     }
     
-    func disableSyncAndDeleteCloudData(completionHandler: @escaping CKActionCompletion) {
-        completionHandler(KBError.notSupported)
+    func disableSyncAndDeleteCloudData() async throws {
+        throw KBError.notSupported
     }
 }
+#endif
 

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SQLite3
 
 enum SQLTableType : String {
     case IntegerValue = "intval", DoubleValue = "realval", StringValue = "textval", AnyValue = "blobval"
@@ -108,12 +109,9 @@ open class KBPersistentStoreHandler: NSObject {
             return false
         }
         #else
-        var errorPtr: NSError? = nil
-        CKDataVault.createDirectory(
-            at: path,
-            storageClass: kCKGenericDataVaultClass,
-            error: &errorPtr)
-        if let error = errorPtr {
+        do {
+            try KBDataVault.create(at: path, withClass: .KBGenericDataVaultClass)
+        } catch {
             log.fault("error creating data vault: %@", error.localizedDescription)
             return false
         }
@@ -126,7 +124,7 @@ open class KBPersistentStoreHandler: NSObject {
         
         do {
             connection = try Connection(location)
-            try connection?.execute(kCKTypedKeyValuePairsDbSchema)
+            try connection?.execute(kKBTypedKeyValuePairsDbSchema)
         } catch let error as Result {
             if (error as NSError).code != SQLITE_OK {
                 log.error("error creating SQL schema. %@", error.localizedDescription)
@@ -213,12 +211,12 @@ open class KBPersistentStoreHandler: NSObject {
         return values
     }
     
-    @objc open func keysAndValues() throws -> CKJSONObject {
+    @objc open func keysAndValues() throws -> KBJSONObject {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
         
-        var dict = CKJSONObject()
+        var dict = KBJSONObject()
         
         let query = SQLTableType.allValues.map { "select k, v from \($0.rawValue)" }.joined(separator: " union all ")
         let stmt = try connection.prepare(query)
@@ -233,12 +231,12 @@ open class KBPersistentStoreHandler: NSObject {
         return dict
     }
     
-    @objc open func keysAndValues(forKeysMatching condition: KBGenericCondition) throws -> CKJSONObject {
+    @objc open func keysAndValues(forKeysMatching condition: KBGenericCondition) throws -> KBJSONObject {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
         
-        var dict = CKJSONObject()
+        var dict = KBJSONObject()
         
         let query = SQLTableType.allValues.map { "select k, v from \($0.rawValue) where \(condition.sql)" }.joined(separator: " union all ")
         let stmt = try connection.prepare(query)
@@ -301,7 +299,7 @@ open class KBPersistentStoreHandler: NSObject {
     }
     
     @objc(saveKeysAndValues:error:)
-    open func save(keysAndValues: CKJSONObject) throws {
+    open func save(keysAndValues: KBJSONObject) throws {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
@@ -345,7 +343,7 @@ open class KBPersistentStoreHandler: NSObject {
                 default:
                     let data = try NSKeyedArchiver.archivedData(withRootObject: value, requiringSecureCoding: true)
                     query = String(format: format, SQLTableType.AnyValue.rawValue)
-                    bindings = [key, data.datatypeValue]
+                    bindings = [key, data.datatypeValue()]
                 }
                 
                 _ = try connection.run(query, bindings)

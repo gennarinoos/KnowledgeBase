@@ -13,7 +13,7 @@ enum JSONLDParseError: Error {
     case unexpectedFormat, resourceNotAvailable
 }
 
-// - MARK KBJSONLDGraph
+// MARK: - KBJSONLDGraph
 @objc(KBJSONLDGraph)
 open class KBJSONLDGraph : NSObject {
 
@@ -59,9 +59,10 @@ open class KBJSONLDGraph : NSObject {
     }
 }
 
-// - MARK CKKnowledgeStore + CKJSONLD
+// MARK: - CKKnowledgeStore + CKJSONLD
 
-extension CKKnowledgeStore {
+@available(iOS 15.0, *)
+extension KBKnowledgeStore {
     
     @objc open func subgraph(withEntities identifiers: [Label]) -> KBJSONLDGraph {
         return KBJSONLDGraph(withEntities: identifiers.map {
@@ -71,179 +72,98 @@ extension CKKnowledgeStore {
     
     internal func evaluateJSONLDEntry(forEntity entity: KBEntity,
                                       key: Any,
-                                      value: Any,
-                                      completionHandler: @escaping CKActionCompletion) {
+                                      value: Any) async throws {
         guard let _key = key as? String else {
             log.error("key=%{private}@ is not a string. class = %@", key as! String, String(describing: type(of: key)))
-            completionHandler(KBError.unexpectedData(key))
-            return
+            throw KBError.unexpectedData(key)
         }
         
         if _key == "@context" || _key == "@id" {
-            completionHandler(nil)
             return
         }
         
         if let stringValue = value as? String {
-            entity.link(to: self.entity(withIdentifier: stringValue),
-                        withPredicate: _key,
-                        completionHandler: completionHandler)
+            try await entity.link(to: self.entity(withIdentifier: stringValue),
+                                  withPredicate: _key)
         } else if let stringArrayValue = value as? [String] {
-            let dispatch = CKTimedDispatch(timeout: .now() + .seconds(stringArrayValue.count))
-            for stringValue in stringArrayValue {
-                autoreleasepool {
-                    dispatch.group.enter()
-                    entity.link(to: self.entity(withIdentifier: stringValue), withPredicate: _key) {
-                        if let _ = $0 { dispatch.interrupt($0!) }
-                        else { dispatch.group.leave() }
+            try await withThrowingTaskGroup(of: Void.self, body: { group in
+                for stringValue in stringArrayValue {
+                    group.async {
+                        let otherEntity = self.entity(withIdentifier: stringValue)
+                        try await entity.link(to: otherEntity, withPredicate: _key)
                     }
                 }
-            }
-            do {
-                try dispatch.wait()
-                completionHandler(nil)
-            } catch {
-                completionHandler(error)
-            }
+            })
+            return
         } else if let jsonObject = value as? KBJSONObject {
-            let dispatch = CKTimedDispatch(timeout: .distantFuture)
-            
             let targetEntity = self.entity(withIdentifier: (jsonObject["@id"] ?? "_:\(UUID().uuidString)") as! String)
             
-            for (k, v) in jsonObject {
-                autoreleasepool {
-                    dispatch.group.enter()
-                    self.evaluateJSONLDEntry(forEntity: targetEntity, key: k, value: v) {
-                        (error: Error?) in
-                        if let _ = error {
-                            dispatch.interrupt(error!)
-                        } else {
-                            dispatch.group.leave()
+            try await withThrowingTaskGroup(of: Void.self, body: { group in
+                for (k, v) in jsonObject {
+                    group.async {
+                        try await self.evaluateJSONLDEntry(forEntity: targetEntity, key: k, value: v)
                         }
                     }
                 }
-            }
+            })
             
-            do {
-                try dispatch.wait()
-            } catch {
-                completionHandler(error)
-                return
-            }
-            
-            entity.link(to: targetEntity,
-                        withPredicate: _key,
-                        completionHandler: completionHandler)
+            try await entity.link(to: targetEntity,
+                        withPredicate: _key)
         } else if let jsonObjects = value as? [KBJSONObject] {
-            let dispatch = CKTimedDispatch(timeout: .distantFuture)
-            
-            for jsonObject in jsonObjects {
-                dispatch.group.enter()
-                self.evaluateJSONLDEntry(forEntity: entity, key: key, value: jsonObject) {
-                    (error: Error?) in
-                    if let _ = error {
-                        dispatch.interrupt(error!)
-                    } else {
-                        dispatch.group.leave()
+            try await withThrowingTaskGroup(of: Void.self, body: { group in
+                for jsonObject in jsonObjects {
+                    group.async {
+                        try await self.evaluateJSONLDEntry(forEntity: entity, key: key, value: jsonObject)
+                        }
                     }
                 }
-            }
-            
-            do {
-                try dispatch.wait()
-                completionHandler(nil)
-            } catch {
-                completionHandler(error)
-            }
+            })
         } else {
-            completionHandler(KBError.notSupported)
+            throw KBError.notSupported
         }
     }
     
     fileprivate func `import`(entity: KBEntity,
-                              fromJsonld jsonObject: Any,
-                              completionHandler: @escaping CKActionCompletion) {
+                              fromJsonld jsonObject: Any) async throws {
         if let dictionary = jsonObject as? KBJSONObject {
-            let dispatch = CKTimedDispatch(timeout: .distantFuture)
-            
-            for (k, v) in dictionary {
-                autoreleasepool {
-                    dispatch.group.enter()
-                    self.evaluateJSONLDEntry(forEntity: entity, key: k, value: v) {
-                        (error: Error?) in
-                        if let _ = error {
-                            dispatch.interrupt(error!)
-                        } else {
-                            dispatch.group.leave()
+            try await withThrowingTaskGroup(of: Void.self, body: { group in
+                for (k, v) in dictionary {
+                    group.async {
+                        try await self.evaluateJSONLDEntry(forEntity: targetEntity, key: k, value: v)
                         }
                     }
                 }
-            }
-            
-            do {
-                try dispatch.wait()
-                completionHandler(nil)
-            } catch {
-                completionHandler(error)
-            }
+            })
         } else {
-            completionHandler(JSONLDParseError.unexpectedFormat)
+            throws JSONLDParseError.unexpectedFormat
         }
     }
     
-    internal func importJSONLD(data: Data, completionHandler: @escaping CKActionCompletion) {
+    internal func importJSONLD(data: Data) async throws {
         let evaluate = {
-            (object: KBJSONObject, completionHandler: @escaping CKActionCompletion) -> Void in
+            (object: KBJSONObject) async throws -> Void in
             let entity = self.entity(withIdentifier: (object["@id"] ?? "_:\(UUID().uuidString)") as! String)
-            self.import(entity: entity, fromJsonld: object, completionHandler: completionHandler)
+            try await self.import(entity: entity, fromJsonld: object)
         }
         
-        let object: Any
-        
-        do {
-            object = try JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions())
-        } catch {
-            completionHandler(error)
-            return
-        }
-        
-        let dispatch = CKTimedDispatch(timeout: .distantFuture)
+        let object = try JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions())
         
         if let array = object as? [KBJSONObject] {
-            for obj in array {
-                dispatch.group.enter()
-                evaluate(obj) {
-                    (error: Error?) in
-                    if let _ = error {
-                        dispatch.interrupt(error!)
-                    } else {
-                        dispatch.group.leave()
+            try await withThrowingTaskGroup(of: Void.self, body: { group in
+                for obj in array {
+                    group.async {
+                        try await evaluate(obj)
                     }
                 }
-            }
+            })
         } else if let obj = object as? KBJSONObject {
-            evaluate(obj) {
-                (error: Error?) in
-                if let _ = error {
-                    dispatch.interrupt(error!)
-                } else {
-                    dispatch.group.leave()
-                }
-            }
-        }
-        
-        do {
-            try dispatch.wait()
-            completionHandler(nil)
-        } catch {
-            completionHandler(error)
+            try await evaluate(obj)
         }
     }
     
     //MARK: importContentsOfJSONLD(atPath:completionHandler:)
     
-    @objc open func importContentsOfJSONLD(atPath path: String,
-                                           completionHandler: CKActionCompletion? = nil) {
+    @objc public func importContentsOfJSONLD(atPath path: String) async throws {
         
         if FileManager.default.fileExists(atPath: path) {
             do {
@@ -251,20 +171,21 @@ extension CKKnowledgeStore {
                     contentsOf: URL(fileURLWithPath: path),
                     options: Data.ReadingOptions.alwaysMapped
                 )
-                DispatchQueue.global(qos: DispatchQoS.QoSClass.background).async {
-                    self.importJSONLD(data: data, completionHandler: completionHandler ?? {
-                        (error: Error?) in
-                        log.error("error importing JSONLD data")
-                        }
-                    )
-                }
             } catch {
                 log.error("error reading JSONLD file. %@", error.localizedDescription)
-                completionHandler?(error)
+                throws error
             }
+            
+            try await withThrowingTaskGroup(of: Void.self, body: { group in
+                for obj in array {
+                    group.async {
+                        try await self.importJSONLD(data: data)
+                    }
+                }
+            })
         } else {
             log.error("no such JSONLD file at path %@", path)
-            completionHandler?(JSONLDParseError.resourceNotAvailable)
+            throw JSONLDParseError.resourceNotAvailable
         }
     }
     

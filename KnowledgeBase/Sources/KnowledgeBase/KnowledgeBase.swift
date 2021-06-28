@@ -1,5 +1,4 @@
 import Foundation
-import Sqlite3
 
 let KnowledgeBaseBundleIdentifier = "com.gf.framework.knowledgebase"
 let KnowledgeBaseInMemoryIdentifier = ":memory:"
@@ -158,7 +157,7 @@ open class KBKnowledgeStore : NSObject {
         case .inMemory, .sql(KnowledgeBaseInMemoryIdentifier):
             self.backingStore = KBInMemoryBackingStore()
         case .userDefaults, .sql(KnowledgeBaseUserDefaultsIdentifier):
-            self.backingStore = CKUserDefaultsBackingStore()
+            self.backingStore = KBUserDefaultsBackingStore()
         case .sql(""):
             self.backingStore = KBSQLBackingStore.mainInstance()
         case .sql(let name):

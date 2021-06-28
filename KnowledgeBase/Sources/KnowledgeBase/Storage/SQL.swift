@@ -2,81 +2,72 @@
 //  File.swift
 //  
 //
-//  Created by Gennaro Frazzingaro on 6/22/21.
+//  Created by Gennaro Frazzingaro on 6/27/21.
 //
 
 import Foundation
 
-class KBInMemoryBackingStore : KBBackingStore {
-    
-    var name: String {
-        get { return KnowledgeBaseInMemoryIdentifier }
-        set(v) {}
-    }
-    
-    internal let inMemoryStoreHandler: KBPersistentStoreHandler
-    
-    init() {
-        self.inMemoryStoreHandler = KBPersistentStoreHandler.inMemoryHandler()!
-    }
+public var DatabaseExtension = "db"
+private var StoreLocationForMacOS = "/private/var/db";
+
+protocol KBSQLBackingStoreProtocol : KBPersistentBackingStore {
+}
+
+extension KBSQLBackingStoreProtocol {
     
     //MARK: SELECT
     
     func keys() async throws -> [String] {
-        try self.inMemoryStoreHandler.keys()
+        try self.storeHandler.keys()
     }
     
     func keys(matching condition: KBGenericCondition) async throws -> [String] {
-        return try self.inMemoryStoreHandler.keys(matching: condition)
+        return try self.storeHandler.keys(matching: condition)
     }
     
-    func value(forKey key: String) async throws -> Any? {
-        return try self.inMemoryStoreHandler._values(forKeys: [key]).first!
+    func _value(forKey key: String) async throws -> Any? {
+        return try self.storeHandler._values(forKeys: [key]).first!
     }
     
     func values() async throws-> [Any] {
-        return try self.inMemoryStoreHandler.values()
+        return try self.storeHandler.values()
     }
     
     func values(forKeys keys: [String]) async throws -> [Any?] {
-        return try self.inMemoryStoreHandler._values(forKeys: keys)
+        return try self.storeHandler._values(forKeys: keys)
     }
     
     func values(forKeysMatching condition: KBGenericCondition) async throws -> [Any] {
-        return try self.inMemoryStoreHandler.values(forKeysMatching: condition)
+        return try self.storeHandler.values(forKeysMatching: condition)
     }
     
     func dictionaryRepresentation() async throws -> KBJSONObject {
-        return try self.inMemoryStoreHandler.keysAndValues()
+        return try self.storeHandler.keysAndValues()
     }
     
     func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition) async throws -> KBJSONObject {
-        return try self.inMemoryStoreHandler.keysAndValues(forKeysMatching: condition)
+        return try self.storeHandler.keysAndValues(forKeysMatching: condition)
     }
     
     func triplesComponents(matching condition: KBTripleCondition?) async throws -> [KBTriple] {
-        return try self.inMemoryStoreHandler.tripleComponents(matching: condition)
+        return try self.storeHandler.tripleComponents(matching: condition)
     }
     
     func verify(path: KBPath) throws -> Bool {
-        return try self.inMemoryStoreHandler.verify(path: path)
+        return try self.storeHandler.verify(path: path)
     }
 
     //MARK: INSERT
     
     func setValue(_ value: Any?, forKey key: String) async {
-        self.inMemoryStoreHandler.setValue(value, forKey: key)
-    }
-    
-    func writeBatch() -> KBKnowledgeStoreWriteBatch {
-        return KBInMemoryWriteBatch(backingStore: self)
+        self.storeHandler.setValue(value, forKey: key)
     }
     
     func setWeight(forLinkWithLabel predicate: String,
                    between subjectIdentifier: String,
                    and objectIdentifier: String,
                    toValue newValue: Int) async throws {
-        try self.inMemoryStoreHandler.setWeight(forLinkWithLabel: predicate,
+        try self.storeHandler.setWeight(forLinkWithLabel: predicate,
                                                 between: subjectIdentifier,
                                                 and: objectIdentifier,
                                                 toValue: newValue)
@@ -85,7 +76,7 @@ class KBInMemoryBackingStore : KBBackingStore {
     func increaseWeight(forLinkWithLabel predicate: String,
                         between subjectIdentifier: String,
                         and objectIdentifier: String) async throws -> Int {
-        return try self.inMemoryStoreHandler.increaseWeight(forLinkWithLabel: predicate,
+        return try await self.storeHandler.increaseWeight(forLinkWithLabel: predicate,
                                                                  between: subjectIdentifier,
                                                                  and: objectIdentifier)
     }
@@ -93,7 +84,7 @@ class KBInMemoryBackingStore : KBBackingStore {
     func decreaseWeight(forLinkWithLabel predicate: Label,
                         between subjectIdentifier: Label,
                         and objectIdentifier: Label) async throws -> Int {
-        return try self.inMemoryStoreHandler.decreaseWeight(forLinkWithLabel: predicate,
+        return try await self.storeHandler.decreaseWeight(forLinkWithLabel: predicate,
                                                                  between: subjectIdentifier,
                                                                  and: objectIdentifier)
     }
@@ -101,38 +92,38 @@ class KBInMemoryBackingStore : KBBackingStore {
     //MARK: DELETE
     
     func removeValue(forKey key: String) async throws {
-        return try self.inMemoryStoreHandler.removeValue(forKey: key)
+        return try self.storeHandler.removeValue(forKey: key)
     }
     
     func removeValues(forKeys keys: [String]) async throws {
-        return try self.inMemoryStoreHandler.removeValues(forKeys: keys)
+        return try self.storeHandler.removeValues(forKeys: keys)
     }
     
     func removeValues(matching condition: KBGenericCondition) async throws {
-        return try self.inMemoryStoreHandler.removeValues(matching: condition)
+        return try self.storeHandler.removeValues(matching: condition)
     }
     
     func removeAllValues() async throws {
-        return try self.inMemoryStoreHandler.removeAllValues()
+        return try self.storeHandler.removeAllValues()
     }
     
     func dropLink(withLabel predicate: String,
                   between subjectIdentifier: String,
                   and objectIdentifier: String) async throws {
-        return try self.inMemoryStoreHandler.dropLink(withLabel: predicate,
+        return try self.storeHandler.dropLink(withLabel: predicate,
                                                       between: subjectIdentifier,
                                                       and: objectIdentifier)
     }
     
     func dropLinks(withLabel predicate: String?,
                    from subjectIdentifier: String) async throws {
-        return try self.inMemoryStoreHandler.dropLinks(withLabel: predicate,
+        return try self.storeHandler.dropLinks(withLabel: predicate,
                                                        from: subjectIdentifier)
     }
     
     func dropLinks(between subjectIdentifier: String,
                    and objectIdentifier: String) async throws {
-        return try self.inMemoryStoreHandler.dropLinks(between: subjectIdentifier,
+        return try self.storeHandler.dropLinks(between: subjectIdentifier,
                                                        and: objectIdentifier)
     }
     
@@ -140,3 +131,54 @@ class KBInMemoryBackingStore : KBBackingStore {
         throw KBError.notSupported
     }
 }
+
+
+class KBSQLBackingStore : KBSQLBackingStoreProtocol {
+    var name: String
+    
+    // SQL database on disk
+    var storeHandler: KBPersistentStoreHandler {
+        get {
+            return KBPersistentStoreHandler.init(name: self.name)!
+        }
+    }
+
+    @objc required init(name: String) {
+        self.name = name
+    }
+
+    class func mainInstance() -> Self {
+        return self.init(name: KnowledgeBaseSQLDefaultIdentifier)
+    }
+    
+    @objc static var directory: URL? = {
+        let directory: URL, path: URL
+        
+        do {
+#if os(macOS)
+            path = URL(string: StoreLocationForMacOS)!
+#else
+            path = try FileManager.default.url(for: .libraryDirectory,
+                                               in: .userDomainMask,
+                                               appropriateFor: nil,
+                                               create: true)
+#endif
+        } catch {
+            log.fault("Could not find library directory")
+            return nil
+        }
+            
+#if os(macOS)
+        directory = path
+#else
+        if let mobileUser = getpwnam("mobile") {
+            directory = URL(fileURLWithPath: String(cString: mobileUser.pointee.pw_dir)).appendingPathComponent("Library")
+        } else {
+            directory = path
+        }
+#endif
+        
+        return directory.appendingPathComponent(KnowledgeBaseBundleIdentifier)
+    }()
+}
+

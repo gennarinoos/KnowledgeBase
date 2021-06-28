@@ -32,24 +32,24 @@ class KBAbstractWriteBatch {
     }
 }
 
-// MARK: - KBInMemoryWriteBatch
+// MARK: - KBSQLWriteBatch
 
-class KBInMemoryWriteBatch : KBAbstractWriteBatch, KBKnowledgeStoreWriteBatch {
+class KBSQLWriteBatch : KBAbstractWriteBatch, KBKnowledgeStoreWriteBatch {
     
     func write() async throws {
-        guard let backingStore = self.backingStore as? KBInMemoryBackingStore else {
-            log.fault("KBInMemoryWriteBatch should back a KBInMemoryBackingStore")
+        guard let backingStore = self.backingStore as? KBSQLBackingStoreProtocol else {
+            log.fault("KBSQLWriteBatch should back a KBSQLBackingStoreProtocol")
             throw KBError.notSupported
         }
         
-        // Write buffer into InMemory store
-        // No need to arbitrate writes through the daemon for InMemory stores
+        // Write buffer into the store
+        // No need to arbitrate writes through the XPC service for SQL stores (only SQLXPC do)
         var unwrappedBuffer = Dictionary<String, Any>()
         for (k, v) in self.buffer {
             unwrappedBuffer[k] = nilToNSNull(v)
         }
         
-        try await backingStore.inMemoryStoreHandler.save(keysAndValues: unwrappedBuffer)
+        try backingStore.storeHandler.save(keysAndValues: unwrappedBuffer)
         self.buffer.removeAll()
     }
 }
@@ -58,48 +58,34 @@ class KBInMemoryWriteBatch : KBAbstractWriteBatch, KBKnowledgeStoreWriteBatch {
 
 class KBUserDefaultsWriteBatch : KBAbstractWriteBatch, KBKnowledgeStoreWriteBatch {
     
-    func write(completionHandler: @escaping CKActionCompletion) {
-        do { try self.write() ; completionHandler(nil) }
-        catch { completionHandler(error) }
-    }
-    
-    func write() throws {
-        guard let backingStore = self.backingStore as? CKUserDefaultsBackingStore else {
-            log.fault("KBUserDefaultsWriteBatch should back a CKUserDefaultsBackingStore")
+    func write() async throws {
+        guard let backingStore = self.backingStore as? KBUserDefaultsBackingStore else {
+            log.fault("KBUserDefaultsWriteBatch should back a KBUserDefaultsBackingStore")
             throw KBError.notSupported
         }
         
-        // No need to arbitrate writes through the daemon for Plist stores
-        
-        let dispatch = CKTimedDispatch()
-        
         for key in self.buffer.keys {
             if let value = self.buffer[key] {
-                dispatch.group.enter()
-                backingStore.setValue(value, forKey: key, completionHandler: { (error) in
-                    if let _ = error {
-                        dispatch.interrupt(error!)
-                    } else {
-                        dispatch.group.leave()
-                    }
-                })
+                backingStore.setValue(value, forKey: key)
+            } else {
+                backingStore.setValue(nil, forKey: key)
             }
         }
-        
-        try dispatch.wait()
         
         backingStore.synchronize()
         self.buffer.removeAll()
     }
 }
 
-// MARK: - KBSQLWriteBatch
+#if os(macOS)
 
-class KBSQLWriteBatch : KBAbstractWriteBatch, KBKnowledgeStoreWriteBatch {
+// MARK: - KBSQLXPCWriteBatch
+
+class KBSQLXPCWriteBatch : KBAbstractWriteBatch, KBKnowledgeStoreWriteBatch {
     
     var queue: DispatchQueue = DispatchQueue(label: "\(KnowledgeBaseBundleIdentifier).SQLWriteBatch", qos: .userInteractive)
     
-    func write(completionHandler: @escaping CKActionCompletion) {
+    func write() async throws {
         
         guard let backingStore = self.backingStore as? KBSQLBackingStore else {
             log.fault("KBSQLWriteBatch should back a KBSQLBackingStore")
@@ -125,7 +111,12 @@ class KBSQLWriteBatch : KBAbstractWriteBatch, KBKnowledgeStoreWriteBatch {
     }
     
     func write() throws {
-        let dispatch = CKTimedDispatch()
+        guard let backingStore = self.backingStore as? KBUserDefaultsBackingStore else {
+            log.fault("KBUserDefaultsWriteBatch should back a KBUserDefaultsBackingStore")
+            throw KBError.notSupported
+        }
+        
+        let dispatch = KBTimedDispatch()
         
         weak var welf = self
         self.queue.async {
@@ -175,3 +166,5 @@ class KBCloudKitWriteBatch : KBSQLWriteBatch {
         #endif
     }
 }
+
+#endif
