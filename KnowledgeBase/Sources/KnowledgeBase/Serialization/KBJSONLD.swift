@@ -18,11 +18,9 @@ enum JSONLDParseError: Error {
 open class KBJSONLDGraph : NSObject {
 
     fileprivate let _entities: [KBEntity]
-    private let queue: DispatchQueue
 
     @objc public init(withEntities entities: [KBEntity]?) {
         self._entities = entities ?? []
-        self.queue = DispatchQueue(label: "\(KnowledgeBaseBundleIdentifier).KBJSONLDGraph", attributes: .concurrent)
     }
 
     @objc open var entities: [String] {
@@ -33,25 +31,24 @@ open class KBJSONLDGraph : NSObject {
         var linkedDataDictionary = [KBJSONObject]()
         let entities = Array(Set(self._entities))
         
-        self.queue.async {
-            for entity in entities {
-                do {
-                    linkedDataDictionary.append(try KBJSONLDGraph.serialize(entity))
-                } catch {
-                    log.error("serialization of %{private}@ failed. %@", entity, error.localizedDescription)
-                    throw error
-                }
+        for entity in entities {
+            do {
+                linkedDataDictionary.append(try await KBJSONLDGraph.serialize(entity))
+            } catch {
+                log.error("serialization of %{private}@ failed. %@", entity, error.localizedDescription)
+                throw error
             }
-            reutrn linkedDataDictionary
         }
+        
+        return linkedDataDictionary
     }
 
-    private static func serialize(_ entity: KBEntity) throws -> KBJSONObject {
+    private static func serialize(_ entity: KBEntity) async throws -> KBJSONObject {
         var object = KBJSONObject()
         //            object["@context"] = "http://schema.org/"
         object["@id"] = entity.identifier
 
-        for (link, linkedEntity) in try entity.linkedEntities() {
+        for (link, linkedEntity) in try await entity.linkedEntities() {
             object.append(link, value: linkedEntity.identifier)
         }
         
@@ -61,7 +58,6 @@ open class KBJSONLDGraph : NSObject {
 
 // MARK: - CKKnowledgeStore + CKJSONLD
 
-@available(iOS 15.0, *)
 extension KBKnowledgeStore {
     
     @objc open func subgraph(withEntities identifiers: [Label]) -> KBJSONLDGraph {
@@ -86,38 +82,23 @@ extension KBKnowledgeStore {
             try await entity.link(to: self.entity(withIdentifier: stringValue),
                                   withPredicate: _key)
         } else if let stringArrayValue = value as? [String] {
-            try await withThrowingTaskGroup(of: Void.self, body: { group in
-                for stringValue in stringArrayValue {
-                    group.async {
-                        let otherEntity = self.entity(withIdentifier: stringValue)
-                        try await entity.link(to: otherEntity, withPredicate: _key)
-                    }
-                }
-            })
-            return
+            for stringValue in stringArrayValue {
+                let otherEntity = self.entity(withIdentifier: stringValue)
+                try await entity.link(to: otherEntity, withPredicate: _key)
+            }
         } else if let jsonObject = value as? KBJSONObject {
             let targetEntity = self.entity(withIdentifier: (jsonObject["@id"] ?? "_:\(UUID().uuidString)") as! String)
             
-            try await withThrowingTaskGroup(of: Void.self, body: { group in
-                for (k, v) in jsonObject {
-                    group.async {
-                        try await self.evaluateJSONLDEntry(forEntity: targetEntity, key: k, value: v)
-                        }
-                    }
-                }
-            })
+            for (k, v) in jsonObject {
+                try await self.evaluateJSONLDEntry(forEntity: targetEntity, key: k, value: v)
+            }
             
             try await entity.link(to: targetEntity,
                         withPredicate: _key)
         } else if let jsonObjects = value as? [KBJSONObject] {
-            try await withThrowingTaskGroup(of: Void.self, body: { group in
-                for jsonObject in jsonObjects {
-                    group.async {
-                        try await self.evaluateJSONLDEntry(forEntity: entity, key: key, value: jsonObject)
-                        }
-                    }
-                }
-            })
+            for jsonObject in jsonObjects {
+                try await self.evaluateJSONLDEntry(forEntity: entity, key: key, value: jsonObject)
+            }
         } else {
             throw KBError.notSupported
         }
@@ -126,16 +107,11 @@ extension KBKnowledgeStore {
     fileprivate func `import`(entity: KBEntity,
                               fromJsonld jsonObject: Any) async throws {
         if let dictionary = jsonObject as? KBJSONObject {
-            try await withThrowingTaskGroup(of: Void.self, body: { group in
-                for (k, v) in dictionary {
-                    group.async {
-                        try await self.evaluateJSONLDEntry(forEntity: targetEntity, key: k, value: v)
-                        }
-                    }
-                }
-            })
+            for (k, v) in dictionary {
+                try await self.evaluateJSONLDEntry(forEntity: entity, key: k, value: v)
+            }
         } else {
-            throws JSONLDParseError.unexpectedFormat
+            throw JSONLDParseError.unexpectedFormat
         }
     }
     
@@ -149,13 +125,9 @@ extension KBKnowledgeStore {
         let object = try JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions())
         
         if let array = object as? [KBJSONObject] {
-            try await withThrowingTaskGroup(of: Void.self, body: { group in
-                for obj in array {
-                    group.async {
-                        try await evaluate(obj)
-                    }
-                }
-            })
+            for obj in array {
+                try await evaluate(obj)
+            }
         } else if let obj = object as? KBJSONObject {
             try await evaluate(obj)
         }
@@ -164,29 +136,16 @@ extension KBKnowledgeStore {
     //MARK: importContentsOfJSONLD(atPath:completionHandler:)
     
     @objc public func importContentsOfJSONLD(atPath path: String) async throws {
-        
-        if FileManager.default.fileExists(atPath: path) {
-            do {
-                let data = try Data(
-                    contentsOf: URL(fileURLWithPath: path),
-                    options: Data.ReadingOptions.alwaysMapped
-                )
-            } catch {
-                log.error("error reading JSONLD file. %@", error.localizedDescription)
-                throws error
-            }
-            
-            try await withThrowingTaskGroup(of: Void.self, body: { group in
-                for obj in array {
-                    group.async {
-                        try await self.importJSONLD(data: data)
-                    }
-                }
-            })
-        } else {
+        guard FileManager.default.fileExists(atPath: path) else {
             log.error("no such JSONLD file at path %@", path)
             throw JSONLDParseError.resourceNotAvailable
         }
+        
+        let data = try Data(
+            contentsOf: URL(fileURLWithPath: path),
+            options: Data.ReadingOptions.alwaysMapped
+        )
+        try await self.importJSONLD(data: data)
     }
     
 }

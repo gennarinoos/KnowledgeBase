@@ -98,7 +98,7 @@ open class KBPersistentStoreHandler: NSObject {
     /// to a data vault it would prevent other system agents from deleting
     /// the user directory.
     private static func createDirectory(at path: String) -> Bool {
-        #if os(OSX)
+        #if os(macOS)
         let result = Swift.Result { try FileManager.default.createDirectory(
             atPath: path,
             withIntermediateDirectories: true,
@@ -343,7 +343,7 @@ open class KBPersistentStoreHandler: NSObject {
                 default:
                     let data = try NSKeyedArchiver.archivedData(withRootObject: value, requiringSecureCoding: true)
                     query = String(format: format, SQLTableType.AnyValue.rawValue)
-                    bindings = [key, data.datatypeValue()]
+                    bindings = [key, data.datatypeValue]
                 }
                 
                 _ = try connection.run(query, bindings)
@@ -758,7 +758,7 @@ open class KBPersistentStoreHandler: NSObject {
         case let stringValue as String:
             return stringValue
         case let blob as Blob:
-            let data = Data(bytes: blob.bytes)
+            let data = Data.fromDatatypeValue(blob)
             let unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
             let unarchived = unarchiver.decodeObject(of: BlobValueAllowedClasses, forKey: NSKeyedArchiveRootObjectKey)
             unarchiver.finishDecoding()

@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Logging.swift
 //  
 //
 //  Created by Gennaro Frazzingaro on 6/22/21.
@@ -8,12 +8,17 @@
 import Foundation
 import os
 
+let kKBLoggingSubsystem = "com.gf.KnowledgeBase"
+let kCKLogContextFramework = "Framework"
+let kCKLogContextDaemon = "Daemon"
+
+
 class KBLogger {
 
     static func framework() -> KBLogger {
         return KBLogger(OSLog(
-            subsystem: String(cString: CKLoggingSubsystem),
-            category: String(cString: kCKLogContextFramework)))
+            subsystem: kKBLoggingSubsystem,
+            category: kCKLogContextFramework))
     }
 
     let osLog: OSLog

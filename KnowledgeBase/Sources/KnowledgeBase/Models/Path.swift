@@ -100,9 +100,8 @@ extension KBPersistentStoreHandler {
     }
 }
 
-extension CKKnowledgeStore {
-    public func verify(path: KBPath,
-                       completionHandler: @escaping (Error?, Bool) -> ()) {
-        self.backingStore.verify(path: path, completionHandler: completionHandler)
+extension KBKnowledgeStore {
+    public func verify(path: KBPath) async throws -> Bool {
+        return try await self.backingStore.verify(path: path)
     }
 }

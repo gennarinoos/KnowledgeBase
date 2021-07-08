@@ -1,6 +1,6 @@
 //
 //  BackingStore.swift
-//  
+//
 //
 //  Created by Gennaro Frazzingaro on 6/19/21.
 //
@@ -40,27 +40,28 @@ protocol KBBackingStore {
    // GRAPH LINKS
     func verify(path: KBPath) async throws -> Bool
     
-   func setWeight(forLinkWithLabel predicate: String,
-                  between subjectIdentifier: String,
-                  and objectIdentifier: String,
-                  toValue newValue: Int) async throws
-   func increaseWeight(forLinkWithLabel predicate: String,
-                       between subjectIdentifier: String,
-                       and objectIdentifier: String) async throws -> Int
-   func decreaseWeight(forLinkWithLabel predicate: Label,
-                       between subjectIdentifier: Label,
-                       and objectIdentifier: Label) async throws -> Int
-   func dropLink(withLabel predicate: String,
-                 between subjectIdentifier: String,
-                 and objectIdentifier: String) async throws
-   func dropLinks(withLabel predicate: String?,
-                  from subjectIdentifier: String) async throws
-   func dropLinks(between subjectIdentifier: String,
-                  and objectIdentifier: String) async throws
+    func setWeight(forLinkWithLabel predicate: Label,
+                   between subjectIdentifier: Label,
+                   and objectIdentifier: Label,
+                   toValue newValue: Int) async throws
+    func increaseWeight(forLinkWithLabel predicate: String,
+                        between subjectIdentifier: Label,
+                        and objectIdentifier: Label) async throws -> Int
+    func decreaseWeight(forLinkWithLabel predicate: Label,
+                        between subjectIdentifier: Label,
+                        and objectIdentifier: Label) async throws -> Int
+    func dropLink(withLabel predicate: Label,
+                  between subjectIdentifier: Label,
+                  and objectIdentifier: Label) async throws
+    func dropLinks(withLabel predicate: Label?,
+                   from subjectIdentifier: Label) async throws
+    func dropLinks(between subjectIdentifier: Label,
+                   and objectIdentifier: Label) async throws
    
-   func disableSyncAndDeleteCloudData() async throws
+    func disableSyncAndDeleteCloudData() async throws
 }
 
 protocol KBPersistentBackingStore: KBBackingStore {
     var storeHandler: KBPersistentStoreHandler { get }
 }
+

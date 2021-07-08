@@ -22,6 +22,8 @@
 // THE SOFTWARE.
 //
 
+import Foundation
+
 /// - Warning: `Binding` is a protocol that SQLite.swift uses internally to
 ///   directly map SQLite types to Swift types.
 ///
@@ -120,12 +122,12 @@ extension Data : Value {
     static var declaredDatatype = Blob.declaredDatatype
 
     static func fromDatatypeValue(_ dataValue: Blob) -> Data {
-        return Data(bytes: dataValue.bytes)
+        return Data(dataValue.bytes)
     }
 
     var datatypeValue: Blob {
-        return withUnsafeBytes { (pointer: UnsafePointer<UInt8>) -> Blob in
-            return Blob(bytes: pointer, length: count)
+        return withUnsafeBytes { (pointer: UnsafeRawBufferPointer) -> Blob in
+            return Blob(bytes: pointer.baseAddress!, length: count)
         }
     }
 }
@@ -147,7 +149,7 @@ extension Date : Value {
 /// custom `Value` type per additional format.
 var dateFormatter: DateFormatter = {
     let formatter = DateFormatter()
-    formatter.dateFormat = kCKDefaultDateFormat
+    formatter.dateFormat = KBDefaultDateFormat
     formatter.locale = Locale(identifier: "en_US_POSIX")
     formatter.timeZone = TimeZone(secondsFromGMT: 0)
     return formatter

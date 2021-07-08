@@ -53,7 +53,7 @@ extension KBSQLBackingStoreProtocol {
         return try self.storeHandler.tripleComponents(matching: condition)
     }
     
-    func verify(path: KBPath) throws -> Bool {
+    func verify(path: KBPath) async throws -> Bool {
         return try self.storeHandler.verify(path: path)
     }
 
@@ -63,9 +63,9 @@ extension KBSQLBackingStoreProtocol {
         self.storeHandler.setValue(value, forKey: key)
     }
     
-    func setWeight(forLinkWithLabel predicate: String,
-                   between subjectIdentifier: String,
-                   and objectIdentifier: String,
+    func setWeight(forLinkWithLabel predicate: Label,
+                   between subjectIdentifier: Label,
+                   and objectIdentifier: Label,
                    toValue newValue: Int) async throws {
         try self.storeHandler.setWeight(forLinkWithLabel: predicate,
                                                 between: subjectIdentifier,
@@ -73,9 +73,9 @@ extension KBSQLBackingStoreProtocol {
                                                 toValue: newValue)
     }
     
-    func increaseWeight(forLinkWithLabel predicate: String,
-                        between subjectIdentifier: String,
-                        and objectIdentifier: String) async throws -> Int {
+    func increaseWeight(forLinkWithLabel predicate: Label,
+                        between subjectIdentifier: Label,
+                        and objectIdentifier: Label) async throws -> Int {
         return try await self.storeHandler.increaseWeight(forLinkWithLabel: predicate,
                                                                  between: subjectIdentifier,
                                                                  and: objectIdentifier)
@@ -107,22 +107,22 @@ extension KBSQLBackingStoreProtocol {
         return try self.storeHandler.removeAllValues()
     }
     
-    func dropLink(withLabel predicate: String,
-                  between subjectIdentifier: String,
-                  and objectIdentifier: String) async throws {
+    func dropLink(withLabel predicate: Label,
+                  between subjectIdentifier: Label,
+                  and objectIdentifier: Label) async throws {
         return try self.storeHandler.dropLink(withLabel: predicate,
                                                       between: subjectIdentifier,
                                                       and: objectIdentifier)
     }
     
-    func dropLinks(withLabel predicate: String?,
-                   from subjectIdentifier: String) async throws {
+    func dropLinks(withLabel predicate: Label?,
+                   from subjectIdentifier: Label) async throws {
         return try self.storeHandler.dropLinks(withLabel: predicate,
                                                        from: subjectIdentifier)
     }
     
-    func dropLinks(between subjectIdentifier: String,
-                   and objectIdentifier: String) async throws {
+    func dropLinks(between subjectIdentifier: Label,
+                   and objectIdentifier: Label) async throws {
         return try self.storeHandler.dropLinks(between: subjectIdentifier,
                                                        and: objectIdentifier)
     }
@@ -134,6 +134,7 @@ extension KBSQLBackingStoreProtocol {
 
 
 class KBSQLBackingStore : KBSQLBackingStoreProtocol {
+    
     var name: String
     
     // SQL database on disk
@@ -180,5 +181,9 @@ class KBSQLBackingStore : KBSQLBackingStoreProtocol {
         
         return directory.appendingPathComponent(KnowledgeBaseBundleIdentifier)
     }()
+    
+    func writeBatch() -> KBKnowledgeStoreWriteBatch {
+        return KBSQLWriteBatch(backingStore: self)
+    }
 }
 

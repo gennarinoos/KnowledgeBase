@@ -25,6 +25,14 @@ internal func nilToNSNull(_ v: Any?) -> Any {
 }
 
 #if os(macOS)
+//#if DEBUG
+// Do not use XPC in DEBUG mode
+
+//class KBSQLXPCBackingStore : KBSQLBackingStore {
+//}
+
+//#else
+
 class KBSQLXPCBackingStore : KBBackingStore {
     var name: String
     let connection: NSXPCConnection
@@ -57,10 +65,9 @@ class KBSQLXPCBackingStore : KBBackingStore {
         return self.init(name: KnowledgeBaseSQLDefaultIdentifier)
     }
     
-    func daemon(errorHandler: @escaping (Error) -> ()) -> KBStorageXPCInterface? {
+    func daemon() -> KBStorageXPCInterface? {
         return self.connection.remoteObjectProxyWithErrorHandler { (error) in
             log.fault("XPC connection error %s", error.localizedDescription)
-            errorHandler(error)
             } as? KBStorageXPCInterface
     }
     
@@ -97,56 +104,68 @@ class KBSQLXPCBackingStore : KBBackingStore {
     
     //MARK: SELECT
     
-    func keys(completionHandler: @escaping (Error?, [String]) -> ()) {
-            self.daemon(errorHandler: KBErrorHandler(completionHandler))?
-                .keys(inStoreWithIdentifier: self.name, completionHandler: completionHandler)
+    func keys() async throws -> [String] {
+        guard let daemon = self.daemon() else {
+            throw KBError.fatalError("Could not connect to XPC service")
+        }
+        return try await daemon.keys(inStoreWithIdentifier: self.name)
     }
     
-    func keys(matching condition: KBGenericCondition, completionHandler: @escaping (Error?, [String]) -> ()) {
-            self.daemon(errorHandler: KBErrorHandler(completionHandler))?
-                .keys(matching: condition, inStoreWithIdentifier: self.name) {
-                    (error, keys) in
-                    let _ = self // Retain self in the block to keep XPC connection alive
-                    completionHandler(error, keys)
-            }
+    func keys(matching condition: KBGenericCondition) async throws -> [String] {
+        guard let daemon = self.daemon() else {
+            throw KBError.fatalError("Could not connect to XPC service")
+        }
+        let keys = try await daemon.keys(matching: condition, inStoreWithIdentifier: self.name)
+        let _ = self // Retain self in the block to keep XPC connection alive
+        return keys
     }
     
-    func value(forKey key: String,
-               completionHandler: @escaping (Error?, Any?) -> ()) {
-            self.daemon(errorHandler: KBErrorHandler(completionHandler))?
-                .value(forKey: key, inStoreWithIdentifier: self.name) {
-                    (error, value) in
-                    let _ = self // Retain self in the block to keep XPC connection alive
-                    completionHandler(error, value)
-            }
+    func value(forKey key: String) async throws -> Any? {
+        guard let daemon = self.daemon() else {
+            throw KBError.fatalError("Could not connect to XPC service")
+        }
+        let value = try await daemon.value(forKey: key, inStoreWithIdentifier: self.name)
+        let _ = self // Retain self in the block to keep XPC connection alive
+        return value
     }
     
-    func values(completionHandler: @escaping (Error?, [Any]) -> ()) {
-            self.daemon(errorHandler: KBErrorHandler(completionHandler))?
-                .values(inStoreWithIdentifier: self.name) {
-                    (error, values) in
-                    let _ = self // Retain self in the block to keep XPC connection alive
-                    completionHandler(error, values)
-            }
+    func values() async throws -> [Any] {
+        guard let daemon = self.daemon() else {
+            throw KBError.fatalError("Could not connect to XPC service")
+        }
+        let keysAndValues = try await daemon.keysAndValues(inStoreWithIdentifier: self.name)
+        let _ = self // Retain self in the block to keep XPC connection alive
+        return keysAndValues.map { $1 }
     }
     
-    func values(forKeys keys: [String], completionHandler: @escaping (Error?, [Any?]) -> ()) {
-            self.daemon(errorHandler: KBErrorHandler(completionHandler))?
-                .values(forKeys: keys, inStoreWithIdentifier: self.name) {
-                    (error: Error?, objcValues: [Any]) in
-                    let _ = self // Retain self in the block to keep XPC connection alive
-                    let values: [Any?] = objcValues.map(NSNullToNil)
-                    completionHandler(error, values)
+    func values(forKeys keys: [String]) async throws -> [Any?] {
+        guard let daemon = self.daemon() else {
+            throw KBError.fatalError("Could not connect to XPC service")
+        }
+        
+        var condition: KBGenericCondition? = nil
+        for keyCondition in keys {
+            let curr = KBGenericCondition(.equal, value: keyCondition)
+            if let c = condition {
+                condition = c.or(curr)
+            } else {
+                condition = curr
             }
+        }
+
+        let keysAndValues = try await daemon.keysAndValues(forKeysMatching: condition!, inStoreWithIdentifier: self.name)
+        let _ = self // Retain self in the block to keep XPC connection alive
+        return keysAndValues.map { $1 }
     }
     
-    func values(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Error?, [Any]) -> ()) {
-            self.daemon(errorHandler: KBErrorHandler(completionHandler))?
-                .values(forKeysMatching: condition, inStoreWithIdentifier: self.name) {
-                    (error, values) in
-                    let _ = self // Retain self in the block to keep XPC connection alive
-                    completionHandler(error, values)
-            }
+    func values(forKeysMatching condition: KBGenericCondition) async throws -> [Any] {
+        guard let daemon = self.daemon() else {
+            throw KBError.fatalError("Could not connect to XPC service")
+        }
+        
+        let keysAndValues = try await daemon.keysAndValues(forKeysMatching: condition!, inStoreWithIdentifier: self.name)
+        let _ = self // Retain self in the block to keep XPC connection alive
+        return keysAndValues.map { $1 }
     }
     
     func dictionaryRepresentation(completionHandler: @escaping (Error?, KBJSONObject) -> ()) {
@@ -334,5 +353,7 @@ class KBSQLXPCBackingStore : KBBackingStore {
         throw KBError.notSupported
     }
 }
+
+#endif
 #endif
 
