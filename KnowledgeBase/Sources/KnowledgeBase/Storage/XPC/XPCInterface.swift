@@ -21,7 +21,7 @@ import Foundation
     
     func keysAndValues(forKeysMatching: KBGenericCondition, inStoreWithIdentifier identifier: String) async throws  -> [String: Any]
     
-    func tripleComponents(matching: KBTripleCondition, inStoreWithIdentifier identifier: String) async throws -> [KBTriple]
+    func tripleComponents(matching: KBTripleCondition?, inStoreWithIdentifier identifier: String) async throws -> [KBTriple]
 
     // CREATE/UPDATE
     
@@ -31,13 +31,13 @@ import Foundation
 
     // DELETE
     
-    func removeValue(forKey: String, toStoreWithIdentifier: String) async throws
+    func removeValue(forKey: String, fromStoreWithIdentifier: String) async throws
     
-    func removeValue(forKey: String, toSynchedStoreWithIdentifier: String) async throws
+    func removeValue(forKey: String, fromSynchedStoreWithIdentifier: String) async throws
     
-    func removeValues(forKeys: [String], toStoreWithIdentifier: String) async throws
+    func removeValues(forKeys: [String], fromStoreWithIdentifier: String) async throws
     
-    func removeValues(forKeys: [String], toSynchedStoreWithIdentifier: String) async throws
+    func removeValues(forKeys: [String], fromSynchedStoreWithIdentifier: String) async throws
     
     func removeValues(matching: KBGenericCondition, fromStoreWithIdentifier: String) async throws
     
@@ -51,13 +51,15 @@ import Foundation
     
     func setWeight(forLinkWithLabel: String, between: String, and: String, toValue: Int, inStoreWithIdentifier: String) async throws
     
-    func increaseWeight(forLinkWithLabel: String, between: String, and: String, toValue: Int, inStoreWithIdentifier: String) async throws
+    func increaseWeight(forLinkWithLabel: String, between: String, and: String, inStoreWithIdentifier: String) async throws -> Int
     
-    func decreaseWeight(forLinkWithLabel: String, between: String, and: String, toValue: Int, inStoreWithIdentifier: String) async throws
+    func decreaseWeight(forLinkWithLabel: String, between: String, and: String, inStoreWithIdentifier: String) async throws -> Int
     
-    func dropLink(withLabel: String, between: String, and: String, toValue: Int, inStoreWithIdentifier: String) async throws
+    func dropLink(withLabel: String, between: String, and: String, inStoreWithIdentifier: String) async throws
     
-    func dropLinks(between: String, and: String, toValue: Int, inStoreWithIdentifier: String) async throws
+    func dropLinks(withLabel: String?, from: String, inStoreWithIdentifier: String) async throws
+    
+    func dropLinks(between: String, and: String, inStoreWithIdentifier: String) async throws
 
     // CLOUD SYNC
 

@@ -341,7 +341,12 @@ open class KBPersistentStoreHandler: NSObject {
                     bindings = [key, stringValue]
                     break
                 default:
-                    let data = try NSKeyedArchiver.archivedData(withRootObject: value, requiringSecureCoding: true)
+                    let data: Data
+                    if #available(macOS 10.13, *) {
+                        data = try NSKeyedArchiver.archivedData(withRootObject: value, requiringSecureCoding: true)
+                    } else {
+                        data = NSKeyedArchiver.archivedData(withRootObject: value)
+                    }
                     query = String(format: format, SQLTableType.AnyValue.rawValue)
                     bindings = [key, data.datatypeValue]
                 }
@@ -446,7 +451,12 @@ open class KBPersistentStoreHandler: NSObject {
             
             if let blob = row[1] as? Blob {
                 let data = Data.fromDatatypeValue(blob)
-                let unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
+                let unarchiver: NSKeyedUnarchiver
+                if #available(macOS 10.13, *) {
+                    unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
+                } else {
+                    unarchiver = NSKeyedUnarchiver(forReadingWith: data)
+                }
                 if let triple = unarchiver.decodeObject(of: KBTriple.self, forKey: NSKeyedArchiveRootObjectKey) {
                     triples.insert(triple)
                 }
@@ -759,7 +769,12 @@ open class KBPersistentStoreHandler: NSObject {
             return stringValue
         case let blob as Blob:
             let data = Data.fromDatatypeValue(blob)
-            let unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
+            let unarchiver: NSKeyedUnarchiver
+            if #available(macOS 10.13, *) {
+                unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
+            } else {
+                unarchiver = NSKeyedUnarchiver(forReadingWith: data)
+            }
             let unarchived = unarchiver.decodeObject(of: BlobValueAllowedClasses, forKey: NSKeyedArchiveRootObjectKey)
             unarchiver.finishDecoding()
             return unarchived

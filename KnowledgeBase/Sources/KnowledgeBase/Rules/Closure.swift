@@ -98,7 +98,12 @@ public extension KBKnowledgeStore {
                                     withPredicate: "\(NEGATION_PREFIX)\(ruleLiteral.predicate ?? "*")")
         }
         
-        let value = try NSKeyedArchiver.archivedData(withRootObject: closure, requiringSecureCoding: true)
+        let value: Any
+        if #available(macOS 10.13, *) {
+            value = try NSKeyedArchiver.archivedData(withRootObject: closure, requiringSecureCoding: true)
+        } else {
+            value = NSKeyedArchiver.archivedData(withRootObject: closure)
+        }
         try await self.setValue(value,
                                 forKey: closure.identifier)
     }

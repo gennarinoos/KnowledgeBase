@@ -84,10 +84,13 @@ class KBSQLXPCWriteBatch : KBAbstractWriteBatch, KBKnowledgeStoreWriteBatch {
     var queue: DispatchQueue = DispatchQueue(label: "\(KnowledgeBaseBundleIdentifier).SQLWriteBatch", qos: .userInteractive)
     
     func write() async throws {
-        guard let backingStore = self.backingStore as? KBSQLBackingStore else {
-            log.fault("KBSQLWriteBatch should back a KBSQLBackingStore")
-            completionHandler(KBError.notSupported)
-            return
+        guard let backingStore = self.backingStore as? KBSQLXPCBackingStore else {
+            log.fault("KBSQLWriteBatch should back a KBSQLXPCBackingStore")
+            throw KBError.notSupported
+        }
+        
+        guard let daemon = backingStore.daemon() else {
+            throw KBError.fatalError("Could not connect to XPC service")
         }
         
         // Transform nil to NSNull so that Dictionary<String, Any?>
@@ -97,14 +100,8 @@ class KBSQLXPCWriteBatch : KBAbstractWriteBatch, KBKnowledgeStoreWriteBatch {
             unwrappedBuffer[k] = nilToNSNull(v)
         }
         
-        backingStore.daemon(errorHandler: completionHandler)?
-            .save(unwrappedBuffer, toStoreWithIdentifier: backingStore.name) {
-            (error: Error?) in
-            if error == nil {
-                self.buffer.removeAll()
-            }
-            completionHandler(error)
-        }
+        try await daemon.save(unwrappedBuffer, toStoreWithIdentifier: backingStore.name)
+        self.buffer.removeAll()
     }
 }
 
