@@ -6,6 +6,6 @@ final class KnowledgeBaseTests: XCTestCase {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct
         // results.
-        XCTAssertEqual(KnowledgeBase().text, "Hello, World!")
+        let knowledgeStore = KBKnowledgeStore.defaultKnowledgeStore()
     }
 }

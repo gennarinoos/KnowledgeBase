@@ -341,9 +341,9 @@ extension KBKnowledgeStore {
      
      - parameter query: the SPARQL SELECT query to execute
      */
-    @objc open func sparqlResults(forQuery query: String) async throws {
-        let solver = KBSPARQLEndpoint(knowledgeStore: self)
-        return try await solver.sparqlResults(forQuery: query)
+    @objc open func sparqlResults(forQuery query: String) async throws -> [Any] {
+        let solver = KBSPARQLEndpoint(with: self)
+        return try await solver.execute(query: query)
     }
 
 }
@@ -394,9 +394,9 @@ extension KBKnowledgeStore {
     
     //MARK: - INSERT GRAPH
     
-    @objc open func importTriples(fromFileAtPath path: String) async throws {
-        let solver = KBSPARQLEndpoint(knowledgeStore: self)
-        try await solver.importTriples(fromFileAtPath: path)
+    @objc open func importTriples(fromFileAtPath path: String) {
+        let solver = KBSPARQLEndpoint(with: self)
+        solver.importTriples(fromFile: path)
     }
     
     //MARK: - DELETE GRAPH
