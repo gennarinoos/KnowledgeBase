@@ -5,6 +5,8 @@
 //  Created by Gennaro Frazzingaro on 6/25/21.
 //
 
+import Foundation
+
 extension String {
 
     /************************************************
@@ -153,3 +155,14 @@ extension String {
     }
 }
 
+
+extension String {
+    func toDate(_ format:String = "MM/dd/yyyy") -> Date? {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone(abbreviation: "GMT")
+        formatter.dateFormat = format
+
+        return formatter.date(from: self)
+    }
+}

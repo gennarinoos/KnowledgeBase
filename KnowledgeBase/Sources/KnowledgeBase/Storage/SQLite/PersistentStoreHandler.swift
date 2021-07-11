@@ -27,8 +27,7 @@ public let BlobValueAllowedClasses = [
     NSArray.self,
     NSDictionary.self,
     NSDate.self,
-//    KBHistoricEvent.self,
-//    KBAppInteractionsContext.self,
+    KBHistoricEvent.self,
     KBTriple.self
 ]
 

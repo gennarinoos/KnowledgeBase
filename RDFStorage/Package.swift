@@ -95,7 +95,6 @@ let cSettings: [PackageDescription.CSetting] = [
     .define("HAVE_U32"),
     .define("HAVE_BYTE"),
     .define("HAVE_CONFIG_H"),
-//                    .undef("HAVE_SYSTEM_CONFIG_H")
 ]
 
 let package = Package(

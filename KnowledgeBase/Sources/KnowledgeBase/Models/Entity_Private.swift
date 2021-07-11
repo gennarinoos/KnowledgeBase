@@ -27,7 +27,7 @@ extension KBEntity {
         for rule in satisfiableRules {
             if rule.predicate.beginsWith(CLOSURE_PREFIX) {
                 assert(rule.predicate.endIndex > CLOSURE_PREFIX.endIndex)
-                let closureIdentifier = rule.predicate.substring(from: CLOSURE_PREFIX.endIndex)
+                let closureIdentifier = String(rule.predicate[CLOSURE_PREFIX.endIndex...])
 
                 if let data = try await self.store.value(forKey: closureIdentifier) as? Data {
                     if let closure = NSKeyedUnarchiver.unarchiveObject(with: data)
