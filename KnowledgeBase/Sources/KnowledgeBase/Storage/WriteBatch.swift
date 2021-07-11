@@ -79,6 +79,14 @@ class KBCloudKitSQLWriteBatch : KBSQLWriteBatch {
 
 #if os(macOS)
 
+#if DEBUG
+// Do not use XPC in DEBUG mode
+
+class KBSQLXPCWriteBatch : KBSQLWriteBatch {
+}
+
+#else
+
 class KBSQLXPCWriteBatch : KBAbstractWriteBatch, KBKnowledgeStoreWriteBatch {
     
     var queue: DispatchQueue = DispatchQueue(label: "\(KnowledgeBaseBundleIdentifier).SQLWriteBatch", qos: .userInteractive)
@@ -104,6 +112,7 @@ class KBSQLXPCWriteBatch : KBAbstractWriteBatch, KBKnowledgeStoreWriteBatch {
         self.buffer.removeAll()
     }
 }
+#endif
 
 #if DEBUG
 // Do not use XPC in DEBUG mode

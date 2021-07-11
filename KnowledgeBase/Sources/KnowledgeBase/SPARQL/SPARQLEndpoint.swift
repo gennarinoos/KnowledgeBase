@@ -8,7 +8,6 @@
 import Foundation
 import RDFStorage
 
-@available(macOS 12.0, *)
 class KBSPARQLEndpoint {
     internal let rdfStore: BaseRDFStore
     

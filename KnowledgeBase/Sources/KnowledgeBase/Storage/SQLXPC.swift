@@ -24,14 +24,13 @@ internal func nilToNSNull(_ v: Any?) -> Any {
     return v!
 }
 
-#if os(macOS)
-//#if DEBUG
-// Do not use XPC in DEBUG mode
+#if (!os(macOS)) || DEBUG
+// Do not use XPC in DEBUG mode or platforms other than macOS
 
-//class KBSQLXPCBackingStore : KBSQLBackingStore {
-//}
+class KBSQLXPCBackingStore : KBSQLBackingStore {
+}
 
-//#else
+#else
 
 class KBSQLXPCBackingStore : KBBackingStore {
     var name: String
