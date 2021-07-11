@@ -1,18 +1,19 @@
 //
-//  CRDFStorage.m
+//  librdf_custom_storage_bridge.m
 //
 //
 //  Created by Gennaro Frazzingaro on 7/9/21.
 //
 
-#import "CRDFStorage.h"
 
+#import "librdf_custom_storage_bridge.h"
 
 NSDictionary *librdf_query_results_get_nsdictionary_current_bindings(librdf_query_results *result);
 
 NSDictionary *librdf_query_results_get_nsdictionary_all_bindings(librdf_query_results *result)
 {
     if (NULL == result || librdf_query_results_finished(result)) {
+//        CKLogErrorFramework("no result");
         return nil;
     }
     
@@ -88,33 +89,38 @@ NSString *librdf_node_get_nsstring_value(librdf_node *node)
     return [[NSString alloc] initWithUTF8String:cString];
 }
 
-//librdf_statement *librdf_statement_from_ck_triple(librdf_world *world, CKTriple *triple)
-//{
-//    librdf_statement *statement;
-//    librdf_node *subject, *predicate, *object;
-//
-//    subject = librdf_new_node_from_literal(world, (const unsigned char *)[[triple subject] UTF8String], NULL,0);
-//    object = librdf_new_node_from_literal(world, (const unsigned char *)[[triple object] UTF8String], NULL,0);
-//    predicate = librdf_new_node_from_literal(world, (const unsigned char *)[[triple predicate] UTF8String], NULL,0);
-//
-//    statement = librdf_new_statement(world);
-//    librdf_statement_set_subject(statement, subject);
-//    librdf_statement_set_object(statement, object);
-//    librdf_statement_set_predicate(statement, predicate);
-//    return statement;
-//}
-//
+librdf_statement *librdf_statement_from_ck_triple(librdf_world *world, NSArray *triple)
+{
+    assert([triple count] == 3);
+    const char *subjectS = [[triple objectAtIndex:0] UTF8String];
+    const char *predicateS = [[triple objectAtIndex:1] UTF8String];
+    const char *objectS = [[triple objectAtIndex:2] UTF8String];
+    
+    librdf_statement *statement;
+    librdf_node *subject, *predicate, *object;
+    
+    subject = librdf_new_node_from_literal(world, (const unsigned char *)subjectS, NULL,0);
+    object = librdf_new_node_from_literal(world, (const unsigned char *)objectS, NULL,0);
+    predicate = librdf_new_node_from_literal(world, (const unsigned char *)predicateS, NULL,0);
+
+    statement = librdf_new_statement(world);
+    librdf_statement_set_subject(statement, subject);
+    librdf_statement_set_object(statement, object);
+    librdf_statement_set_predicate(statement, predicate);
+    return statement;
+}
+
 //NSArray * __nullable triplesMatchingCondition(CKKnowledgeStore * __nonnull store, CKTripleCondition * __nullable condition, NSError * __nullable __autoreleasing *error) {
 //    __block NSArray *triples;
 //    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
-//
+//    
 //    [store triplesMatching:condition completionHandler:^(NSError *queryError, NSArray<CKTriple *> *result) {
 //        *error = queryError;
 //        triples = result;
 //        dispatch_semaphore_signal(semaphore);
 //    }];
-//
+//    
 //    dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
-//
+//    
 //    return triples;
 //}

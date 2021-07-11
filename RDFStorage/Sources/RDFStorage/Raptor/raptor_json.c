@@ -44,7 +44,11 @@
 #include <stdlib.h>
 #endif
 
+#ifdef IS_MODULE
+#include "../yajl/yajl_parse.h"
+#else
 #include <yajl_parse.h>
+#endif
 
 /* Raptor includes */
 #include "raptor2.h"

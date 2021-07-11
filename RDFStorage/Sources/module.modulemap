@@ -1,7 +1,0 @@
-framework module CRDFStorage {
-//    header "../../Headers/CRDFStorage-Bridging-Header.h"
-    header "RDFStorage.h"
-    private header "CRDFStorage.h"
-//    link "rdf"
-//    export *
-}

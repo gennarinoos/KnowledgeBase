@@ -1,5 +1,5 @@
 //
-//  CRDFStorageGenericTest.swift
+//  RDFStorageGenericTest.swift
 //  
 //
 //  Created by Gennaro Frazzingaro on 7/9/21.
@@ -11,8 +11,11 @@ import XCTest
 class CRDFStorageGenericTest : XCTestCase {
 
     func testInitializeWorld() {
-        guard let world = librdf_new_world() else {
-            XCTFail("Failed to initialize librdf_world")
+        let storage = BaseRDFStore()
+        do {
+            try storage.execute(SPARQLQuery: "SELECT")
+        } catch {
+            XCTFail()
         }
     }
 }

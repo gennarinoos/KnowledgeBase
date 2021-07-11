@@ -55,8 +55,13 @@
 #define RANDOM_ALGO_BITS 32
 #endif
 #ifdef RANDOM_ALGO_MTWIST
-#include <mtwist_config.h>
+#ifdef IS_MODULE
+#include "mtwist.h"
+#include "mtwist_internal.h"
+#else
 #include <mtwist.h>
+#include <mtwist_internal.h>
+#endif
 #endif
 
 #include "rasqal.h"

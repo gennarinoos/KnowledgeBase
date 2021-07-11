@@ -31,7 +31,11 @@
 #ifndef YAJL_TREE_H
 #define YAJL_TREE_H 1
 
+#ifdef IS_MODULE
+#include "../yajl/yajl_common.h"
+#else
 #include <yajl_common.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {

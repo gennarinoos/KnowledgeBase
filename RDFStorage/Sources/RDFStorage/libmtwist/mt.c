@@ -51,9 +51,15 @@ typedef unsigned long uint32_t;
 #endif
 
 
+#ifdef IS_MODULE
+#include "mtwist.h"
+
+#include "mtwist_internal.h"
+#else
 #include <mtwist.h>
 
 #include <mtwist_internal.h>
+#endif
 
 /*
  * Mersenne Twister (MT19937) algorithm
