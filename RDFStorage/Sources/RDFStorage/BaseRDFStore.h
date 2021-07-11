@@ -26,7 +26,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSArray *)executeSPARQLQuery:(NSString *)queryString
                           error:(NSError **)error __attribute__((swift_error(nonnull_error))) NS_SWIFT_NAME(execute(SPARQLQuery:));
 
-- (void)importTriplesFromFileAtPath:(NSString *)path NS_SWIFT_NAME(importTriples(fromFileAtPath:));
+- (void)importTriplesFromFileAtPath:(NSString *)path completionHandler:(void (^)(NSError * _Nullable))completionHandler NS_SWIFT_NAME(importTriples(fromFileAtPath:completionHandler:));
 
 @end
 NS_ASSUME_NONNULL_END

@@ -70,7 +70,6 @@ open class KBKnowledgeStore : NSObject {
     }
 
     internal let backingStore: KBBackingStore
-    internal let sparqlQueue: DispatchQueue
     public let location: Location
 
     @objc open var delegate: KBKnowledgeStoreDelegate?
@@ -143,8 +142,6 @@ open class KBKnowledgeStore : NSObject {
 
     fileprivate init(_ location: Location) {
         self.location = location
-        self.sparqlQueue = DispatchQueue(label: "SPARQL",
-                                                qos: .userInteractive)
 
         switch (self.location) {
         case .inMemory, .sql(KnowledgeBaseInMemoryIdentifier):
@@ -478,9 +475,9 @@ extension KBKnowledgeStore : TripleStore {
     }
     
     
-    @objc open func importTriples(fromFileAtPath path: String) {
+    @objc open func importContentsOfTurtle(fromFileAt path: String) async throws {
         let solver = KBSPARQLEndpoint(with: self)
-        solver.importTriples(fromFile: path)
+        try await solver.importTurtle(fromFileAt: path)
     }
     
     /**

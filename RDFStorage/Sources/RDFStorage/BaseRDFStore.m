@@ -155,30 +155,35 @@ void handle_statement(void *store, raptor_statement *statement) {
     }];
 }
 
-- (void)importTriplesFromFileAtPath:(NSString *)path {
-    raptor_world *rworld = NULL;
-    raptor_parser* rdf_parser = NULL;
-    unsigned char *uri_string;
-    raptor_uri *ruri, *raptor_base_uri;
+- (void)importTriplesFromFileAtPath:(NSString *)path completionHandler:(void (^)(NSError * _Nullable))completionHandler {
     
-    rworld = raptor_new_world();
-    
-    rdf_parser = raptor_new_parser(rworld, "turtle");
-    
-    raptor_parser_set_statement_handler(rdf_parser, (__bridge void *)(_tripleStore), handle_statement);
-    
-    uri_string = raptor_uri_filename_to_uri_string([path UTF8String]);
-    ruri = raptor_new_uri(rworld, uri_string);
-    raptor_base_uri = raptor_uri_copy(ruri);
-    
-    raptor_parser_parse_file(rdf_parser, ruri, raptor_base_uri);
-    
-    raptor_free_parser(rdf_parser);
-    
-    raptor_free_uri(raptor_base_uri);
-    raptor_free_uri(ruri);
-    raptor_free_memory(uri_string);
-    raptor_free_world(rworld);
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
+        raptor_world *rworld = NULL;
+        raptor_parser* rdf_parser = NULL;
+        unsigned char *uri_string;
+        raptor_uri *ruri, *raptor_base_uri;
+        
+        rworld = raptor_new_world();
+        
+        rdf_parser = raptor_new_parser(rworld, "turtle");
+        
+        raptor_parser_set_statement_handler(rdf_parser, (__bridge void *)(_tripleStore), handle_statement);
+        
+        uri_string = raptor_uri_filename_to_uri_string([path UTF8String]);
+        ruri = raptor_new_uri(rworld, uri_string);
+        raptor_base_uri = raptor_uri_copy(ruri);
+        
+        raptor_parser_parse_file(rdf_parser, ruri, raptor_base_uri);
+        
+        raptor_free_parser(rdf_parser);
+        
+        raptor_free_uri(raptor_base_uri);
+        raptor_free_uri(ruri);
+        raptor_free_memory(uri_string);
+        raptor_free_world(rworld);
+        
+        completionHandler(nil);
+    });
 }
 
 @end

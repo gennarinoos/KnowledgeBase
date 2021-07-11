@@ -20,8 +20,8 @@ class KBSPARQLEndpoint {
         try self.rdfStore.execute(SPARQLQuery: query)
     }
     
-    public func importTriples(fromFile path: String) {
-        self.rdfStore.importTriples(fromFileAtPath: path)
+    public func importTurtle(fromFileAt path: String) async throws {
+        try await self.rdfStore.importTriples(fromFileAtPath: path)
     }
     
 }

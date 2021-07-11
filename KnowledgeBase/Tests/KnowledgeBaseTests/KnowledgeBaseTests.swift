@@ -7,6 +7,7 @@ final class KnowledgeBaseTests: XCTestCase {
         // Use XCTAssert and related functions to verify your tests produce the correct
         // results.
         let knowledgeStore = KBKnowledgeStore.defaultKnowledgeStore()
+        try await knowledgeStore.importContentsOfTurtle(fromFileAt: "")
         let results = try await knowledgeStore.execute(SPARQLQuery: "SELECT")
         assert(results.isEmpty)
     }
