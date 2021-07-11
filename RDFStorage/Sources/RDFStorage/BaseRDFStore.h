@@ -11,17 +11,17 @@
 #import <Foundation/Foundation.h>
 
 NS_ASSUME_NONNULL_BEGIN
-@protocol GenericBackingStore <NSObject>
+@protocol TripleStore <NSObject>
 
 @property (nonatomic, retain, strong, readonly) NSString *name;
 
-- (void)insertTripleWithSubject:(NSString *)subject predicate:(NSString *)predicate object:(NSString *)object error:(NSError **)error;
+- (void)insertTripleWithSubject:(NSString *)subject predicate:(NSString *)predicate object:(NSString *)object completionHandler:(void (^)(NSError * _Nullable))completionHandler;
 
 @end
 
 @interface BaseRDFStore : NSObject
 
-- (instancetype)initWithBackingStore:(id<GenericBackingStore>)store;
+- (instancetype)initWithTripleStore:(id<TripleStore>)store;
 
 - (NSArray *)executeSPARQLQuery:(NSString *)queryString
                           error:(NSError **)error __attribute__((swift_error(nonnull_error))) NS_SWIFT_NAME(execute(SPARQLQuery:));

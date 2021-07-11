@@ -1,4 +1,5 @@
 import Foundation
+import RDFStorage
 
 let KnowledgeBaseBundleIdentifier = "com.gf.framework.knowledgebase"
 let KnowledgeBaseInMemoryIdentifier = ":memory:"
@@ -335,16 +336,6 @@ extension KBKnowledgeStore {
     @objc open func triples(matching condition: KBTripleCondition?) async throws -> [KBTriple] {
         return try await self.backingStore.triplesComponents(matching: condition)
     }
-    
-    /**
-     Executes the SPARQL SELECT query and returns all the bounded values in the projection.
-     
-     - parameter query: the SPARQL SELECT query to execute
-     */
-    @objc open func sparqlResults(forQuery query: String) async throws -> [Any] {
-        let solver = KBSPARQLEndpoint(with: self)
-        return try await solver.execute(query: query)
-    }
 
 }
 
@@ -390,13 +381,6 @@ extension KBKnowledgeStore {
         }
         
         return true
-    }
-    
-    //MARK: - INSERT GRAPH
-    
-    @objc open func importTriples(fromFileAtPath path: String) {
-        let solver = KBSPARQLEndpoint(with: self)
-        solver.importTriples(fromFile: path)
     }
     
     //MARK: - DELETE GRAPH
@@ -479,6 +463,41 @@ extension KBKnowledgeStore {
      */
     @objc open func disableSyncAndDeleteCloudData() async throws {
         try await self.backingStore.disableSyncAndDeleteCloudData()
+    }
+    
+}
+
+
+extension KBKnowledgeStore : TripleStore {
+    
+    public func insertTriple(withSubject subject: String, predicate: String, object: String) async throws {
+        let subject = self.entity(withIdentifier: subject)
+        let object = self.entity(withIdentifier: object)
+        
+        try await subject.link(to: object, withPredicate: predicate)
+    }
+    
+    
+    @objc open func importTriples(fromFileAtPath path: String) {
+        let solver = KBSPARQLEndpoint(with: self)
+        solver.importTriples(fromFile: path)
+    }
+    
+    /**
+     Executes the SPARQL SELECT query and returns all the bounded values in the projection.
+     
+     - parameter query: the SPARQL SELECT query to execute
+     */
+    @objc open func execute(SPARQLQuery query: String) async throws -> [Any] {
+        let solver = KBSPARQLEndpoint(with: self)
+        return try await solver.execute(query: query)
+    }
+
+    
+    // MARK: TripleStore protocol
+    
+    public func insertTriple(withSubject subject: String, predicate: String, object: String, error: NSErrorPointer) {
+        
     }
 }
 

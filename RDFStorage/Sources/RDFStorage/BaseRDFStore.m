@@ -16,14 +16,14 @@ const char * const kDefaultCustomStorageIdentifier = "com.gf.rdf.storage";
 const int kGenericQueryErrorCode = -1;
 
 @implementation BaseRDFStore {
-    id<GenericBackingStore> _knowledgeStore;
+    id<TripleStore> _tripleStore;
 }
 
-- (instancetype)initWithBackingStore:(id<GenericBackingStore>)store
+- (instancetype)initWithTripleStore:(id<TripleStore>)store
 {
     self = [super init];
     if (self) {
-        _knowledgeStore = store;
+        _tripleStore = store;
     }
     return self;
 }
@@ -81,7 +81,7 @@ const int kGenericQueryErrorCode = -1;
     
     librdf_storage *storage = librdf_new_storage(world,
                                                  kDefaultCustomStorageIdentifier,
-                                                 [[_knowledgeStore name] UTF8String],
+                                                 [[_tripleStore name] UTF8String],
                                                  "contexts='yes'");
     
     if (NULL == storage) {
@@ -150,11 +150,9 @@ void handle_statement(void *store, raptor_statement *statement) {
     NSString *pred = [@((char *)raptor_term_to_string(statement->predicate)) stringByTrimmingCharactersInSet:toTrim];
     NSString *obj = [@((char *)raptor_term_to_string(statement->object)) stringByTrimmingCharactersInSet:toTrim];
     
-    NSError *err;
-    [(__bridge id<GenericBackingStore>)store insertTripleWithSubject:subj predicate:pred object:obj error:&err];
-    if (err) {
+    [(__bridge id<TripleStore>)store insertTripleWithSubject:subj predicate:pred object:obj completionHandler:^(NSError * error) {
 //        CKLogErrorFramework("SPARQL insert error");
-    }
+    }];
 }
 
 - (void)importTriplesFromFileAtPath:(NSString *)path {
@@ -167,7 +165,7 @@ void handle_statement(void *store, raptor_statement *statement) {
     
     rdf_parser = raptor_new_parser(rworld, "turtle");
     
-    raptor_parser_set_statement_handler(rdf_parser, (__bridge void *)(_knowledgeStore), handle_statement);
+    raptor_parser_set_statement_handler(rdf_parser, (__bridge void *)(_tripleStore), handle_statement);
     
     uri_string = raptor_uri_filename_to_uri_string([path UTF8String]);
     ruri = raptor_new_uri(rworld, uri_string);

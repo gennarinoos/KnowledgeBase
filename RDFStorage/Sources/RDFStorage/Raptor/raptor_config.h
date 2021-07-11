@@ -69,7 +69,7 @@
 #define HAVE_LIBXML_SAX2_H 1
 
 /* Define to 1 if you have the <libxslt/xslt.h> header file. */
-#define HAVE_LIBXSLT_XSLT_H 1
+//#define HAVE_LIBXSLT_XSLT_H 1
 
 /* Define to 1 if you have the <limits.h> header file. */
 #define HAVE_LIMITS_H 1

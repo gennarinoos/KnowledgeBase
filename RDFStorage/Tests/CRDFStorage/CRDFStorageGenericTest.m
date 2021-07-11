@@ -6,11 +6,21 @@
 //
 
 #import <XCTest/XCTest.h>
-#import "librdf_custom_storage_bridge.h"
-
-static const char *kCKSparqlLanguageIdentifier = "sparql";
+#import "BaseRDFStore.h"
 
 @interface CRDFStorageGenericTest : XCTestCase
+
+@end
+
+@interface TestTripleStore: NSObject<TripleStore>
+@end
+
+@implementation TestTripleStore
+@synthesize name;
+
+- (void)insertTripleWithSubject:(nonnull NSString *)subject predicate:(nonnull NSString *)predicate object:(nonnull NSString *)object error:(NSError *__autoreleasing  _Nullable * _Nullable)error {
+    // TODO: Implement in-memory triple store
+}
 
 @end
 
@@ -28,71 +38,8 @@ static const char *kCKSparqlLanguageIdentifier = "sparql";
     // This is an example of a functional test case.
     // Use XCTAssert and related functions to verify your tests produce the correct results.
     
-    NSMutableArray *results = [NSMutableArray new];
-    NSString *queryString = @"SELECT";
-    
-    librdf_world *world = librdf_new_world();
-    librdf_world_open(world);
-    
-    librdf_uri *base_uri = librdf_new_uri(world, (const unsigned char *)".");
-    
-    if (NULL == base_uri) {
-        librdf_free_world(world);
-    }
-    
-    librdf_storage_module_register_factory(world);
-    librdf_query *query = librdf_new_query(world,
-                                           kCKSparqlLanguageIdentifier,
-                                           0,
-                                           (unsigned char *)[queryString UTF8String],
-                                           base_uri);
-    
-    if (NULL == query) {
-        librdf_free_uri(base_uri);
-        librdf_free_world(world);
-        
-        return;
-    }
-    
-    librdf_storage *storage = librdf_new_storage(world,
-                                                 kDefaultCustomStorageIdentifier,
-                                                 "Blah",
-                                                 "contexts='yes'");
-    
-    if (NULL == storage) {
-        librdf_free_query(query);
-        librdf_free_uri(base_uri);
-        librdf_free_world(world);
-        
-        return;
-    }
-    
-    librdf_model *model = librdf_new_model(world, storage, "contexts='yes'");
-    
-    if (NULL == model) {
-        librdf_free_storage(storage);
-        librdf_free_query(query);
-        librdf_free_uri(base_uri);
-        librdf_free_world(world);
-
-        return;
-    }
-    
-    librdf_query_results *rdf_results = librdf_query_execute(query, model);
-    NSDictionary *resultsDictionary = librdf_query_results_get_nsdictionary_all_bindings(rdf_results);
-    while (resultsDictionary) {
-        [results addObject:resultsDictionary];
-        resultsDictionary = librdf_query_results_get_nsdictionary_all_bindings(rdf_results);
-    }
-    
-    librdf_free_query_results(rdf_results);
-    librdf_free_storage(storage);
-    librdf_free_model(model);
-    librdf_free_query(query);
-    librdf_free_uri(base_uri);
-    librdf_free_world(world);
-    
-    return results;
+    TestTripleStore *tripleStore = [[TestTripleStore alloc] init];
+    BaseRDFStore *rdfStore = [[BaseRDFStore alloc] initWithTripleStore:tripleStore];
 }
 
 - (void)testPerformanceExample {

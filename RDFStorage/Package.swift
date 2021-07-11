@@ -30,7 +30,7 @@ let cSettings: [PackageDescription.CSetting] = [
     .define("HAVE_LIBXML_NANOHTTP_H", to: "1"),
     .define("HAVE_LIBXML_PARSER_H", to: "1"),
     .define("HAVE_LIBXML_SAX2_H", to: "1"),
-    .define("HAVE_LIBXSLT_XSLT_H", to: "1"),
+    .define("HAVE_LIBXSLT_XSLT_H", .when(platforms: [.macOS])),
     .define("HAVE_LIMITS_H", to: "1"),
     .define("HAVE_MATH_H", to: "1"),
     .define("HAVE_MEMORY_H", to: "1"),
@@ -114,9 +114,6 @@ let package = Package(
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
         // Targets can depend on other targets in this package, and on products in packages this package depends on.
-//        .systemLibrary(
-//            name: "RDFStorage"
-//        )
         .target(
             name: "RDFStorage",
             path: "Sources/RDFStorage",

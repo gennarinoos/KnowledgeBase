@@ -8,10 +8,19 @@
 import XCTest
 @testable import RDFStorage
 
+class TestTripleStore: NSObject, TripleStore {
+    var name: String = "TestTripleStore"
+    
+    func insertTriple(withSubject subject: String, predicate: String, object: String, error: NSErrorPointer) {
+        // TODO: Implement in-memory triple store
+    }
+    
+}
+
 class CRDFStorageGenericTest : XCTestCase {
 
-    func testInitializeWorld() {
-        let storage = BaseRDFStore()
+    func testSPARQLQuery() {
+        let storage = BaseRDFStore(tripleStore: TestTripleStore())
         do {
             try storage.execute(SPARQLQuery: "SELECT")
         } catch {
