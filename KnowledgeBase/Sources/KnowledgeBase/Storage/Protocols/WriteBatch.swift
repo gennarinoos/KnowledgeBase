@@ -1,5 +1,5 @@
 //
-//  WriteBatch.swift
+//  ClassicWriteBatch.swift
 //  
 //
 //  Created by Gennaro Frazzingaro on 6/22/21.
@@ -7,10 +7,10 @@
 
 import Foundation
 
-@objc(KBKnowledgeStoreWriteBatch)
-public protocol KBKnowledgeStoreWriteBatch {
+//@objc(KBKVStoreWriteBatch)
+public protocol KBKVStoreWriteBatch {
     func setObject(_ object: Any?, forKey: String)
-    func write() async throws
+    func write(completionHandler: @escaping KBActionCompletion)
 }
 
 class KBAbstractWriteBatch {
@@ -27,12 +27,13 @@ class KBAbstractWriteBatch {
     }
 }
 
-class KBSQLWriteBatch : KBAbstractWriteBatch, KBKnowledgeStoreWriteBatch {
+class KBSQLWriteBatch : KBAbstractWriteBatch, KBKVStoreWriteBatch {
     
-    func write() async throws {
+    func write(completionHandler: @escaping KBActionCompletion) {
         guard let backingStore = self.backingStore as? KBSQLBackingStoreProtocol else {
             log.fault("KBSQLWriteBatch should back a KBSQLBackingStoreProtocol")
-            throw KBError.notSupported
+            completionHandler(.failure(KBError.notSupported))
+            return
         }
         
         // Write buffer into the store
@@ -42,36 +43,59 @@ class KBSQLWriteBatch : KBAbstractWriteBatch, KBKnowledgeStoreWriteBatch {
             unwrappedBuffer[k] = nilToNSNull(v)
         }
         
-        try backingStore.storeHandler.save(keysAndValues: unwrappedBuffer)
-        self.buffer.removeAll()
+        do {
+            try backingStore.sqlHandler.save(keysAndValues: unwrappedBuffer)
+            self.buffer.removeAll()
+            completionHandler(.success(()))
+        } catch {
+            completionHandler(.failure(error))
+        }
     }
 }
 
-class KBUserDefaultsWriteBatch : KBAbstractWriteBatch, KBKnowledgeStoreWriteBatch {
+class KBUserDefaultsWriteBatch : KBAbstractWriteBatch, KBKVStoreWriteBatch {
     
-    func write() async throws {
+    func write(completionHandler: @escaping KBActionCompletion) {
         guard let backingStore = self.backingStore as? KBUserDefaultsBackingStore else {
             log.fault("KBUserDefaultsWriteBatch should back a KBUserDefaultsBackingStore")
-            throw KBError.notSupported
+            completionHandler(.failure(KBError.notSupported))
+            return
         }
+        
+        // TODO: No need to arbitrate writes through the daemon for Plist stores
+        let dispatch = KBTimedDispatch()
         
         for key in self.buffer.keys {
             if let value = self.buffer[key] {
-                backingStore.setValue(value, forKey: key)
-            } else {
-                backingStore.setValue(nil, forKey: key)
+                dispatch.group.enter()
+                backingStore._setValue(value, forKey: key, completionHandler: { result in
+                    switch result {
+                    case .failure(let err):
+                        dispatch.interrupt(err)
+                    case .success():
+                        dispatch.group.leave()
+                    }
+                })
             }
+        }
+        
+        do {
+            try dispatch.wait()
+        } catch {
+            completionHandler(.failure(error))
         }
         
         backingStore.synchronize()
         self.buffer.removeAll()
+        
+        completionHandler(.success(()))
     }
 }
 
 class KBCloudKitSQLWriteBatch : KBSQLWriteBatch {
     
-    override func write() async throws {
-        try await super.write()
+    override func write(completionHandler: @escaping KBActionCompletion) {
+        super.write(completionHandler: completionHandler)
         // TODO: Trigger iCloud SYNC?
     }
 }
@@ -87,7 +111,7 @@ class KBSQLXPCWriteBatch : KBSQLWriteBatch {
 
 #else
 
-class KBSQLXPCWriteBatch : KBAbstractWriteBatch, KBKnowledgeStoreWriteBatch {
+class KBSQLXPCWriteBatch : KBAbstractWriteBatch, KBKVStoreWriteBatch {
     
     var queue: DispatchQueue = DispatchQueue(label: "\(KnowledgeBaseBundleIdentifier).SQLWriteBatch", qos: .userInteractive)
     
@@ -130,21 +154,7 @@ class KBCloudKitSQLXPCWriteBatch : KBSQLXPCWriteBatch {
             return
         }
         
-        // Transform nil to NSNull so that Dictionary<String, Any?>
-        // becomes a Dictionary<String, Any!>, and can be converted to an NSDictionary (what the method save below expects)
-        var unwrappedBuffer = Dictionary<String, Any>()
-        for (k, v) in self.buffer {
-            unwrappedBuffer[k] = nilToNSNull(v)
-        }
-        
-        backingStore.daemon(errorHandler: completionHandler)?
-            .save(unwrappedBuffer, toSynchedStoreWithIdentifier: backingStore.name) {
-            (error: Error?) in
-            if error == nil {
-                self.buffer.removeAll()
-            }
-            completionHandler(error)
-        }
+        try await super.write()
     }
 }
 

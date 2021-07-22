@@ -12,8 +12,6 @@ enum KBRuleBasedLogicError: Error {
     case unsatisfiableRule
 }
 
-let RULE_PREFIX = "rule-"
-let NEGATION_PREFIX = "!!!-"
 
 typealias RuleLiteral = (predicate: Label?, object: KBEntity)
 

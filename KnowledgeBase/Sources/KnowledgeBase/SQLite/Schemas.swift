@@ -34,5 +34,5 @@ CREATE TABLE "blobval"(
 k TEXT PRIMARY KEY NOT NULL,
 v BLOB
 );
-PRAGMA case_sensitive_like = true"
+PRAGMA case_sensitive_like = true
 """

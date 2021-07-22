@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  SQLiteHandler.swift
 //  
 //
 //  Created by Gennaro Frazzingaro on 6/22/21.
@@ -7,6 +7,8 @@
 
 import Foundation
 import SQLite3
+
+let kKBInvalidLinkWeight = -1
 
 enum SQLTableType : String {
     case IntegerValue = "intval", DoubleValue = "realval", StringValue = "textval", AnyValue = "blobval"
@@ -23,23 +25,24 @@ enum SQLTableType : String {
 }
 
 public let BlobValueAllowedClasses = [
+    NSString.self,
     NSData.self,
     NSArray.self,
     NSDictionary.self,
     NSDate.self,
-    KBHistoricEvent.self,
+//    KBHistoricEvent.self,
     KBTriple.self
 ]
 
-@objc(KBPersistentStoreHandler)
-open class KBPersistentStoreHandler: NSObject {
+@objc(KBSQLHandler)
+open class KBSQLHandler: NSObject {
 
     var connection: Connection?
     
-    @objc open class func inMemoryHandler() -> KBPersistentStoreHandler? {
-        let handler = KBPersistentStoreHandler()
+    @objc open class func inMemoryHandler() -> KBSQLHandler? {
+        let handler = KBSQLHandler()
         
-        guard let connection = KBPersistentStoreHandler.createConnection(location: .inMemory) else {
+        guard let connection = KBSQLHandler.createConnection(location: .inMemory) else {
             return nil
         }
         handler.connection = connection
@@ -69,7 +72,7 @@ open class KBPersistentStoreHandler: NSObject {
             return nil
         }
         
-        guard KBPersistentStoreHandler.createDirectory(at: directory.path) else {
+        guard KBSQLHandler.createDirectory(at: directory.path) else {
             log.fault("could not create database directory")
             return nil
         }
@@ -79,7 +82,7 @@ open class KBPersistentStoreHandler: NSObject {
             .appendingPathExtension(DatabaseExtension)
             .path
         
-        guard let connection = KBPersistentStoreHandler.createConnection(location: .uri(dbPath)) else {
+        guard let connection = KBSQLHandler.createConnection(location: .uri(dbPath)) else {
             log.fault("could not create connection to the database")
             return nil
         }
@@ -263,7 +266,7 @@ open class KBPersistentStoreHandler: NSObject {
         return (query, bindings)
     }
     
-    @objc open func _values(forKeys keys: [String]) throws -> [Any] {
+    @objc open func values(forKeys keys: [String]) throws -> [Any] {
         let (query, bindings) = self.selectQuery(project: ["k", "v"],
                                                  whereField: "k",
                                                  isIn: keys.map { $0 as Binding? })
@@ -320,9 +323,12 @@ open class KBPersistentStoreHandler: NSObject {
                     query = String(format: format, SQLTableType.DoubleValue.rawValue)
                     bindings = [key, doubleValue]
                     break
-                case let intValue as Number:
-                    guard let int64Value = intValue as? Int64 else {
-                        throw KBError.fatalError("Could not convert Numeric to Int64")
+                case let numberValue as Number:
+                    guard let nsnumber = numberValue as? NSNumber else {
+                        throw KBError.fatalError("Could not convert Number to NSNumber for value: \(value)")
+                    }
+                    guard let int64Value = Int64(exactly: nsnumber) else {
+                        throw KBError.fatalError("Could not convert Numeric to Int64 for value: \(value)")
                     }
                     query = String(format: format, SQLTableType.IntegerValue.rawValue)
                     bindings = [key, int64Value]
@@ -350,7 +356,7 @@ open class KBPersistentStoreHandler: NSObject {
                     bindings = [key, data.datatypeValue]
                 }
                 
-                _ = try connection.run(query, bindings)
+                try connection.run(query, bindings)
             }
             
             if keysToRemove.count > 0 {
@@ -477,7 +483,7 @@ open class KBPersistentStoreHandler: NSObject {
             throw KBError.databaseNotReady
         }
         
-        let linkID = KBPersistentStoreHandler.linkIdentifier(forLinkWithLabel: predicate,
+        let linkID = KBSQLHandler.linkIdentifier(forLinkWithLabel: predicate,
                                                              between: subjectIdentifier,
                                                              and: objectIdentifier)
         
@@ -503,14 +509,28 @@ open class KBPersistentStoreHandler: NSObject {
         try self.save(keysAndValues: kvs)
     }
     
-    @objc open func increaseWeight(forLinkWithLabel predicate: Label,
-                                   between subjectIdentifier: Label,
-                                   and objectIdentifier: Label) async throws -> Int {
+    // Objective-C counterpart of Swift method below
+    @objc open func increaseLinkWeight(forLinkWithLabel predicate: Label,
+                                       between subjectIdentifier: Label,
+                                       and objectIdentifier: Label) -> Int {
+        do {
+            return try self.increaseWeight(forLinkWithLabel: predicate,
+                                           between: subjectIdentifier,
+                                           and: objectIdentifier)
+        } catch {
+            log.error("error: %@", error.localizedDescription)
+            return kKBInvalidLinkWeight
+        }
+    }
+    
+    open func increaseWeight(forLinkWithLabel predicate: Label,
+                            between subjectIdentifier: Label,
+                            and objectIdentifier: Label) throws -> Int {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
         
-        let linkID = KBPersistentStoreHandler.linkIdentifier(forLinkWithLabel: predicate,
+        let linkID = KBSQLHandler.linkIdentifier(forLinkWithLabel: predicate,
                                                              between: subjectIdentifier,
                                                              and: objectIdentifier)
         let sql = "insert or replace into link "
@@ -554,16 +574,30 @@ open class KBPersistentStoreHandler: NSObject {
         return weights[0]
     }
     
-    @objc open func decreaseWeight(forLinkWithLabel predicate: Label,
-                                   between subjectIdentifier: Label,
-                                   and objectIdentifier: Label) async throws -> Int {
+    // Objective-C counterpart of Swift method below
+    @objc open func decreaseLinkWeight(forLinkWithLabel predicate: Label,
+                                       between subjectIdentifier: Label,
+                                       and objectIdentifier: Label) -> Int {
+        do {
+            return try self.decreaseWeight(forLinkWithLabel: predicate,
+                                           between: subjectIdentifier,
+                                           and: objectIdentifier)
+        } catch {
+            log.error("error: %@", error.localizedDescription)
+            return kKBInvalidLinkWeight
+        }
+    }
+    
+    open func decreaseWeight(forLinkWithLabel predicate: Label,
+                            between subjectIdentifier: Label,
+                            and objectIdentifier: Label) throws -> Int {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
         
         var weights = [Int]()
         
-        let (whereClause, bindings) = KBPersistentStoreHandler.whereClause(forLinkWithLabel: predicate,
+        let (whereClause, bindings) = KBSQLHandler.whereClause(forLinkWithLabel: predicate,
                                                                            between: subjectIdentifier,
                                                                            and: objectIdentifier)
         let query = "select id, count, predicate, object from link where \(whereClause)";
@@ -577,7 +611,7 @@ open class KBPersistentStoreHandler: NSObject {
                    "types match"
             )
             
-            let expectedLinkId = KBPersistentStoreHandler.linkIdentifier(forLinkWithLabel: predicate,
+            let expectedLinkId = KBSQLHandler.linkIdentifier(forLinkWithLabel: predicate,
                                                                          between: subjectIdentifier,
                                                                          and: objectIdentifier)
             assert(row[0] as! String == expectedLinkId)
@@ -611,7 +645,7 @@ open class KBPersistentStoreHandler: NSObject {
             throw KBError.databaseNotReady
         }
         
-        let (whereClause, bindings) = KBPersistentStoreHandler.whereClause(forLinkWithLabel: nil,
+        let (whereClause, bindings) = KBSQLHandler.whereClause(forLinkWithLabel: nil,
                                                                            between: subjectIdentifier,
                                                                            and: objectIdentifier)
         let query = "select count, predicate, object from link where \(whereClause)";
@@ -648,7 +682,7 @@ open class KBPersistentStoreHandler: NSObject {
         }
         
         let sql = "delete from link where id = ?"
-        let linkID = KBPersistentStoreHandler.linkIdentifier(forLinkWithLabel: predicate,
+        let linkID = KBSQLHandler.linkIdentifier(forLinkWithLabel: predicate,
                                                              between: subjectIdentifier,
                                                              and: objectIdentifier)
         try connection.transaction(Connection.TransactionMode.immediate) {
@@ -706,7 +740,7 @@ open class KBPersistentStoreHandler: NSObject {
             throw KBError.databaseNotReady
         }
         
-        let (whereClause, bindings) = KBPersistentStoreHandler.whereClause(forLinkWithLabel: nil,
+        let (whereClause, bindings) = KBSQLHandler.whereClause(forLinkWithLabel: nil,
                                                                            between: subjectIdentifier,
                                                                            and: objectIdentifier)
 
@@ -733,7 +767,7 @@ open class KBPersistentStoreHandler: NSObject {
         var sqlBindings = [Binding?]()
         if let _ = predicate {
             whereClause = "id = ?"
-            let linkID = KBPersistentStoreHandler.linkIdentifier(forLinkWithLabel: predicate!,
+            let linkID = KBSQLHandler.linkIdentifier(forLinkWithLabel: predicate!,
                                                                  between: subjectIdentifier,
                                                                  and: objectIdentifier)
             sqlBindings.append("\(linkID)")

@@ -32,7 +32,7 @@ class KBCloudKitSQLBackingStore : KBSQLBackingStore {
     
     //MARK: INSERT
     
-    override func writeBatch() -> KBKnowledgeStoreWriteBatch {
+    override func writeBatch() -> KBKVStoreWriteBatch {
         return KBCloudKitSQLWriteBatch(backingStore: self)
     }
     

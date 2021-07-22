@@ -26,7 +26,7 @@ class KBCloudKitSQLXPCBackingStore : KBSQLXPCBackingStore {
     
     //MARK: INSERT
     
-    override func setValue(_ value: Any?, forKey key: String) async throws {
+    override func _setValue(_ value: Any?, forKey key: String) async throws {
         self.daemon(errorHandler: completionHandler)?
             .save([key: value ?? NSNull()],
                   toSynchedStoreWithIdentifier: self.name) {
@@ -36,7 +36,7 @@ class KBCloudKitSQLXPCBackingStore : KBSQLXPCBackingStore {
         }
     }
     
-    override func writeBatch() -> KBKnowledgeStoreWriteBatch {
+    override func writeBatch() -> KBKVStoreWriteBatch {
         return KBCloudKitSQLXPCWriteBatch(backingStore: self)
     }
     

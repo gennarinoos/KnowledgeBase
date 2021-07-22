@@ -15,12 +15,17 @@ class KBSPARQLEndpoint {
         self.rdfStore = BaseRDFStore(tripleStore: knowledgeStore)
     }
     
-    public func execute(query: String) async throws -> [Any] {
+    public func execute(query: String) throws -> [Any] {
         try self.rdfStore.execute(SPARQLQuery: query)
     }
     
-    public func importTurtle(fromFileAt path: String) async throws {
-        try await self.rdfStore.importTriples(fromFileAtPath: path)
+    public func importTurtle(fromFileAt path: String, completionHandler: @escaping KBActionCompletion) {
+        self.rdfStore.importTriples(fromFileAtPath: path, completionHandler: { error in
+            if let e = error {
+                return completionHandler(.failure(e))
+            }
+            return completionHandler(.success(()))
+        })
     }
     
 }

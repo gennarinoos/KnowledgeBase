@@ -8,8 +8,6 @@
 import Foundation
 
 
-let CLOSURE_PREFIX = "closure-"
-
 public protocol KBExecutableClosure : NSCoding {
     var identifier: String { get }
     func execute()
@@ -36,7 +34,7 @@ open class KBClosure : NSObject, KBExecutableClosure {
 
         do {
             let location = try KBKnowledgeStore.Location.decode(location)
-            self.store = KBKnowledgeStore.store(location)
+            self.store = KBKnowledgeStore.store(location) as! KBKnowledgeStore
         } catch {
             log.error("error extracting store location. %@", "\(error)")
             return nil
@@ -90,12 +88,12 @@ public extension KBKnowledgeStore {
         
         for ruleLiteral in rule.body {
             try await ruleLiteral.object.link(to: ruleEntity,
-                                    withPredicate: ruleLiteral.predicate ?? "*")
+                                              withPredicate: ruleLiteral.predicate ?? "*")
         }
         
         for ruleLiteral in rule.negatedBody {
-            try await  ruleLiteral.object.link(to: ruleEntity,
-                                    withPredicate: "\(NEGATION_PREFIX)\(ruleLiteral.predicate ?? "*")")
+            try await ruleLiteral.object.link(to: ruleEntity,
+                                              withPredicate: "\(NEGATION_PREFIX)\(ruleLiteral.predicate ?? "*")")
         }
         
         let value: Any
@@ -104,7 +102,6 @@ public extension KBKnowledgeStore {
         } else {
             value = NSKeyedArchiver.archivedData(withRootObject: closure)
         }
-        try await self.setValue(value,
-                                forKey: closure.identifier)
+        try await self._setValue(value, forKey: closure.identifier)
     }
 }

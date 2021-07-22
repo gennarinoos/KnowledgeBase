@@ -1,8 +1,8 @@
 //
-//  KBJSONLD.swift
+//  JSONLD.swift
 //  
 //
-//  Created by Gennaro Frazzingaro on 6/22/21.
+//  Created by Gennaro Frazzingaro on 7/18/21.
 //
 
 import Foundation
@@ -13,7 +13,6 @@ enum JSONLDParseError: Error {
     case unexpectedFormat, resourceNotAvailable
 }
 
-// MARK: - KBJSONLDGraph
 @objc(KBJSONLDGraph)
 open class KBJSONLDGraph : NSObject {
 
@@ -130,12 +129,14 @@ extension KBKnowledgeStore {
             }
         } else if let obj = object as? KBJSONObject {
             try await evaluate(obj)
+        } else {
+            throw KBError.unexpectedData(object)
         }
     }
     
-    //MARK: importContentsOfJSONLD(atPath:completionHandler:)
+    //MARK: importContentsOf(JSONLDFileAt:completionHandler:)
     
-    @objc public func importContentsOfJSONLD(atPath path: String) async throws {
+    @objc public func importContentsOf(JSONLDFileAt path: String) async throws {
         guard FileManager.default.fileExists(atPath: path) else {
             log.error("no such JSONLD file at path %@", path)
             throw JSONLDParseError.resourceNotAvailable
@@ -148,25 +149,5 @@ extension KBKnowledgeStore {
         try await self.importJSONLD(data: data)
     }
     
-}
-
-extension Dictionary {
-    
-    mutating func append(_ key: Key, value: Value) {
-        guard key is String else { return }
-        
-        if let previousValue = self[key] , self[key] != nil {
-            if var array = previousValue as? Array<Any> {
-                array.append(value)
-            } else {
-                var list = [Any]()
-                list.append(previousValue)
-                list.append(value)
-                self[key] = list as? Value
-            }
-        } else {
-            self[key] = value
-        }
-    }
 }
 

@@ -51,7 +51,7 @@ public struct KBPath {
     }
 }
 
-extension KBPersistentStoreHandler {
+extension KBSQLHandler {
     
     public func verify(path p: KBPath) throws -> Bool {
         if p.path.count <= 0 { return true }
@@ -97,11 +97,5 @@ extension KBPersistentStoreHandler {
             }
             return false
         }
-    }
-}
-
-extension KBKnowledgeStore {
-    public func verify(path: KBPath) async throws -> Bool {
-        return try await self.backingStore.verify(path: path)
     }
 }

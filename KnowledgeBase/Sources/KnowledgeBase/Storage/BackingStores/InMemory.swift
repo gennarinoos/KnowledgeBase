@@ -9,19 +9,19 @@ import Foundation
 
 
 class KBInMemoryBackingStore : KBSQLBackingStoreProtocol {
+    
     var name: String {
         get { return KnowledgeBaseInMemoryIdentifier }
         set(v) {}
     }
     
-    // In-memory SQL database
-    var storeHandler: KBPersistentStoreHandler {
-        get {
-            return KBPersistentStoreHandler.inMemoryHandler()!
-        }
+    internal let sqlHandler: KBSQLHandler // In-memory SQL database
+    
+    init() {
+        self.sqlHandler = KBSQLHandler.inMemoryHandler()!
     }
     
-    func writeBatch() -> KBKnowledgeStoreWriteBatch {
+    func writeBatch() -> KBKVStoreWriteBatch {
         return KBSQLWriteBatch(backingStore: self)
     }
 }

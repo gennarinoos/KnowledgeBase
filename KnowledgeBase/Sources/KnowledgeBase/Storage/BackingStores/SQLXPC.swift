@@ -10,19 +10,6 @@ import Foundation
 
 let KnowledgeBaseXPCServiceBundleIdentifier = "com.gf.knowledgebase.storage.service"
 
-internal func NSNullToNil(_ v: Any) -> Any? {
-    if v is NSNull {
-        return nil
-    }
-    return v
-}
-
-internal func nilToNSNull(_ v: Any?) -> Any {
-    if v == nil {
-        return NSNull()
-    }
-    return v!
-}
 
 #if (!os(macOS)) || DEBUG
 // Do not use XPC in DEBUG mode or platforms other than macOS
@@ -204,8 +191,8 @@ class KBSQLXPCBackingStore : KBBackingStore {
 
     //MARK: INSERT
     
-    func setValue(_ value: Any?,
-                  forKey key: String) async throws {
+    func _setValue(_ value: Any?,
+                   forKey key: String) async throws {
         guard let daemon = self.daemon() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
@@ -213,7 +200,7 @@ class KBSQLXPCBackingStore : KBBackingStore {
         try await daemon.save([key: value ?? NSNull()], toStoreWithIdentifier: self.name)
     }
 
-    func writeBatch() -> KBKnowledgeStoreWriteBatch {
+    func writeBatch() -> KBKVStoreWriteBatch {
         return KBSQLXPCWriteBatch(backingStore: self)
     }
 

@@ -10,7 +10,7 @@ import Foundation
 extension String {
 
     /************************************************
-     * SWIFT-PERF: Avoid Array allocation (var-args)
+     * NOTE (Swift): Avoid Array allocation (var-args) for performance reasons
      */
 
 
@@ -73,7 +73,7 @@ extension String {
     }
 
     /************************************************
-     * SWIFT-PERF: Avoid Array allocation (var-args)
+     * NOTE (Swift): Avoid Array allocation (var-args) for performance reasons
      */
     /**
      Checks if self ends with the string argument, or the concatenation of strings argument
@@ -109,7 +109,7 @@ extension String {
     }
 
     /**
-     * SWIFT-PERF: Avoid Array allocation (var-args)
+     * NOTE (Swift): Avoid Array allocation (var-args) for performance reasons
      */
 
     func combine(_ s1: String, _ s2: String, start: Bool = false, end: Bool = false) -> String {
@@ -164,5 +164,25 @@ extension String {
         formatter.dateFormat = format
 
         return formatter.date(from: self)
+    }
+}
+
+
+extension String {
+    public func isHexaKey() -> Bool {
+        let minLenght = "\(KBHexastore.SPO.rawValue)\(KBHexastore.JOINER)".count
+        if self.count < minLenght {
+            return false
+        }
+        var prefixMatches = false
+        for hexaPrefix in KBHexastore.allValues {
+            if self.hasPrefix(hexaPrefix.rawValue + KBHexastore.JOINER) {
+                prefixMatches = true
+            }
+        }
+        if prefixMatches {
+            return self.components(separatedBy: KBHexastore.JOINER).count == 4
+        }
+        return false
     }
 }

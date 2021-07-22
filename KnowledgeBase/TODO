@@ -1,2 +1,11 @@
-
+- Verify String AnyHashable casting (search for dictionary as! KBJSONObject)
+- Return NSNull for values set to null, nil for missing kv pairs
+- WriteBatch save is not async
 - Remove raptor_config.h in favor of cSettings in PackageDescription
+- Test SPARQL
+- Add XPC service for macOS
+- Port tests
+- Check serialization of nil
+- OBJC support
+- Rename Event and related API to more generic LinkedList
+- Change _setValue(forKey:) to set(value:forKey:)
