@@ -7,12 +7,7 @@
 
 import Foundation
 
-@objc(KBSyncKVStore)
-open class KBSyncKVStore : KBKVStore {
-    
-    open override class func store(_ location: Location) -> KBSyncKVStore {
-        return KBSyncKVStore(location)
-    }
+extension KBKVStore {
     
     /**
      Retrieves all keys and values in the KVS.
@@ -112,12 +107,7 @@ open class KBSyncKVStore : KBKVStore {
     }
 }
 
-@objc(KBSyncKnowledgeStore)
-class KBSyncKnowledgeStore : KBKnowledgeStore {
-    
-    open override class func store(_ location: Location) -> KBSyncKnowledgeStore {
-        return KBSyncKnowledgeStore(location)
-    }
+extension KBKnowledgeStore {
     
     @objc open func entities() throws -> [KBEntity] {
         return try KBSyncMethodReturningInitiable(execute: self.entities)

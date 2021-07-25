@@ -78,8 +78,6 @@ open class KBJSONLDGraph : NSObject {
     }
 }
 
-// MARK: - CKKnowledgeStore + CKJSONLD
-
 extension KBKnowledgeStore {
     
     @objc open func subgraph(withEntities identifiers: [Label]) -> KBJSONLDGraph {

@@ -3,9 +3,9 @@ import XCTest
 
 final class KBSPARQLTests: XCTestCase {
     func testSPARQL() async throws {
-        let insertExpectation = self.expectation(description: "insert")
+        let insertExpectation = XCTestExpectation(description: "insert")
         
-        let knowledgeStore = KBKnowledgeStore.defaultStore() as! KBKnowledgeStore
+        let knowledgeStore = KBKnowledgeStore.defaultStore()
         knowledgeStore.importContentsOf(turtleFileAt: "") { result in
             switch result {
             case .failure(let err):
@@ -16,7 +16,7 @@ final class KBSPARQLTests: XCTestCase {
             }
         }
         
-        let selectExpectation = self.expectation(description: "select")
+        let selectExpectation = XCTestExpectation(description: "select")
         
         knowledgeStore.execute(SPARQLQuery: "SELECT") { result in
             switch result {
@@ -28,10 +28,7 @@ final class KBSPARQLTests: XCTestCase {
                 selectExpectation.fulfill()
             }
         }
-        self.waitForExpectations(timeout: 10.0) { err in
-            if let e = err {
-                XCTFail("test timed out: \(e)")
-            }
-        }
+        
+        wait(for: [insertExpectation, selectExpectation], timeout: 10.0)
     }
 }

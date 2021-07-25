@@ -12,18 +12,18 @@ let dbName = "relational-test"
 
 class KBSQLBackingStoreTests: KVStoreTestCase {
     
-    private static let _sharedStore = KBSyncKnowledgeStore.store(.sql(dbName))
+    private static let _sharedStore = KBKVStore.store(.sql(dbName))
     
-    override func sharedStore() -> KBSyncKVStore {
+    override func sharedStore() -> KBKVStore {
         return KBSQLBackingStoreTests._sharedStore
     }
 
     deinit {
-        if let path = KBSQLBackingStoreTests._sharedStore.filePath {
+        if let url = KBSQLBackingStoreTests._sharedStore.dbURL {
             do {
-                try FileManager.default.removeItem(at: path)
+                try FileManager.default.removeItem(at: url)
             } catch {
-                XCTFail("error deleting database at path \(path)")
+                XCTFail("error deleting database at path \(url)")
             }
         }
     }
@@ -75,7 +75,7 @@ class KBSQLBackingStoreTests: KVStoreTestCase {
         
         XCTAssertNotNil(customStore)
         XCTAssertNotNil(customStore.name)
-        XCTAssertNotNil(customStore.filePath)
+        XCTAssertNotNil(customStore.dbURL)
         
         XCTAssert(customStore.name == customName)
         
@@ -83,31 +83,40 @@ class KBSQLBackingStoreTests: KVStoreTestCase {
             .appendingPathComponent(customStore.name)
             .appendingPathExtension(DatabaseExtension)
 
-        XCTAssert(customStoreExpectedPath == customStore.filePath)
+        XCTAssert(customStoreExpectedPath == customStore.dbURL)
         
-        do { try FileManager.default.removeItem(at: customStore.filePath!) }
+        do { let _ = try customStore.keys() }
+        catch { XCTFail() }
+        
+        do { try FileManager.default.removeItem(at: customStore.dbURL!) }
         catch { XCTFail() }
     }
     
     func testFileOnDisk() {
-        let newStore = KBKnowledgeStore.store(withName: UUID().uuidString)
+        let newStore = KBKVStore.store(withName: UUID().uuidString)
         XCTAssertNotNil(newStore)
-        XCTAssertNotNil(newStore.filePath)
+        XCTAssertNotNil(newStore.dbURL)
         
-        XCTAssert(FileManager.default.fileExists(atPath: newStore.filePath!.path), "Database file at path \(newStore.filePath!)")
-        
-        do { try FileManager.default.removeItem(at: newStore.filePath!) }
+        do { let _ = try newStore.keys() }
         catch { XCTFail() }
         
-        let dottedName = "com.apple.siri.test"
+        XCTAssert(FileManager.default.fileExists(atPath: newStore.dbURL!.path), "Database file at path \(newStore.dbURL!)")
+        
+        do { try FileManager.default.removeItem(at: newStore.dbURL!) }
+        catch { XCTFail() }
+        
+        let dottedName = "com.gf.test"
         let customStore = KBKnowledgeStore.store(.sql(dottedName))
         
         XCTAssertNotNil(customStore)
-        XCTAssertNotNil(customStore.filePath)
+        XCTAssertNotNil(customStore.dbURL)
         
-        XCTAssert(FileManager.default.fileExists(atPath: customStore.filePath!.path), "Database file at path \(customStore.filePath!)")
+        do { let _ = try customStore.keys() }
+        catch { XCTFail() }
         
-        do { try FileManager.default.removeItem(at: customStore.filePath!) }
+        XCTAssert(FileManager.default.fileExists(atPath: customStore.dbURL!.path), "Database file at path \(customStore.dbURL!)")
+        
+        do { try FileManager.default.removeItem(at: customStore.dbURL!) }
         catch { XCTFail() }
     }
 }

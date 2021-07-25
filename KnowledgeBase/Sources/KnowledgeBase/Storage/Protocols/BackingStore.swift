@@ -268,8 +268,8 @@ extension KBSynchronousBackingStore {
  Protocol that every backend needs to implement
  */
 protocol KBBackingStore: KBBackingStoreProtocol {
-   var name: String { get }
-   func writeBatch() -> KBKVStoreWriteBatch
+    var name: String { get }
+    func writeBatch() -> KBKVStoreWriteBatch
 }
 
 /**

@@ -77,8 +77,7 @@ open class KBKVStore : NSObject {
         return KBSQLBackingStore.directory
     }
     
-    @objc(filePathURL)
-    open var filePath: URL? {
+    @objc open var dbURL: URL? {
         if self.backingStore is KBSQLBackingStore {
             return KBKVStore.directory()?
                 .appendingPathComponent(self.name)
@@ -180,4 +179,3 @@ open class KBKVStore : NSObject {
         return self.backingStore.writeBatch()
     }
 }
-

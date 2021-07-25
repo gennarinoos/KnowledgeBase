@@ -13,7 +13,7 @@ extension KBKVStoreWriteBatch {
     }
 }
 
-extension KBSyncKVStore {
+extension KBKVStore {
     /**
      Assign a value, or nil, to a specific key in the KVS.
      Blocking version.
@@ -77,7 +77,7 @@ extension KBSyncKVStore {
     }
 }
 
-extension KBSyncKnowledgeStore {
+extension KBKnowledgeStore {
     
     /**
      Remove the entity with a certain identifier.

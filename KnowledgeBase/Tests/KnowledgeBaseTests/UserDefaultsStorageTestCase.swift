@@ -10,12 +10,8 @@ import XCTest
 
 class KBUserDefaultsKVStoreTests: KVStoreTestCase {
 
-    private static let _sharedStore = KBSyncKnowledgeStore.store(.userDefaults)
+    private static let _sharedStore = KBKVStore.store(.userDefaults)
     
-    override func sharedStore() -> KBSyncKVStore {
-        return KBUserDefaultsKVStoreTests._sharedStore
-    }
-
     override func testWriteBatch() throws {
         try super.testWriteBatch()
     }

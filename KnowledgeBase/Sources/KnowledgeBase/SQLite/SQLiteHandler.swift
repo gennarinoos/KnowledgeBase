@@ -72,17 +72,17 @@ open class KBSQLHandler: NSObject {
             return nil
         }
         
-        guard KBSQLHandler.createDirectory(at: directory.path) else {
-            log.fault("could not create database directory")
+        do { try KBSQLHandler.createDirectory(at: directory.path) }
+        catch {
+            log.fault("could not create database directory: %@", error.localizedDescription)
             return nil
         }
         
-        let dbPath = directory
+        let dbURL = directory
             .appendingPathComponent(safeName)
             .appendingPathExtension(DatabaseExtension)
-            .path
         
-        guard let connection = KBSQLHandler.createConnection(location: .uri(dbPath)) else {
+        guard let connection = KBSQLHandler.createConnection(location: .uri(dbURL.path)) else {
             log.fault("could not create connection to the database")
             return nil
         }
@@ -99,26 +99,8 @@ open class KBSQLHandler: NSObject {
     /// directory sits inside the user directory, and if it were converted
     /// to a data vault it would prevent other system agents from deleting
     /// the user directory.
-    private static func createDirectory(at path: String) -> Bool {
-        #if os(macOS)
-        let result = Swift.Result { try FileManager.default.createDirectory(
-            atPath: path,
-            withIntermediateDirectories: true,
-            attributes: nil)
-        }
-        if case let .failure(error) = result {
-            log.error("Error creating directory at path %@: %@", path, String(describing: error))
-            return false
-        }
-        #else
-        do {
-            try KBDataVault.create(at: path, withClass: .KBGenericDataVaultClass)
-        } catch {
-            log.fault("error creating data vault: %@", error.localizedDescription)
-            return false
-        }
-        #endif
-        return true
+    private static func createDirectory(at path: String) throws {
+        try KBDataVault.createDirectory(at: path)
     }
     
     private static func createConnection(location: Connection.Location) -> Connection? {

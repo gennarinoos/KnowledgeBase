@@ -10,9 +10,9 @@ import XCTest
 
 class KVStoreTestCase : XCTestCase {
 
-    private static let _sharedStore = KBSyncKVStore.store(.inMemory)
+    private static let _sharedStore = KBKVStore.store(.inMemory)
     
-    func sharedStore() -> KBSyncKVStore {
+    func sharedStore() -> KBKVStore {
         return KVStoreTestCase._sharedStore
     }
 
@@ -285,9 +285,9 @@ class KVStoreTestCase : XCTestCase {
 
 class KnowledgeStoreTestCase : KVStoreTestCase {
     
-    private static let _sharedStore = KBSyncKnowledgeStore.store(.inMemory)
+    private static let _sharedStore = KBKnowledgeStore.store(.inMemory)
     
-    override func sharedStore() -> KBSyncKVStore {
+    override func sharedStore() -> KBKnowledgeStore {
         return KnowledgeStoreTestCase._sharedStore
     }
     
@@ -609,7 +609,7 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
     }
 
     func testJSONLDSerialization() {
-        let expectation = self.expectation(description: #function)
+        let expectation = XCTestExpectation(description: #function)
 
         do {
             let subject = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "subject")
@@ -644,15 +644,11 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
             XCTFail("Linking failed: \(error)")
         }
 
-        self.waitForExpectations(timeout: 10.0) {
-            if let e = $0 {
-                XCTFail("test timed out: \(e)")
-            }
-        }
+        wait(for: [expectation], timeout: 10.0)
     }
 
     func testJSONLDDeserialization() {
-        let expectation = self.expectation(description: #function)
+        let expectation = XCTestExpectation(description: #function)
 
         let bundle = Bundle(for: type(of: self).self)
         guard let path = bundle.path(forResource: "testJSONLDDeserialization", ofType: "json") else {
@@ -696,11 +692,7 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
             }
         }
 
-        self.waitForExpectations(timeout: 10.0) {
-            if let e = $0 {
-                XCTFail("test timed out: \(e)")
-            }
-        }
+        wait(for: [expectation], timeout: 10.0)
     }
 
     func testSimpleTripleQuery() {
@@ -877,7 +869,7 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
     }
 
 //     func testSimpleKBLogic() {
-//         let expectation = self.expectation(description: #function)
+//         let expectation = XCTestExpectation(description: #function)
 //
 //         let cat = KnowledgeStoreTestCase.sharedKnowledgeStore.entity(withIdentifier: "cat")
 //         let mammal = KnowledgeStoreTestCase.sharedKnowledgeStore.entity(withIdentifier: "mammal")
@@ -907,15 +899,11 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
 //
 //         expectation.fulfill()
 //
-//         self.waitForExpectations(timeout: 1.0) {
-//             if let e = $0 {
-//                 XCTFail("test timed out: \(e)")
-//             }
-//         }
+//         wait(for: [expectation], timeout: 10.0)
 //     }
 //
 //    func testDiscoverabilityKBLogic() {
-//        let expectation = self.expectation(description: #function)
+//        let expectation = XCTestExpectation(description: #function)
 //
 //        do {
 //            let intent = KnowledgeStoreTestCase.sharedKnowledgeStore.entity(withIdentifier: "multiShotSmsIntent");
@@ -953,11 +941,7 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
 //
 //        expectation.fulfill()
 //
-//        self.waitForExpectations(timeout: 1.0) {
-//            if let e = $0 {
-//                XCTFail("test timed out: \(e)")
-//            }
-//        }
+//        wait(for: [expectation], timeout: 10.0)
 //    }
 
     private func importJSONLD(named name: String) {
