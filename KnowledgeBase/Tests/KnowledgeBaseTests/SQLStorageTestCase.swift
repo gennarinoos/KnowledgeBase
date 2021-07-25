@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  SQLBackingStoreTests.swift
 //  
 //
 //  Created by Gennaro Frazzingaro on 7/11/21.
@@ -70,7 +70,7 @@ class KBSQLBackingStoreTests: KVStoreTestCase {
             "KnowledgeBase last path component is \(KnowledgeBaseSQLDefaultIdentifier)")
         
         
-        let customName = "com.apple.siri.test"
+        let customName = "com.gf.test"
         let customStore = KBKnowledgeStore.store(.sql(customName))
         
         XCTAssertNotNil(customStore)
