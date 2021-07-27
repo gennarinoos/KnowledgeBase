@@ -109,7 +109,7 @@ extension KBPermanentEventStore : KBPermanentWritableEventStore {
         log.info("Updating the store with event=%@. New historic event is %@", event, historicEvent)
         log.debug("event.metadata=%@. historicEvent.metadata=%@", event.metadata, historicEvent.metadata)
             
-        try await self.knowledgeStore._setValue(historicEvent, forKey: historicEvent.identifier)
+        try await self.knowledgeStore.set(value: historicEvent, for: historicEvent.identifier)
     }
 }
 

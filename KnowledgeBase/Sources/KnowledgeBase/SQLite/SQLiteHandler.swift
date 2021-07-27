@@ -215,7 +215,7 @@ open class KBSQLHandler: NSObject {
         return dict
     }
     
-    @objc open func keysAndValues(forKeysMatching condition: KBGenericCondition) throws -> KBJSONObject {
+    @objc open func keysAndvalues(forKeysMatching condition: KBGenericCondition) throws -> KBJSONObject {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
@@ -248,7 +248,7 @@ open class KBSQLHandler: NSObject {
         return (query, bindings)
     }
     
-    @objc open func values(forKeys keys: [String]) throws -> [Any] {
+    @objc open func values(for keys: [String]) throws -> [Any] {
         let (query, bindings) = self.selectQuery(project: ["k", "v"],
                                                  whereField: "k",
                                                  isIn: keys.map { $0 as Binding? })
@@ -342,12 +342,12 @@ open class KBSQLHandler: NSObject {
             }
             
             if keysToRemove.count > 0 {
-                try self._removeValues(forKeys: keysToRemove)
+                try self._removeValues(for: keysToRemove)
             }
         }
     }
     
-    @objc open func removeValue(forKey key: String) throws {
+    @objc open func removeValue(for key: String) throws {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
@@ -359,7 +359,7 @@ open class KBSQLHandler: NSObject {
         }
     }
     
-    fileprivate func _removeValues(forKeys keys: [String]) throws {
+    fileprivate func _removeValues(for keys: [String]) throws {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
@@ -372,13 +372,13 @@ open class KBSQLHandler: NSObject {
         }
     }
     
-    @objc open func removeValues(forKeys keys: [String]) throws {
+    @objc open func removeValues(for keys: [String]) throws {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
         
         try connection.transaction(Connection.TransactionMode.immediate) {
-            try self._removeValues(forKeys: keys)
+            try self._removeValues(for: keys)
         }
     }
     
@@ -403,7 +403,7 @@ open class KBSQLHandler: NSObject {
         }
     }
     
-    @objc open func removeAllValues() throws {
+    @objc open func removeAll() throws {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }

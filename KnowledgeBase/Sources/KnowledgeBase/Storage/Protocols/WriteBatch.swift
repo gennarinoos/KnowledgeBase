@@ -9,7 +9,7 @@ import Foundation
 
 //@objc(KBKVStoreWriteBatch)
 public protocol KBKVStoreWriteBatch {
-    func setObject(_ object: Any?, forKey: String)
+    func set(value: Any?, for key: String)
     func write(completionHandler: @escaping KBActionCompletion)
 }
 
@@ -22,8 +22,8 @@ class KBAbstractWriteBatch {
         self.backingStore = backingStore
     }
     
-    @objc func setObject(_ object: Any?, forKey key: String) {
-        self.buffer[key] = object
+    @objc func set(value: Any?, for key: String) {
+        self.buffer[key] = value
     }
 }
 
@@ -68,14 +68,14 @@ class KBUserDefaultsWriteBatch : KBAbstractWriteBatch, KBKVStoreWriteBatch {
         for key in self.buffer.keys {
             if let value = self.buffer[key] {
                 dispatch.group.enter()
-                backingStore._setValue(value, forKey: key, completionHandler: { result in
+                backingStore.set(value: value, for: key) { result in
                     switch result {
                     case .failure(let err):
                         dispatch.interrupt(err)
                     case .success():
                         dispatch.group.leave()
                     }
-                })
+                }
             }
         }
         
@@ -100,63 +100,9 @@ class KBCloudKitSQLWriteBatch : KBSQLWriteBatch {
     }
 }
 
-
-#if os(macOS)
-
-#if DEBUG
-// Do not use XPC in DEBUG mode
-
 class KBSQLXPCWriteBatch : KBSQLWriteBatch {
 }
 
-#else
-
-class KBSQLXPCWriteBatch : KBAbstractWriteBatch, KBKVStoreWriteBatch {
-    
-    var queue: DispatchQueue = DispatchQueue(label: "\(KnowledgeBaseBundleIdentifier).SQLWriteBatch", qos: .userInteractive)
-    
-    func write() async throws {
-        guard let backingStore = self.backingStore as? KBSQLXPCBackingStore else {
-            log.fault("KBSQLWriteBatch should back a KBSQLXPCBackingStore")
-            throw KBError.notSupported
-        }
-        
-        guard let daemon = backingStore.daemon() else {
-            throw KBError.fatalError("Could not connect to XPC service")
-        }
-        
-        // Transform nil to NSNull so that Dictionary<String, Any?>
-        // becomes a Dictionary<String, Any!>, and can be converted to an NSDictionary (what the method save below expects)
-        var unwrappedBuffer = Dictionary<String, Any>()
-        for (k, v) in self.buffer {
-            unwrappedBuffer[k] = nilToNSNull(v)
-        }
-        
-        try await daemon.save(unwrappedBuffer, toStoreWithIdentifier: backingStore.name)
-        self.buffer.removeAll()
-    }
-}
-#endif
-
-#if DEBUG
-// Do not use XPC in DEBUG mode
-
-class KBCloudKitSQLXPCWriteBatch : KBCloudKitSQLWriteBatch {
-}
-
-#else
 class KBCloudKitSQLXPCWriteBatch : KBSQLXPCWriteBatch {
-    
-    override func write() async throws {
-        guard let backingStore = self.backingStore as? CKCloudKitBackingStore else {
-            log.fault("KBCloudKitWriteBatch should back a CKCloudKitBackingStore")
-            completionHandler(KBError.notSupported)
-            return
-        }
-        
-        try await super.write()
-    }
 }
 
-#endif
-#endif

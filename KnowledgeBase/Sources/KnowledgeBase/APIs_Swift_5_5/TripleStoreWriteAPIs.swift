@@ -46,16 +46,38 @@ extension KBKnowledgeStore {
         }
     }
     
+    internal func execute(SPARQLQuery query: String, completionHandler: @escaping (Swift.Result<[Any], Error>) -> ()) {
+        self.sparqlQueue.async {
+            let solver = KBSPARQLEndpoint(with: self)
+            
+            // @synchronized(solver)
+            objc_sync_enter(solver)
+            defer { objc_sync_exit(solver) }
+            
+            log.debug("SPARQL query (%@)", query)
+            do {
+                let results = try solver.execute(query: query)
+                completionHandler(.success(results))
+            } catch {
+                completionHandler(.failure(error))
+            }
+        }
+    }
+    
     /**
      Executes the SPARQL SELECT query and returns all the bounded values in the projection.
      
      - parameter query: the SPARQL SELECT query to execute
      */
-    @objc open func execute(SPARQLQuery query: String) throws -> [Any] {
-        let solver = KBSPARQLEndpoint(with: self)
-        async {
-            return try solver.execute(query: query)
+    @objc open func execute(SPARQLQuery query: String) async throws -> [Any] {
+        return try await KBModernAsyncMethodReturningInitiable { c in
+            self.execute(SPARQLQuery: query, completionHandler: c)
         }
+//        async let result = { () -> [Any] in
+//            let solver = KBSPARQLEndpoint(with: self)
+//            return try solver.execute(query: query)
+//        }
+//        return try await result()
     }
     
     

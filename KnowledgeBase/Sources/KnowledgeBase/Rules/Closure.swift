@@ -102,6 +102,6 @@ public extension KBKnowledgeStore {
         } else {
             value = NSKeyedArchiver.archivedData(withRootObject: closure)
         }
-        try await self._setValue(value, forKey: closure.identifier)
+        try await self.set(value: value, for: closure.identifier)
     }
 }

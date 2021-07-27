@@ -22,8 +22,8 @@ class KBUserDefaultsKVStoreTests: KVStoreTestCase {
         let dictionary = ["key": "value"]
         let key = "KeyToPersist"
         do {
-            try KBUserDefaultsKVStoreTests._sharedStore._setValue(dictionary, forKey: key)
-            let value = try userDefaultsStore._value(forKey: key)
+            try KBUserDefaultsKVStoreTests._sharedStore.set(value: dictionary, for: key)
+            let value = try userDefaultsStore.value(for: key)
             XCTAssertNotNil(value)
             XCTAssertNotNil(value as? NSDictionary)
 
@@ -32,10 +32,10 @@ class KBUserDefaultsKVStoreTests: KVStoreTestCase {
             XCTAssertNotNil(userDefaultsStoreCopy["key"] as? String)
             XCTAssertEqual(userDefaultsStoreCopy["key"] as? String, dictionary["key"])
             
-            try KBUserDefaultsKVStoreTests._sharedStore.removeValue(forKey: key)
+            try KBUserDefaultsKVStoreTests._sharedStore.removeValue(for: key)
             let otherUserDefaultsHandler = KBKnowledgeStore.store(.userDefaults)
             XCTAssertNotNil(otherUserDefaultsHandler)
-            let otherValue = try otherUserDefaultsHandler._value(forKey: key)
+            let otherValue = try otherUserDefaultsHandler.value(for: key)
             XCTAssertNil(otherValue)
         } catch {
             XCTFail()

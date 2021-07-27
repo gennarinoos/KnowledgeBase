@@ -6,41 +6,39 @@
 //
 
 import Foundation
-import UIKit
-
 
 extension KBEntity {
     
     // MARK: KBEntity attributes
     
-    open func _value(forAttribute key: String,
-                     completionHandler: @escaping (Swift.Result<Any?, Error>) -> ()) {
+    open func value(forAttribute key: String,
+                    completionHandler: @escaping (Swift.Result<Any?, Error>) -> ()) {
         let key = KBHexastore.JOINER.combine(self.identifier, key)
-        self.store._value(forKey: key, completionHandler: completionHandler)
+        self.store.value(for: key, completionHandler: completionHandler)
     }
     
-    open func _setValue(_ value: Any,
-                        forAttribute key: String,
-                        completionHandler: @escaping KBActionCompletion) {
+    open func set(value: Any,
+                  forAttribute key: String,
+                  completionHandler: @escaping KBActionCompletion) {
         let writeBatch = self.store.backingStore.writeBatch()
         let entityKey = KBHexastore.JOINER.combine(self.identifier, key)
-        writeBatch.setObject(value, forKey: entityKey)
+        writeBatch.set(value: value, for: entityKey)
         writeBatch.write(completionHandler: completionHandler)
     }
     
-    open func setValues(forKeys keysAndValues: [String: Any], completionHandler: @escaping KBActionCompletion) {
+    open func setAttributes(_ keysAndValues: [String: Any], completionHandler: @escaping KBActionCompletion) {
         let writeBatch = self.store.backingStore.writeBatch()
         for (key, value) in keysAndValues {
             let entityKey = KBHexastore.JOINER.combine(self.identifier, key)
-            writeBatch.setObject(value, forKey: entityKey)
+            writeBatch.set(value: value, for: entityKey)
         }
         
         writeBatch.write(completionHandler: completionHandler)
     }
 
-    open func removeValue(forKey key: String, completionHandler: @escaping KBActionCompletion) {
+    open func removeAttribute(named key: String, completionHandler: @escaping KBActionCompletion) {
         let entityKey = KBHexastore.JOINER.combine(self.identifier, key)
-        self.store.removeValue(forKey: entityKey, completionHandler: completionHandler)
+        self.store.removeValue(for: entityKey, completionHandler: completionHandler)
     }
 
 

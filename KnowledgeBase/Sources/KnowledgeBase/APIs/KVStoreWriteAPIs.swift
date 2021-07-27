@@ -29,7 +29,7 @@ extension KBKVStore {
      - parameter completionHandler: the callback method
      
      */
-    open func _setValue(_ value: Any?, forKey key: String, completionHandler: @escaping KBActionCompletion) {
+    open func set(value: Any?, for key: String, completionHandler: @escaping KBActionCompletion) {
         guard self.supportsSecureCoding(value) else {
             log.error("Trying to save a non NSSecureCoding compliant value `%@` for key %@", String(describing: value), key);
             completionHandler(.failure(KBError.unexpectedData(value)))
@@ -37,12 +37,12 @@ extension KBKVStore {
         }
         
         let writeBatch = self.writeBatch()
-        writeBatch.setObject(value, forKey: key)
+        writeBatch.set(value: value, for: key)
         writeBatch.write(completionHandler: completionHandler)
     }
-    @objc open func _setValue(_ value: Any?, forKey key: String, completionHandler: @escaping KBObjCActionCompletion) {
+    @objc open func set(value: Any?, for key: String, completionHandler: @escaping KBObjCActionCompletion) {
         KBObjectiveCAPIResultReturningVoid(completionHandler: completionHandler) { c in
-            self._setValue(value, forKey: key, completionHandler: c)
+            self.set(value: value, for: key, completionHandler: c)
         }
     }
     
@@ -53,12 +53,12 @@ extension KBKVStore {
      - parameter completionHandler: the callback method
      
      */
-    open func removeValue(forKey key: String, completionHandler: @escaping KBActionCompletion) {
-        self.backingStore.removeValue(forKey: key, completionHandler: completionHandler)
+    open func removeValue(for key: String, completionHandler: @escaping KBActionCompletion) {
+        self.backingStore.removeValue(for: key, completionHandler: completionHandler)
     }
-    @objc open func removeValue(forKey key: String, completionHandler: @escaping KBObjCActionCompletion) {
+    @objc open func removeValue(for key: String, completionHandler: @escaping KBObjCActionCompletion) {
         KBObjectiveCAPIResultReturningVoid(completionHandler: completionHandler) { c in
-            self.removeValue(forKey: key, completionHandler: c)
+            self.removeValue(for: key, completionHandler: c)
         }
     }
     
@@ -70,12 +70,12 @@ extension KBKVStore {
      - parameter completionHandler: the callback method
      
      */
-    open func removeValues(forKeys keys: [String], completionHandler: @escaping KBActionCompletion) {
-        self.backingStore.removeValues(forKeys: keys, completionHandler: completionHandler)
+    open func removeValues(for keys: [String], completionHandler: @escaping KBActionCompletion) {
+        self.backingStore.removeValues(for: keys, completionHandler: completionHandler)
     }
-    @objc open func removeValues(forKeys keys: [String], completionHandler: @escaping KBObjCActionCompletion) {
+    @objc open func removeValues(for keys: [String], completionHandler: @escaping KBObjCActionCompletion) {
         KBObjectiveCAPIResultReturningVoid(completionHandler: completionHandler) { c in
-            self.removeValues(forKeys: keys, completionHandler: c)
+            self.removeValues(for: keys, completionHandler: c)
         }
     }
     
@@ -100,11 +100,11 @@ extension KBKVStore {
      - parameter completionHandler: the callback method
      
      */
-    open func removeAllValues(completionHandler: @escaping KBActionCompletion) {
-        self.backingStore.removeAllValues(completionHandler: completionHandler)
+    open func removeAll(completionHandler: @escaping KBActionCompletion) {
+        self.backingStore.removeAll(completionHandler: completionHandler)
     }
-    @objc func removeAllValues(completionHandler: @escaping KBObjCActionCompletion) {
-        KBObjectiveCAPIResultReturningVoid(completionHandler: completionHandler, self.removeAllValues(completionHandler:))
+    @objc func removeAll(completionHandler: @escaping KBObjCActionCompletion) {
+        KBObjectiveCAPIResultReturningVoid(completionHandler: completionHandler, self.removeAll(completionHandler:))
     }
     
     /**

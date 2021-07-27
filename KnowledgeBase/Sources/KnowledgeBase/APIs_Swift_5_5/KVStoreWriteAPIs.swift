@@ -16,14 +16,14 @@ extension KBKVStore {
      - parameter key: the key
      
      */
-    @objc open func _setValue(_ value: Any?, forKey key: String) async throws {
+    @objc open func set(value: Any?, for key: String) async throws {
         guard self.supportsSecureCoding(value) else {
             log.error("Trying to save a non NSSecureCoding compliant value `%@` for key %@", String(describing: value), key);
             throw KBError.unexpectedData(value)
         }
         
         let writeBatch = self.writeBatch()
-        writeBatch.setObject(value, forKey: key)
+        writeBatch.set(value: value, for: key)
         try await writeBatch.write()
     }
     
@@ -33,8 +33,8 @@ extension KBKVStore {
      - parameter key: the key
      
      */
-    @objc open func removeValue(forKey key: String) async throws {
-        try await self.backingStore.removeValue(forKey: key)
+    @objc open func removeValue(for key: String) async throws {
+        try await self.backingStore.removeValue(for: key)
     }
     
     /**
@@ -44,8 +44,8 @@ extension KBKVStore {
      - parameter keys: the keys
      
      */
-    @objc open func removeValues(forKeys keys: [String]) async throws {
-        try await self.backingStore.removeValues(forKeys: keys)
+    @objc open func removeValues(for keys: [String]) async throws {
+        try await self.backingStore.removeValues(for: keys)
     }
     
     /**
@@ -60,8 +60,8 @@ extension KBKVStore {
     /**
      Remove all values in the KVS, asynchronously.
      */
-    @objc open func removeAllValues() async throws {
-        try await self.backingStore.removeAllValues()
+    @objc open func removeAll() async throws {
+        try await self.backingStore.removeAll()
         if let s = self as? KBKnowledgeStore {
             s.delegate?.linkedDataDidChange()
         }

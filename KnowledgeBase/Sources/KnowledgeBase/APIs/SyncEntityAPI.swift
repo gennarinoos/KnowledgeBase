@@ -59,8 +59,7 @@ extension KBEntity {
      */
     open func linkingEntities(withPredicate predicate: Label,
                               matchType: KBMatchType = .equal,
-                              complement wantsComplementarySet: Bool = false)
-    throws -> [(subject: KBEntity, predicate: Label)] {
+                              complement wantsComplementarySet: Bool = false) throws -> [(subject: KBEntity, predicate: Label)] {
         return try KBSyncMethodReturningInitiable { c in
             self.linkingEntities(withPredicate: predicate,
                                  matchType: matchType,

@@ -63,13 +63,13 @@ class KBUserDefaultsBackingStore : KBBackingStore {
         }
     }
     
-    internal func __value(forKey key: String) -> Any? {
+    internal func value(for key: String) -> Any? {
         return self.kv.object(forKey: key)
     }
     
-    func _value(forKey key: String, completionHandler: @escaping (Swift.Result<Any?, Error>) -> ()) {
+    func value(for key: String, completionHandler: @escaping (Swift.Result<Any?, Error>) -> ()) {
         KBAsyncMethodReturningInitiable(completionHandler) {
-            return self.__value(forKey: key)
+            return self.value(for: key)
         }
     }
 
@@ -79,9 +79,9 @@ class KBUserDefaultsBackingStore : KBBackingStore {
         }
     }
     
-    func values(forKeys keys: [String], completionHandler: @escaping (Swift.Result<[Any?], Error>) -> ()) {
+    func values(for keys: [String], completionHandler: @escaping (Swift.Result<[Any?], Error>) -> ()) {
         KBAsyncMethodReturningInitiable(completionHandler) {
-            return keys.map { key in self.__value(forKey: key) }
+            return keys.map { key in self.value(for: key) }
         }
     }
     
@@ -90,7 +90,7 @@ class KBUserDefaultsBackingStore : KBBackingStore {
             switch result {
             case .success(let allKeys):
                 let filteredKeys = allKeys.filter { condition.evaluate(on: $0) }
-                let values = filteredKeys.map { key in self.__value(forKey: key) }
+                let values = filteredKeys.map { key in self.value(for: key) }
                 completionHandler(.success(values))
             case .failure(let error):
                 completionHandler(.failure(error))
@@ -113,7 +113,7 @@ class KBUserDefaultsBackingStore : KBBackingStore {
                     (dict, k) in
                     if condition.evaluate(on: k) {
                         var newDict = dict
-                        newDict[k] = self.__value(forKey: k)!
+                        newDict[k] = self.value(for: k)!
                         return newDict
                     }
                     return dict
@@ -131,20 +131,20 @@ class KBUserDefaultsBackingStore : KBBackingStore {
         completionHandler(.failure(KBError.notSupported))
     }
     
-    func _setValue(_ value: Any?, forKey key: String, completionHandler: @escaping KBActionCompletion) {
+    func set(value: Any?, for key: String, completionHandler: @escaping KBActionCompletion) {
         KBAsyncMethodReturningVoid(completionHandler) {
             self.kv.set(value, forKey: key)
         }
     }
         
-    func removeValue(forKey key: String, completionHandler: @escaping KBActionCompletion) {
+    func removeValue(for key: String, completionHandler: @escaping KBActionCompletion) {
         KBAsyncMethodReturningVoid(completionHandler) {
             self.kv.removeObject(forKey: key)
             self.synchronize()
         }
     }
     
-    func removeValues(forKeys keys: [String], completionHandler: @escaping KBActionCompletion) {
+    func removeValues(for keys: [String], completionHandler: @escaping KBActionCompletion) {
         KBAsyncMethodReturningVoid(completionHandler) {
             for key in keys {
                 self.kv.removeObject(forKey: key)
@@ -170,7 +170,7 @@ class KBUserDefaultsBackingStore : KBBackingStore {
         }
     }
     
-    func removeAllValues(completionHandler: @escaping KBActionCompletion) {
+    func removeAll(completionHandler: @escaping KBActionCompletion) {
         self.keys() { result in
             switch result {
             case .success(let allKeys):

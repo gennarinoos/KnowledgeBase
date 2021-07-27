@@ -16,9 +16,9 @@ class KVStoreTestCase : XCTestCase {
         return KVStoreTestCase._sharedStore
     }
 
-    private func removeAll() {
+    private func cleanup() {
         do {
-            try self.sharedStore().removeAllValues()
+            try self.sharedStore().removeAll()
             let keys = try self.sharedStore().keys()
             XCTAssert(keys.count == 0, "Removed all values")
         } catch {
@@ -27,13 +27,13 @@ class KVStoreTestCase : XCTestCase {
     }
 
     override func setUp() {
-        self.removeAll()
+        self.cleanup()
         super.setUp()
     }
 
     override func tearDown() {
         super.tearDown()
-        self.removeAll()
+        self.cleanup()
     }
 
     func isEqual(_ a: Any, _ b: Any) -> Bool {
@@ -86,13 +86,13 @@ class KVStoreTestCase : XCTestCase {
     
     func testPartialKeysAndValues() {
         do {
-            try KVStoreTestCase._sharedStore._setValue("stringVal", forKey: "string")
+            try KVStoreTestCase._sharedStore.set(value: "stringVal", for: "string")
             print(try KVStoreTestCase._sharedStore.dictionaryRepresentation())
-            try KVStoreTestCase._sharedStore._setValue(1, forKey: "int")
-            try KVStoreTestCase._sharedStore._setValue(true, forKey: "bool")
-            try KVStoreTestCase._sharedStore._setValue(false, forKey: "NOTbool")
-            try KVStoreTestCase._sharedStore._setValue(["first", "second"], forKey: "array")
-            try KVStoreTestCase._sharedStore._setValue(["first": "first", "second": "second"], forKey: "dictionary")
+            try KVStoreTestCase._sharedStore.set(value: 1, for: "int")
+            try KVStoreTestCase._sharedStore.set(value: true, for: "bool")
+            try KVStoreTestCase._sharedStore.set(value: false, for: "NOTbool")
+            try KVStoreTestCase._sharedStore.set(value: ["first", "second"], for: "array")
+            try KVStoreTestCase._sharedStore.set(value: ["first": "first", "second": "second"], for: "dictionary")
             
             let stringOrBool = KBGenericCondition(.equal, value: "string").or(KBGenericCondition(.equal, value: "bool"))
 
@@ -105,7 +105,7 @@ class KVStoreTestCase : XCTestCase {
             XCTAssert(partialKeys.count == 2)
             XCTAssertEqual(partialKeys, ["bool", "string"])
 
-            var partialValues = try KVStoreTestCase._sharedStore.values(forKeys: partialKeys) as [Any?]
+            var partialValues = try KVStoreTestCase._sharedStore.values(for: partialKeys) as [Any?]
             XCTAssert(partialValues.count == 2)
 
             partialValues = try KVStoreTestCase._sharedStore.values(forKeysMatching: stringOrBool)
@@ -123,7 +123,7 @@ class KVStoreTestCase : XCTestCase {
             XCTAssertEqual(partialKeys.count, 3)
             XCTAssertEqual(partialKeys, ["NOTbool", "bool", "string"])
 
-            partialValues = try KVStoreTestCase._sharedStore.values(forKeys: partialKeys) as [Any?]
+            partialValues = try KVStoreTestCase._sharedStore.values(for: partialKeys) as [Any?]
             XCTAssertEqual(partialValues.count, 3)
 
             partialValues = try KVStoreTestCase._sharedStore.values(forKeysMatching: startWithSOrEndsWithOl)
@@ -134,12 +134,12 @@ class KVStoreTestCase : XCTestCase {
     }
     
     func testAllKeyValues() async throws {
-        try KVStoreTestCase._sharedStore._setValue("stringVal", forKey: "string")
-        try KVStoreTestCase._sharedStore._setValue(1, forKey: "int")
-        try KVStoreTestCase._sharedStore._setValue(true, forKey: "bool")
-        try KVStoreTestCase._sharedStore._setValue(false, forKey: "NOTbool")
-        try KVStoreTestCase._sharedStore._setValue(["first", "second"], forKey: "array")
-        try KVStoreTestCase._sharedStore._setValue(["first": "first", "second": "second"], forKey: "dictionary")
+        try KVStoreTestCase._sharedStore.set(value: "stringVal", for: "string")
+        try KVStoreTestCase._sharedStore.set(value: 1, for: "int")
+        try KVStoreTestCase._sharedStore.set(value: true, for: "bool")
+        try KVStoreTestCase._sharedStore.set(value: false, for: "NOTbool")
+        try KVStoreTestCase._sharedStore.set(value: ["first", "second"], for: "array")
+        try KVStoreTestCase._sharedStore.set(value: ["first": "first", "second": "second"], for: "dictionary")
         
         let allKVPairs = try KVStoreTestCase._sharedStore.dictionaryRepresentation() as Dictionary
         let conditionalKVPairs = try KVStoreTestCase._sharedStore.dictionaryRepresentation() as Dictionary
@@ -168,7 +168,7 @@ class KVStoreTestCase : XCTestCase {
 
         XCTAssertEqual(keys, ["NOTbool", "array", "bool", "dictionary", "int", "string"])
 
-        let keyedValues = try KVStoreTestCase._sharedStore.values(forKeys: keys)
+        let keyedValues = try KVStoreTestCase._sharedStore.values(for: keys)
         XCTAssertEqual(keyedValues.count, 6)
 
         let conditionalValues = try KVStoreTestCase._sharedStore.values(forKeysMatching: KBGenericCondition(value: true))
@@ -186,69 +186,69 @@ class KVStoreTestCase : XCTestCase {
         let emptyString = ""
 
         for nonSecureValue in [NonNSSecureCodingCompliantStruct(), NonNSSecureCodingCompliantClass()] as [Any] {
-            try KVStoreTestCase._sharedStore._setValue(emptyString, forKey: key)
+            try KVStoreTestCase._sharedStore.set(value: emptyString, for: key)
             
-            let stringValue = try KVStoreTestCase._sharedStore._value(forKey: key)
+            let stringValue = try KVStoreTestCase._sharedStore.value(for: key)
             XCTAssertNotNil(stringValue as? String)
             XCTAssert((stringValue as? String) == emptyString)
             
-            try KVStoreTestCase._sharedStore._setValue(nonSecureValue, forKey: key)
-            let invalidValue = try KVStoreTestCase._sharedStore._value(forKey: key)
+            try KVStoreTestCase._sharedStore.set(value: nonSecureValue, for: key)
+            let invalidValue = try KVStoreTestCase._sharedStore.value(for: key)
             XCTAssertNotNil(invalidValue as? String)
             XCTAssert((invalidValue as? String) == emptyString)
             
-            do { try KVStoreTestCase._sharedStore.removeValue(forKey: key) } catch { XCTFail() }
-            let removedValue = try KVStoreTestCase._sharedStore._value(forKey: key)
+            do { try KVStoreTestCase._sharedStore.removeValue(for: key) } catch { XCTFail() }
+            let removedValue = try KVStoreTestCase._sharedStore.value(for: key)
             XCTAssertNil(removedValue)
             
-            try KVStoreTestCase._sharedStore._setValue(nonSecureValue, forKey: key)
-            let invalidValue2 = try KVStoreTestCase._sharedStore._value(forKey: key)
+            try KVStoreTestCase._sharedStore.set(value: nonSecureValue, for: key)
+            let invalidValue2 = try KVStoreTestCase._sharedStore.value(for: key)
             XCTAssertNil(invalidValue2)
         }
         
         let triple = KBTriple(subject: "Luca", predicate: "is", object: "awesome", weight: 1)
-        try KVStoreTestCase._sharedStore._setValue(triple, forKey: key)
-        let tripleValue = try KVStoreTestCase._sharedStore._value(forKey: key)
+        try KVStoreTestCase._sharedStore.set(value: triple, for: key)
+        let tripleValue = try KVStoreTestCase._sharedStore.value(for: key)
         XCTAssertNotNil(tripleValue)
         XCTAssert((tripleValue as? KBTriple) == triple)
     }
 
     func testWriteBatch() throws {
         let writeBatch = KVStoreTestCase._sharedStore.writeBatch()
-        writeBatch.setObject("stringVal", forKey: "string")
-        writeBatch.setObject(1, forKey: "int")
-        writeBatch.setObject(true, forKey: "bool")
-        writeBatch.setObject(false, forKey: "NOTbool")
-        writeBatch.setObject(["first", "second"], forKey: "array")
-        writeBatch.setObject(["first": "first", "second": "second"], forKey: "dictionary")
+        writeBatch.set(value: "stringVal", for: "string")
+        writeBatch.set(value: 1, for: "int")
+        writeBatch.set(value: true, for: "bool")
+        writeBatch.set(value: false, for: "NOTbool")
+        writeBatch.set(value: ["first", "second"], for: "array")
+        writeBatch.set(value: ["first": "first", "second": "second"], for: "dictionary")
         do {
             try writeBatch.write()
         } catch {
             XCTFail("\(error)")
         }
 
-        let none = try KVStoreTestCase._sharedStore._value(forKey: "none")
+        let none = try KVStoreTestCase._sharedStore.value(for: "none")
         XCTAssert(none == nil, "non existing attribute")
 
-        let string = try KVStoreTestCase._sharedStore._value(forKey: "string")
+        let string = try KVStoreTestCase._sharedStore.value(for: "string")
         XCTAssert(string != nil, "string exists")
         XCTAssert((string as? String) != nil, "string is a string")
         XCTAssert((string as? String) == "stringVal", "string value matches")
 
-        let int = try KVStoreTestCase._sharedStore._value(forKey: "int")
+        let int = try KVStoreTestCase._sharedStore.value(for: "int")
         XCTAssert(int != nil, "int exists")
         XCTAssert((int as? Int) != nil, "int is an int")
         XCTAssert((int as? Int) == 1, "int value matches")
 
-        let bool = try KVStoreTestCase._sharedStore._value(forKey: "bool")
+        let bool = try KVStoreTestCase._sharedStore.value(for: "bool")
         XCTAssert(bool != nil, "bool exists")
         XCTAssert((bool as? Bool) != nil, "bool is a bool")
         XCTAssert((bool as? Bool) == true, "bool value matches")
-        let notbool = try KVStoreTestCase._sharedStore._value(forKey: "NOTbool")
+        let notbool = try KVStoreTestCase._sharedStore.value(for: "NOTbool")
         XCTAssert((notbool as? Bool) != nil, "NOTbool is a bool")
         XCTAssert((notbool as? Bool) == false, "NOTbool value matches")
 
-        let array = try KVStoreTestCase._sharedStore._value(forKey: "array")
+        let array = try KVStoreTestCase._sharedStore.value(for: "array")
         XCTAssert(array != nil, "array exists")
         XCTAssert((array as? Array<String>) != nil, "array is an array")
         if let array = array as? Array<String> {
@@ -256,7 +256,7 @@ class KVStoreTestCase : XCTestCase {
             XCTAssert(array == ["first", "second"], "array values match")
         }
 
-        var dict = try KVStoreTestCase._sharedStore._value(forKey: "dictionary")
+        var dict = try KVStoreTestCase._sharedStore.value(for: "dictionary")
         XCTAssert(dict != nil, "dictionary exists")
         XCTAssert((dict as? Dictionary<String, String>) != nil, "dict is a dictionary")
         if let dict = array as? Dictionary<String, String> {
@@ -265,20 +265,20 @@ class KVStoreTestCase : XCTestCase {
             XCTAssert(dict["second"] == "second", "dictionary second value matches")
         }
         
-        try KVStoreTestCase._sharedStore._setValue(nil, forKey: "dictionary")
-        dict = try KVStoreTestCase._sharedStore._value(forKey: "dictionary")
+        try KVStoreTestCase._sharedStore.set(value: nil, for: "dictionary")
+        dict = try KVStoreTestCase._sharedStore.value(for: "dictionary")
         XCTAssert(dict == nil, "dictionary has been removed")
         
-        writeBatch.setObject(nil, forKey: "bool")
-        writeBatch.setObject(nil, forKey: "NOTbool")
+        writeBatch.set(value: nil, for: "bool")
+        writeBatch.set(value: nil, for: "NOTbool")
         do {
             try writeBatch.write()
         } catch {
             XCTFail("\(error)")
         }
-        let b = try KVStoreTestCase._sharedStore._value(forKey: "bool")
+        let b = try KVStoreTestCase._sharedStore.value(for: "bool")
         XCTAssertNil(b)
-        let nb = try KVStoreTestCase._sharedStore._value(forKey: "NOTbool")
+        let nb = try KVStoreTestCase._sharedStore.value(for: "NOTbool")
         XCTAssertNil(nb)
     }
 }

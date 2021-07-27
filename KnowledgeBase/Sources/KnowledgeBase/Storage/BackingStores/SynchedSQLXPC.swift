@@ -26,7 +26,7 @@ class KBCloudKitSQLXPCBackingStore : KBSQLXPCBackingStore {
     
     //MARK: INSERT
     
-    override func _setValue(_ value: Any?, forKey key: String) async throws {
+    override func set(value: Any?, for key: String) async throws {
         self.daemon(errorHandler: completionHandler)?
             .save([key: value ?? NSNull()],
                   toSynchedStoreWithIdentifier: self.name) {
@@ -42,9 +42,9 @@ class KBCloudKitSQLXPCBackingStore : KBSQLXPCBackingStore {
     
     //MARK: DELETE
     
-    override func removeValue(forKey key: String) async throws {
+    override func removeValue(for key: String) async throws {
         self.daemon(errorHandler: completionHandler)?
-            .removeValue(forKey: key,
+            .removeValue(for: key,
                          fromSynchedStoreWithIdentifier: self.name) {
                             (error) in
                             let _ = self // Retain self in the block to keep XPC connection alive
@@ -52,9 +52,9 @@ class KBCloudKitSQLXPCBackingStore : KBSQLXPCBackingStore {
         }
     }
     
-    override func removeValues(forKeys keys: [String]) async throws {
+    override func removeValues(for keys: [String]) async throws {
         self.daemon(errorHandler: completionHandler)?
-            .removeValues(forKeys: keys,
+            .removeValues(for: keys,
                           fromSynchedStoreWithIdentifier: self.name) {
                             (error) in
                             let _ = self // Retain self in the block to keep XPC connection alive
@@ -72,9 +72,9 @@ class KBCloudKitSQLXPCBackingStore : KBSQLXPCBackingStore {
         }
     }
     
-    override func removeAllValues() async throws {
+    override func removeAll() async throws {
         self.daemon(errorHandler: completionHandler)?
-            .removeAllValues(fromSynchedStoreWithIdentifier: self.name) {
+            .removeAll(fromSynchedStoreWithIdentifier: self.name) {
                 (error) in
                 let _ = self // Retain self in the block to keep XPC connection alive
                 completionHandler(error)

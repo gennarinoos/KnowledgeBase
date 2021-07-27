@@ -21,14 +21,14 @@ extension KBKVStore {
      - parameter value: the value
      - parameter key: the key
      */
-    open func _setValue(_ value: Any?, forKey key: String) throws {
+    open func set(value: Any?, for key: String) throws {
         guard self.supportsSecureCoding(value) else {
             log.error("Trying to save a non NSSecureCoding compliant value `%@` for key %@", String(describing: value), key);
             return
         }
         
         let writeBatch = self.writeBatch()
-        writeBatch.setObject(value, forKey: key)
+        writeBatch.set(value: value, for: key)
         log.info("setting value setting value=%@ for key=%@", String(describing: value), key)
         try KBSyncMethodReturningVoid(execute:writeBatch.write)
     }
@@ -39,9 +39,9 @@ extension KBKVStore {
      
      - parameter key: the key
      */
-    @objc open func removeValue(forKey key: String) throws {
+    @objc open func removeValue(for key: String) throws {
         try KBSyncMethodReturningVoid { c in
-            self.removeValue(forKey: key, completionHandler: c)
+            self.removeValue(for: key, completionHandler: c)
         }
     }
     
@@ -51,9 +51,9 @@ extension KBKVStore {
      
      - parameter keys: the keys
      */
-    @objc open func removeValues(forKeys keys: [String]) throws {
+    @objc open func removeValues(for keys: [String]) throws {
         try KBSyncMethodReturningVoid { c in
-            self.removeValues(forKeys: keys, completionHandler: c)
+            self.removeValues(for: keys, completionHandler: c)
         }
     }
     
@@ -72,8 +72,8 @@ extension KBKVStore {
     /**
      Remove all values in the KVS
      */
-    @objc open func removeAllValues() throws {
-        try KBSyncMethodReturningVoid(execute: self.removeAllValues)
+    @objc open func removeAll() throws {
+        try KBSyncMethodReturningVoid(execute: self.removeAll)
     }
 }
 

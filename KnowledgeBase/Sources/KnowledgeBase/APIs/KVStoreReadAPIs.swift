@@ -100,11 +100,11 @@ extension KBKVStore {
      - parameter completionHandler: the callback method
      
      */
-    open func _value(forKey key: String, completionHandler: @escaping (Swift.Result<Any?, Error>) -> ()) {
-        return self.backingStore._value(forKey: key, completionHandler: completionHandler)
+    open func value(for key: String, completionHandler: @escaping (Swift.Result<Any?, Error>) -> ()) {
+        return self.backingStore.value(for: key, completionHandler: completionHandler)
     }
-    @objc open func _valueForKey(_ key: String, completionHandler: @escaping (Error?, Any?) -> ()) {
-        self._value(forKey: key) { result in
+    @objc open func valueForKey(_ key: String, completionHandler: @escaping (Error?, Any?) -> ()) {
+        self.value(for: key) { result in
             switch result {
             case .success(let res): completionHandler(nil, res)
             case .failure(let err): completionHandler(err, nil)
@@ -120,11 +120,11 @@ extension KBKVStore {
      - parameter completionHandler: the callback method
      
      */
-    open func values(forKeys keys: [String], completionHandler: @escaping (Swift.Result<[Any?], Error>) -> ()) {
-        return self.backingStore.values(forKeys: keys, completionHandler: completionHandler)
+    open func values(for keys: [String], completionHandler: @escaping (Swift.Result<[Any?], Error>) -> ()) {
+        return self.backingStore.values(for: keys, completionHandler: completionHandler)
     }
-    @objc open func values(forKeys keys: [String], completionHandler: @escaping (Error?, [Any]) -> ()) {
-        self.values(forKeys: keys) { result in
+    @objc open func values(for keys: [String], completionHandler: @escaping (Error?, [Any]) -> ()) {
+        self.values(for: keys) { result in
             switch result {
             case .success(let v):
                 var values = [Any]()

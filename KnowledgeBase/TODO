@@ -1,3 +1,4 @@
+- removeValues(matching condition:) should be removeValues(forKeysMatching condition:)?
 - Verify String AnyHashable casting (search for dictionary as! KBJSONObject)
 - Return NSNull for values set to null, nil for missing kv pairs
 - WriteBatch save is not async

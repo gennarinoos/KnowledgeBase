@@ -5,10 +5,7 @@
 //  Created by Gennaro Frazzingaro on 6/19/21.
 //
 
-#if HAS_ASYNC_AWAIT // No need for the synchronous version with Swift 5.5 or greater.
-#else
 typealias KBBackingStoreProtocol = KBAsynchronousBackingStore & KBSynchronousBackingStore
-#endif
 
 
 protocol KBAsynchronousBackingStore {
@@ -16,18 +13,18 @@ protocol KBAsynchronousBackingStore {
     // MARK: KVStore
     func keys(completionHandler: @escaping (Swift.Result<[String], Error>) -> ())
     func keys(matching: KBGenericCondition, completionHandler: @escaping (Swift.Result<[String], Error>) -> ())
-    func _value(forKey key: String, completionHandler: @escaping (Swift.Result<Any?, Error>) -> ())
+    func value(for key: String, completionHandler: @escaping (Swift.Result<Any?, Error>) -> ())
     func values(completionHandler: @escaping (Swift.Result<[Any], Error>) -> ())
-    func values(forKeys keys: [String], completionHandler: @escaping (Swift.Result<[Any?], Error>) -> ())
+    func values(for keys: [String], completionHandler: @escaping (Swift.Result<[Any?], Error>) -> ())
     func values(forKeysMatching: KBGenericCondition, completionHandler: @escaping (Swift.Result<[Any?], Error>) -> ())
     func dictionaryRepresentation(completionHandler: @escaping (Swift.Result<KBJSONObject, Error>) -> ())
     func dictionaryRepresentation(forKeysMatching: KBGenericCondition,
                                   completionHandler: @escaping (Swift.Result<KBJSONObject, Error>) -> ())
-    func _setValue(_: Any?, forKey: String, completionHandler: @escaping KBActionCompletion)
-    func removeValue(forKey key: String, completionHandler: @escaping KBActionCompletion)
-    func removeValues(forKeys keys: [String], completionHandler: @escaping KBActionCompletion)
+    func set(value: Any?, for key: String, completionHandler: @escaping KBActionCompletion)
+    func removeValue(for key: String, completionHandler: @escaping KBActionCompletion)
+    func removeValues(for keys: [String], completionHandler: @escaping KBActionCompletion)
     func removeValues(matching condition: KBGenericCondition, completionHandler: @escaping KBActionCompletion)
-    func removeAllValues(completionHandler: @escaping KBActionCompletion)
+    func removeAll(completionHandler: @escaping KBActionCompletion)
     
     // MARK: KnowledgeStore
     func triplesComponents(matching condition: KBTripleCondition?,
@@ -70,17 +67,17 @@ protocol KBSynchronousBackingStore : KBAsynchronousBackingStore {
     // MARK: KVStore
     func keys() throws -> [String]
     func keys(matching: KBGenericCondition) throws -> [String]
-    func _value(forKey key: String) throws -> Any?
+    func value(for key: String) throws -> Any?
     func values() throws -> [Any]
-    func values(forKeys keys: [String]) throws -> [Any?]
+    func values(for keys: [String]) throws -> [Any?]
     func values(forKeysMatching: KBGenericCondition) throws -> [Any?]
     func dictionaryRepresentation() throws -> KBJSONObject
     func dictionaryRepresentation(forKeysMatching: KBGenericCondition) throws -> KBJSONObject
-    func _setValue(_: Any?, forKey: String) throws
-    func removeValue(forKey key: String) throws
-    func removeValues(forKeys keys: [String]) throws
+    func set(value: Any?, for key: String) throws
+    func removeValue(for key: String) throws
+    func removeValues(for keys: [String]) throws
     func removeValues(matching condition: KBGenericCondition) throws
-    func removeAllValues() throws
+    func removeAll() throws
     
     // MARK: KnowledgeStore
     func triplesComponents(matching condition: KBTripleCondition?) throws -> [KBTriple]
@@ -124,15 +121,15 @@ extension KBSynchronousBackingStore {
         }
     }
     
-    func _value(forKey key: String) throws -> Any? {
+    func value(for key: String) throws -> Any? {
         return try KBSyncMethodReturningInitiable { c in
-            self._value(forKey: key, completionHandler: c)
+            self.value(for: key, completionHandler: c)
         }
     }
     
-    func _setValue(_ value: Any?, forKey key: String) throws {
+    func set(value: Any?, for key: String) throws {
         return try KBSyncMethodReturningVoid { c in
-            self._setValue(value, forKey: key, completionHandler: c)
+            self.set(value: value, for: key, completionHandler: c)
         }
     }
     
@@ -140,9 +137,9 @@ extension KBSynchronousBackingStore {
         return try KBSyncMethodReturningInitiable(execute: self.values)
     }
     
-    func values(forKeys keys: [String]) throws -> [Any?] {
+    func values(for keys: [String]) throws -> [Any?] {
         return try KBSyncMethodReturningInitiable { c in
-            self.values(forKeys: keys, completionHandler: c)
+            self.values(for: keys, completionHandler: c)
         }
     }
     
@@ -164,15 +161,15 @@ extension KBSynchronousBackingStore {
         }
     }
     
-    func removeValue(forKey key: String) throws {
+    func removeValue(for key: String) throws {
         try KBSyncMethodReturningVoid { c in
-            self.removeValue(forKey: key, completionHandler: c)
+            self.removeValue(for: key, completionHandler: c)
         }
     }
     
-    func removeValues(forKeys keys: [String]) throws {
+    func removeValues(for keys: [String]) throws {
         try KBSyncMethodReturningVoid { c in
-            self.removeValues(forKeys: keys, completionHandler: c)
+            self.removeValues(for: keys, completionHandler: c)
         }
     }
     
@@ -182,8 +179,8 @@ extension KBSynchronousBackingStore {
         }
     }
     
-    func removeAllValues() throws {
-        try KBSyncMethodReturningVoid(execute: self.removeAllValues)
+    func removeAll() throws {
+        try KBSyncMethodReturningVoid(execute: self.removeAll)
     }
     
     func triplesComponents(matching condition: KBTripleCondition?) throws -> [KBTriple] {

@@ -45,11 +45,11 @@ extension KBEphemeralEventSequence : KBEphemeralWritableEventSequence {
             
             // Update the KBEphemeralEventSequenceLastIdentifier if this event is the last one
             if try await eventEntity.linkedEntities(withPredicate: kKBEphemeralEventSequencePredicateLabel).count == 0 {
-                try await KBKnowledgeStore.inMemoryGraph._setValue(eventEntity.identifier, forKey: kKBEphemeralEventSequenceLastIdentifier)
+                try await KBKnowledgeStore.inMemoryGraph.set(value: eventEntity.identifier, for: kKBEphemeralEventSequenceLastIdentifier)
             }
         }
         
-        try await eventEntity._setValues(forKeys: ["identifier": event.identifier,
+        try await eventEntity._setvalues(for: ["identifier": event.identifier,
                                                   "startDate": event.startDate,
                                                   "endDate": event.endDate,
                                                   "metadata": event.metadata])

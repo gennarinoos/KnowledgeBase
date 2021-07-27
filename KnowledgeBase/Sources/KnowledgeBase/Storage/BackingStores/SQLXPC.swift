@@ -106,7 +106,7 @@ class KBSQLXPCBackingStore : KBBackingStore {
         return keys
     }
     
-    func _value(forKey key: String) async throws -> Any? {
+    func value(for key: String) async throws -> Any? {
         guard let daemon = self.daemon() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
@@ -124,7 +124,7 @@ class KBSQLXPCBackingStore : KBBackingStore {
         return keysAndValues.map { $1 }
     }
     
-    func values(forKeys keys: [String]) async throws -> [Any?] {
+    func values(for keys: [String]) async throws -> [Any?] {
         guard let daemon = self.daemon() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
@@ -139,7 +139,7 @@ class KBSQLXPCBackingStore : KBBackingStore {
             }
         }
 
-        let keysAndValues = try await daemon.keysAndValues(forKeysMatching: condition!, inStoreWithIdentifier: self.name)
+        let keysAndValues = try await daemon.keysAndvalues(forKeysMatching: condition!, inStoreWithIdentifier: self.name)
         let _ = self // Retain self in the block to keep XPC connection alive
         return keysAndValues.map { $1 }
     }
@@ -149,7 +149,7 @@ class KBSQLXPCBackingStore : KBBackingStore {
             throw KBError.fatalError("Could not connect to XPC service")
         }
         
-        let keysAndValues = try await daemon.keysAndValues(forKeysMatching: condition, inStoreWithIdentifier: self.name)
+        let keysAndValues = try await daemon.keysAndvalues(forKeysMatching: condition, inStoreWithIdentifier: self.name)
         let _ = self // Retain self in the block to keep XPC connection alive
         return keysAndValues.map { $1 }
     }
@@ -169,7 +169,7 @@ class KBSQLXPCBackingStore : KBBackingStore {
             throw KBError.fatalError("Could not connect to XPC service")
         }
         
-        let keysAndValues = try await daemon.keysAndValues(forKeysMatching: condition, inStoreWithIdentifier: self.name)
+        let keysAndValues = try await daemon.keysAndvalues(forKeysMatching: condition, inStoreWithIdentifier: self.name)
         let _ = self // Retain self in the block to keep XPC connection alive
         return keysAndValues
     }
@@ -191,8 +191,7 @@ class KBSQLXPCBackingStore : KBBackingStore {
 
     //MARK: INSERT
     
-    func _setValue(_ value: Any?,
-                   forKey key: String) async throws {
+    func set(value: Any?, for key: String) async throws {
         guard let daemon = self.daemon() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
@@ -249,20 +248,20 @@ class KBSQLXPCBackingStore : KBBackingStore {
 
     //MARK: DELETE
     
-    func removeValue(forKey key: String) async throws {
+    func removeValue(for key: String) async throws {
         guard let daemon = self.daemon() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
         
-        try await daemon.removeValue(forKey: key, fromStoreWithIdentifier: self.name)
+        try await daemon.removeValue(for: key, fromStoreWithIdentifier: self.name)
     }
     
-    func removeValues(forKeys keys: [String]) async throws {
+    func removeValues(for keys: [String]) async throws {
         guard let daemon = self.daemon() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
         
-        try await daemon.removeValues(forKeys: keys, fromStoreWithIdentifier: self.name)
+        try await daemon.removeValues(for: keys, fromStoreWithIdentifier: self.name)
     }
     
     func removeValues(matching condition: KBGenericCondition) async throws {
@@ -273,12 +272,12 @@ class KBSQLXPCBackingStore : KBBackingStore {
         try await daemon.removeValues(matching: condition, fromStoreWithIdentifier: self.name)
     }
     
-    func removeAllValues() async throws {
+    func removeAll() async throws {
         guard let daemon = self.daemon() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
         
-        try await daemon.removeAllValues(fromStoreWithIdentifier: self.name)
+        try await daemon.removeAll(fromStoreWithIdentifier: self.name)
     }
     
     func dropLink(withLabel predicate: String,

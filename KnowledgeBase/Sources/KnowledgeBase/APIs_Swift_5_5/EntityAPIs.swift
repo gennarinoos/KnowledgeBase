@@ -13,30 +13,30 @@ extension KBEntity {
     
     @objc open func value(forAttribute key: String) async throws -> Any? {
         let key = KBHexastore.JOINER.combine(self.identifier, key)
-        try await self.store.value(forKey: key)
+        return try await self.store.value(for: key)
     }
     
-    @objc open func setValue(_ value: Any,
-                             forAttribute key: String) async throws {
+    @objc open func set(value: Any,
+                        forAttribute key: String) async throws {
         let writeBatch = self.store.backingStore.writeBatch()
         let entityKey = KBHexastore.JOINER.combine(self.identifier, key)
-        writeBatch.setObject(value, forKey: entityKey)
+        writeBatch.set(value: value, for: entityKey)
         try await writeBatch.write()
     }
     
-    @objc open func setValues(forKeys keysAndValues: [String: Any]) async throws {
+    @objc open func setAttributes(_ keysAndValues: [String: Any]) async throws {
         let writeBatch = self.store.backingStore.writeBatch()
         for (key, value) in keysAndValues {
             let entityKey = KBHexastore.JOINER.combine(self.identifier, key)
-            writeBatch.setObject(value, forKey: entityKey)
+            writeBatch.set(value: value, for: entityKey)
         }
         
         try await writeBatch.write()
     }
 
-    @objc open func removeValue(forKey key: String) async throws {
+    @objc open func removeAttribute(named key: String) async throws {
         let entityKey = KBHexastore.JOINER.combine(self.identifier, key)
-        try await self.store.removeValue(forKey: entityKey)
+        try await self.store.removeValue(for: entityKey)
     }
 
 
@@ -373,3 +373,38 @@ extension KBEntity {
     }
 }
 
+
+extension KBEntity {
+    
+    
+    /// Check if any KBLogic is satisfied.
+    /// If so, infer the links or execute KBExecutableClosure behavior as defined by the rule.
+    /// See KBKnowledgeStore::inferLink and KBKnowledgeStore::executeBehavior
+    /// - Parameters:
+    ///   - target: the entity being linked to this entity
+    ///   - completionHandler: the completion handler
+    internal func linkBasedOnRules(afterConnecting target: KBEntity) async throws {
+        // TODO: Implement as a wrapper on top of existing API
+    }
+    
+    private func nonNegatedRuleComponentsAreSatisfied(inRule ruleEntity: KBEntity) async throws {
+        // TODO: Implement as a wrapper on top of existing API
+    }
+    
+    private func negatedRuleComponentsAreSatisfied(inRule ruleEntity: KBEntity) async throws {
+        // TODO: Implement as a wrapper on top of existing API
+    }
+    
+    /**
+     Get all the triples having subject this KBEntity and predicate
+     WHERE [subject=self.identifier, predicate="$(NEGATION_PREFIX)?$(RULE_PREFIX)*", object=?]
+     GROUP BY predicate, object
+     
+     - parameter afterConnecting: the entity `this` has just been connected to
+     - parameter completionHandler: the callback method
+     */
+    private func satisfiableRules(afterConnecting entity: KBEntity) async throws -> [(predicate: Label, object: KBEntity)] {
+        // TODO: Implement as a wrapper on top of existing API
+        return [("", self)]
+    }
+}

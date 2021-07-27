@@ -1,4 +1,4 @@
-// swift-tools-version:5.5
+// swift-tools-version:5.4
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -99,8 +99,7 @@ let cSettings: [PackageDescription.CSetting] = [
 
 let package: Package
 
-//if #available(iOS 15, *) {
-if false {
+if #available(iOS 15, macOS 13, tvOS 15, watchOS 8, *) {
     package = Package(
         name: "KnowledgeBase",
         platforms: [
@@ -123,7 +122,7 @@ if false {
                 name: "KnowledgeBase",
                 dependencies: ["RDFStorage"],
                 exclude: [
-                    "Storage",
+                    "Storage/Protocols",
                     "APIs",
                     "Serialization",
                     // TODO: Enable
@@ -134,7 +133,7 @@ if false {
                 cSettings: cSettings
             ),
             .testTarget(
-                name: "KnowledgeBaseTests",
+                name: "KnowledgeBaseTests_Swift_5_5",
                 dependencies: ["KnowledgeBase"],
                 cSettings: cSettings
             )
@@ -144,7 +143,7 @@ if false {
     package = Package(
         name: "KnowledgeBase",
         platforms: [
-            .macOS(.v10_12), .iOS(.v11), .tvOS(.v11), .watchOS(.v4)
+            .macOS(.v11), .iOS(.v11), .tvOS(.v11), .watchOS(.v4)
         ],
         products: [
             // Products define the executables and libraries a package produces, and make them visible to other packages.
@@ -163,7 +162,7 @@ if false {
                 name: "KnowledgeBase",
                 dependencies: ["RDFStorage"],
                 exclude: [
-                    "Storage_Swift_5_5",
+                    "Storage_Swift_5_5/Protocols",
                     "APIs_Swift_5_5",
                     "Serialization_Swift_5_5",
                     // TODO: Enable

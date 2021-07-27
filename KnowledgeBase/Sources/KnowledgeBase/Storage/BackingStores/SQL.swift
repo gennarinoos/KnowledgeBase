@@ -45,9 +45,9 @@ extension KBSQLBackingStoreProtocol {
         }
     }
     
-    func _value(forKey key: String, completionHandler: @escaping (Swift.Result<Any?, Error>) -> ()) {
+    func value(for key: String, completionHandler: @escaping (Swift.Result<Any?, Error>) -> ()) {
         genericMethodReturningInitiable(completionHandler) {
-            let value = try self.sqlHandler.values(forKeys: [key]).first
+            let value = try self.sqlHandler.values(for: [key]).first
             if let v = value {
                 return NSNullToNil(v)
             }
@@ -55,9 +55,9 @@ extension KBSQLBackingStoreProtocol {
         }
     }
     
-    func values(forKeys keys: [String], completionHandler: @escaping (Swift.Result<[Any?], Error>) -> ()) {
+    func values(for keys: [String], completionHandler: @escaping (Swift.Result<[Any?], Error>) -> ()) {
         genericMethodReturningInitiable(completionHandler) {
-            return try self.sqlHandler.values(forKeys: keys).map(NSNullToNil)
+            return try self.sqlHandler.values(for: keys).map(NSNullToNil)
         }
     }
     
@@ -82,7 +82,7 @@ extension KBSQLBackingStoreProtocol {
     func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition,
                                   completionHandler: @escaping (Swift.Result<KBJSONObject, Error>) -> ()) {
         genericMethodReturningInitiable(completionHandler) {
-            return try self.sqlHandler.keysAndValues(forKeysMatching: condition)
+            return try self.sqlHandler.keysAndvalues(forKeysMatching: condition)
         }
     }
     
@@ -101,10 +101,10 @@ extension KBSQLBackingStoreProtocol {
 
     //MARK: INSERT
     
-    func _setValue(_ value: Any?, forKey key: String, completionHandler: @escaping KBActionCompletion) {
+    func set(value: Any?, for key: String, completionHandler: @escaping KBActionCompletion) {
         genericMethodReturningVoid(completionHandler) {
-            self.writeBatch().setObject(value, forKey: key)
-            self.writeBatch().write(completionHandler: completionHandler)
+            self.writeBatch().set(value: value, for: key)
+            (self.writeBatch() as! KBSQLWriteBatch).write(completionHandler: completionHandler)
         }
     }
     
@@ -145,15 +145,15 @@ extension KBSQLBackingStoreProtocol {
     
     //MARK: DELETE
     
-    func removeValue(forKey key: String, completionHandler: @escaping KBActionCompletion) {
+    func removeValue(for key: String, completionHandler: @escaping KBActionCompletion) {
         genericMethodReturningVoid(completionHandler) {
-            try self.sqlHandler.removeValue(forKey: key)
+            try self.sqlHandler.removeValue(for: key)
         }
     }
     
-    func removeValues(forKeys keys: [String], completionHandler: @escaping KBActionCompletion) {
+    func removeValues(for keys: [String], completionHandler: @escaping KBActionCompletion) {
         genericMethodReturningVoid(completionHandler) {
-            try self.sqlHandler.removeValues(forKeys: keys)
+            try self.sqlHandler.removeValues(for: keys)
         }
     }
     
@@ -163,9 +163,9 @@ extension KBSQLBackingStoreProtocol {
         }
     }
     
-    func removeAllValues(completionHandler: @escaping KBActionCompletion) {
+    func removeAll(completionHandler: @escaping KBActionCompletion) {
         genericMethodReturningVoid(completionHandler) {
-            try self.sqlHandler.removeAllValues()
+            try self.sqlHandler.removeAll()
         }
     }
     

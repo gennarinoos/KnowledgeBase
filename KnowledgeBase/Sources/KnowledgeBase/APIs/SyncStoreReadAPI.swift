@@ -75,8 +75,8 @@ extension KBKVStore {
      - returns: the value
      
      */
-    open func _value(forKey key: String) throws -> Any? {
-        return try self.backingStore._value(forKey: key)
+    open func value(for key: String) throws -> Any? {
+        return try self.backingStore.value(for: key)
     }
     
     /**
@@ -89,8 +89,8 @@ extension KBKVStore {
      - returns: the values
      
      */
-    open func values(forKeys keys: [String]) throws -> [Any?] {
-        return try self.backingStore.values(forKeys: keys)
+    open func values(for keys: [String]) throws -> [Any?] {
+        return try self.backingStore.values(for: keys)
     }
     
     /**

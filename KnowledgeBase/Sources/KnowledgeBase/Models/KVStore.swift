@@ -13,7 +13,12 @@ let KnowledgeBaseSQLDefaultIdentifier = "main"
 let KnowledgeBaseSQLSynchedIdentifier = "synched"
 
 
-// MARK: - KBKVSStore
+/// Protocol used for any serializable object
+protocol Serializable {
+    var encoded: String { get }
+    static func decode(_ encoded: String) throws -> Self
+}
+
 
 @objc(KBKVStore)
 open class KBKVStore : NSObject {

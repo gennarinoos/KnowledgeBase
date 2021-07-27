@@ -43,7 +43,7 @@ extension KBKnowledgeStore {
      - parameter completionHandler: the callback method
      */
     open func triples(matching condition: KBTripleCondition?,
-                            completionHandler: @escaping (Swift.Result<[KBTriple], Error>) -> ())
+                      completionHandler: @escaping (Swift.Result<[KBTriple], Error>) -> ())
     {
         self.backingStore.triplesComponents(matching: condition, completionHandler: completionHandler)
     }

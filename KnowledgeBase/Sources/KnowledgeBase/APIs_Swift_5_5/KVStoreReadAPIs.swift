@@ -70,8 +70,8 @@ extension KBKVStore {
      - returns the value for the key. nil if the key doesn't exist, NSNull if set to null
      
      */
-    @objc open func value(forKey key: String) async throws -> Any? {
-        return try await self.backingStore.value(forKey: key)
+    open func value(for key: String) async throws -> Any? {
+        return try await self.backingStore.value(for: key)
     }
     
     /**
@@ -82,9 +82,9 @@ extension KBKVStore {
      - returns the list of values for the keys
      
      */
-    @objc open func values(forKeys keys: [String]) async throws -> [Any] {
+    open func values(for keys: [String]) async throws -> [Any] {
         var values = [Any]()
-        for nullableValue in try await self.backingStore.values(forKeys: keys) {
+        for nullableValue in try await self.backingStore.values(for: keys) {
             if nullableValue == nil {
                 values.append(NSNull())
             } else {
@@ -101,7 +101,7 @@ extension KBKVStore {
      - returns the list of values for the keys matching the condition
      
      */
-    @objc open func values(forKeysMatching condition: KBGenericCondition) async throws -> [Any?] {
+    open func values(forKeysMatching condition: KBGenericCondition) async throws -> [Any?] {
         return try await self.backingStore.values(forKeysMatching: condition)
     }
 }
