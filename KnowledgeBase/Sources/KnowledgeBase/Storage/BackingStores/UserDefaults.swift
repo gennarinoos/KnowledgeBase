@@ -153,7 +153,7 @@ class KBUserDefaultsBackingStore : KBBackingStore {
         }
     }
     
-    func removeValues(matching condition: KBGenericCondition, completionHandler: @escaping KBActionCompletion) {
+    func removeValues(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping KBActionCompletion) {
         self.keys() { result in
             switch result {
             case .success(let allKeys):

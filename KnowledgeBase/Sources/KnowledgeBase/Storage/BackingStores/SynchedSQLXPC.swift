@@ -62,9 +62,9 @@ class KBCloudKitSQLXPCBackingStore : KBSQLXPCBackingStore {
         }
     }
     
-    override func removeValues(matching condition: KBGenericCondition) async throws {
+    override func removeValues(forKeysMatching condition: KBGenericCondition) async throws {
         self.daemon(errorHandler: completionHandler)?
-            .removeValues(matching: condition,
+            .removeValues(forKeysMatching: condition,
                           fromSynchedStoreWithIdentifier: self.name) {
                             (error) in
                             let _ = self // Retain self in the block to keep XPC connection alive

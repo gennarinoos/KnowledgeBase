@@ -23,7 +23,7 @@ protocol KBAsynchronousBackingStore {
     func set(value: Any?, for key: String, completionHandler: @escaping KBActionCompletion)
     func removeValue(for key: String, completionHandler: @escaping KBActionCompletion)
     func removeValues(for keys: [String], completionHandler: @escaping KBActionCompletion)
-    func removeValues(matching condition: KBGenericCondition, completionHandler: @escaping KBActionCompletion)
+    func removeValues(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping KBActionCompletion)
     func removeAll(completionHandler: @escaping KBActionCompletion)
     
     // MARK: KnowledgeStore
@@ -76,7 +76,7 @@ protocol KBSynchronousBackingStore : KBAsynchronousBackingStore {
     func set(value: Any?, for key: String) throws
     func removeValue(for key: String) throws
     func removeValues(for keys: [String]) throws
-    func removeValues(matching condition: KBGenericCondition) throws
+    func removeValues(forKeysMatching condition: KBGenericCondition) throws
     func removeAll() throws
     
     // MARK: KnowledgeStore
@@ -173,9 +173,9 @@ extension KBSynchronousBackingStore {
         }
     }
     
-    func removeValues(matching condition: KBGenericCondition) throws {
+    func removeValues(forKeysMatching condition: KBGenericCondition) throws {
         try KBSyncMethodReturningVoid { c in
-            self.removeValues(matching: condition, completionHandler: c)
+            self.removeValues(forKeysMatching: condition, completionHandler: c)
         }
     }
     

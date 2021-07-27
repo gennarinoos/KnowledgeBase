@@ -264,12 +264,12 @@ class KBSQLXPCBackingStore : KBBackingStore {
         try await daemon.removeValues(for: keys, fromStoreWithIdentifier: self.name)
     }
     
-    func removeValues(matching condition: KBGenericCondition) async throws {
+    func removeValues(forKeysMatching condition: KBGenericCondition) async throws {
         guard let daemon = self.daemon() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
         
-        try await daemon.removeValues(matching: condition, fromStoreWithIdentifier: self.name)
+        try await daemon.removeValues(forKeysMatching: condition, fromStoreWithIdentifier: self.name)
     }
     
     func removeAll() async throws {

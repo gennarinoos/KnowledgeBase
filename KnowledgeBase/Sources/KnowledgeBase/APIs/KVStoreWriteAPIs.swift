@@ -85,12 +85,12 @@ extension KBKVStore {
      - parameter condition: the condition
      - parameter completionHandler: the callback method
      */
-    open func removeValues(matching condition: KBGenericCondition, completionHandler: @escaping KBActionCompletion) {
-        self.backingStore.removeValues(matching: condition, completionHandler: completionHandler)
+    open func removeValues(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping KBActionCompletion) {
+        self.backingStore.removeValues(forKeysMatching: condition, completionHandler: completionHandler)
     }
-    @objc func removeValues(matching condition: KBGenericCondition, completionHandler: @escaping KBObjCActionCompletion) {
+    @objc func removeValues(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping KBObjCActionCompletion) {
         KBObjectiveCAPIResultReturningVoid(completionHandler: completionHandler) { c in
-            self.removeValues(matching: condition, completionHandler: c)
+            self.removeValues(forKeysMatching: condition, completionHandler: c)
         }
     }
     

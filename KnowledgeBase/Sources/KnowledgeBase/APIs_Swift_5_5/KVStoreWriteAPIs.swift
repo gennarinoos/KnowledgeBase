@@ -54,8 +54,8 @@ extension KBKVStore {
      
      - parameter condition: the condition
      */
-    @objc open func removeValues(matching condition: KBGenericCondition) async throws {
-        try await self.backingStore.removeValues(matching: condition)
+    @objc open func removeValues(forKeysMatching condition: KBGenericCondition) async throws {
+        try await self.backingStore.removeValues(forKeysMatching: condition)
     }
     
     /**

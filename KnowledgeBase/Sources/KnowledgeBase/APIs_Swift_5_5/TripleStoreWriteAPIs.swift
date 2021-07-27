@@ -31,7 +31,7 @@ extension KBKnowledgeStore {
         )
         let condition = subjectMatches.or(objectMatches)
         
-        try await self.backingStore.removeValues(matching: condition.rawCondition)
+        try await self.backingStore.removeValues(forKeysMatching: condition.rawCondition)
     }
     
     @objc open func importContentsOf(turtleFileAt path: String) async throws {

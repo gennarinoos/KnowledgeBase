@@ -63,9 +63,9 @@ extension KBKVStore {
      
      - parameter condition: the condition
      */
-    @objc open func removeValues(matching condition: KBGenericCondition) throws {
+    @objc open func removeValues(forKeysMatching condition: KBGenericCondition) throws {
         try KBSyncMethodReturningVoid { c in
-            self.removeValues(matching: condition, completionHandler: c)
+            self.removeValues(forKeysMatching: condition, completionHandler: c)
         }
     }
     

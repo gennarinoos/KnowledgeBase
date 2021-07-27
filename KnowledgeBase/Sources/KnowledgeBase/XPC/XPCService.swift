@@ -111,21 +111,21 @@ public class KnowledgeBaseXPCUtils : NSObject {
 
         // removeValuesMatching:fromStoreWithIdentifier:completionHandler:
         interface.setClasses(NSSet(array: [KBGenericCondition.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCInterface.removeValues(matching:fromStoreWithIdentifier:)),
+                             for: #selector(KBStorageXPCInterface.removeValues(forKeysMatching:fromStoreWithIdentifier:)),
                              argumentIndex: 0,
                              ofReply: false)
         interface.setClasses(NSSet(array: [NSString.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCInterface.removeValues(matching:fromStoreWithIdentifier:)),
+                             for: #selector(KBStorageXPCInterface.removeValues(forKeysMatching:fromStoreWithIdentifier:)),
                              argumentIndex: 1,
                              ofReply: false)
 
         // removeValuesMatching:fromSynchedStoreWithIdentifier:completionHandler:
         interface.setClasses(NSSet(array: [KBGenericCondition.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCInterface.removeValues(matching:fromSynchedStoreWithIdentifier:)),
+                             for: #selector(KBStorageXPCInterface.removeValues(forKeysMatching:fromSynchedStoreWithIdentifier:)),
                              argumentIndex: 0,
                              ofReply: false)
         interface.setClasses(NSSet(array: [NSString.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCInterface.removeValues(matching:fromSynchedStoreWithIdentifier:)),
+                             for: #selector(KBStorageXPCInterface.removeValues(forKeysMatching:fromSynchedStoreWithIdentifier:)),
                              argumentIndex: 1,
                              ofReply: false)
 

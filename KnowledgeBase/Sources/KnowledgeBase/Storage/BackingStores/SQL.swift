@@ -157,9 +157,9 @@ extension KBSQLBackingStoreProtocol {
         }
     }
     
-    func removeValues(matching condition: KBGenericCondition, completionHandler: @escaping KBActionCompletion) {
+    func removeValues(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping KBActionCompletion) {
         genericMethodReturningVoid(completionHandler) {
-            try self.sqlHandler.removeValues(matching: condition)
+            try self.sqlHandler.removeValues(forKeysMatching: condition)
         }
     }
     

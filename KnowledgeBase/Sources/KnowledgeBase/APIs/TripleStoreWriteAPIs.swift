@@ -31,7 +31,7 @@ extension KBKnowledgeStore {
         let condition = subjectMatches.or(objectMatches)
         
         weak var welf = self
-        self.backingStore.removeValues(matching: condition.rawCondition) {
+        self.backingStore.removeValues(forKeysMatching: condition.rawCondition) {
             welf?.delegate?.linkedDataDidChange()
             completionHandler($0)
         }

@@ -39,9 +39,9 @@ import Foundation
     
     func removeValues(forKeys: [String], fromSynchedStoreWithIdentifier: String) async throws
     
-    func removeValues(matching: KBGenericCondition, fromStoreWithIdentifier: String) async throws
+    func removeValues(forKeysMatching: KBGenericCondition, fromStoreWithIdentifier: String) async throws
     
-    func removeValues(matching: KBGenericCondition, fromSynchedStoreWithIdentifier: String) async throws
+    func removeValues(forKeysMatching: KBGenericCondition, fromSynchedStoreWithIdentifier: String) async throws
     
     func removeAllValues(fromStoreWithIdentifier: String) async throws
     

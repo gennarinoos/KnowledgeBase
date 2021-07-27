@@ -382,7 +382,7 @@ open class KBSQLHandler: NSObject {
         }
     }
     
-    fileprivate func _removeValues(matching condition: KBGenericCondition) throws {
+    fileprivate func _removeValues(forKeysMatching condition: KBGenericCondition) throws {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
@@ -393,13 +393,13 @@ open class KBSQLHandler: NSObject {
         }
     }
     
-    @objc open func removeValues(matching condition: KBGenericCondition) throws {
+    @objc open func removeValues(forKeysMatching condition: KBGenericCondition) throws {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
         
         try connection.transaction(Connection.TransactionMode.immediate) {
-            try self._removeValues(matching: condition)
+            try self._removeValues(forKeysMatching: condition)
         }
     }
     
@@ -677,7 +677,7 @@ open class KBSQLHandler: NSObject {
             predicate: predicate,
             object: objectIdentifier
         )
-        try self.removeValues(matching: condition.rawCondition)
+        try self.removeValues(forKeysMatching: condition.rawCondition)
     }
 
     @objc open func dropLinks(withLabel predicate: String?,
@@ -712,7 +712,7 @@ open class KBSQLHandler: NSObject {
             predicate: predicate,
             object: nil
         )
-        try self._removeValues(matching: condition.rawCondition)
+        try self._removeValues(forKeysMatching: condition.rawCondition)
     }
     
     @objc(dropLinksBetween:and:error:)
@@ -737,7 +737,7 @@ open class KBSQLHandler: NSObject {
             predicate: nil,
             object: objectIdentifier
         )
-        try self.removeValues(matching: condition.rawCondition)
+        try self.removeValues(forKeysMatching: condition.rawCondition)
     }
     
     //MARK: - Utils
