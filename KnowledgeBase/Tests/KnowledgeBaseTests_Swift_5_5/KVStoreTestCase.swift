@@ -74,99 +74,128 @@ class KVStoreTestCase : XCTestCase {
         return false
     }
     
-    func testPartialKeysAndValues() async {
+    func testPartialKeysAndValues() async throws {
         await self.cleanup()
         
-        do {
-            try await KVStoreTestCase._sharedStore.set(value: "stringVal", for: "string")
-            print(try await KVStoreTestCase._sharedStore.dictionaryRepresentation())
-            try await KVStoreTestCase._sharedStore.set(value: 1, for: "int")
-            try await KVStoreTestCase._sharedStore.set(value: true, for: "bool")
-            try await KVStoreTestCase._sharedStore.set(value: false, for: "NOTbool")
-            try await KVStoreTestCase._sharedStore.set(value: ["first", "second"], for: "array")
-            try await KVStoreTestCase._sharedStore.set(value: ["first": "first", "second": "second"], for: "dictionary")
-            
-            let stringOrBool = KBGenericCondition(.equal, value: "string").or(KBGenericCondition(.equal, value: "bool"))
+        try await KVStoreTestCase._sharedStore.set(value: "stringVal", for: "string")
+        print(try await KVStoreTestCase._sharedStore.dictionaryRepresentation())
+        try await KVStoreTestCase._sharedStore.set(value: 1, for: "int")
+        try await KVStoreTestCase._sharedStore.set(value: true, for: "bool")
+        try await KVStoreTestCase._sharedStore.set(value: false, for: "NOTbool")
+        try await KVStoreTestCase._sharedStore.set(value: ["first", "second"], for: "array")
+        try await KVStoreTestCase._sharedStore.set(value: ["first": "first", "second": "second"], for: "dictionary")
+        
+        let stringOrBool = KBGenericCondition(.equal, value: "string").or(KBGenericCondition(.equal, value: "bool"))
 
-            var partialKeysAndValues = try await KVStoreTestCase._sharedStore.dictionaryRepresentation(forKeysMatching: stringOrBool) as Dictionary
-            XCTAssertEqual(partialKeysAndValues.keys.count, 2)
-            XCTAssertEqual(partialKeysAndValues["string"] as? String, "stringVal")
-            // TODO: rdar://50960552
-            // XCTAssertEqual(partialKeysAndValues["bool"] as? Bool, true)
+        var partialKeysAndValues = try await KVStoreTestCase._sharedStore.dictionaryRepresentation(forKeysMatching: stringOrBool) as Dictionary
+        XCTAssertEqual(partialKeysAndValues.keys.count, 2)
+        XCTAssertEqual(partialKeysAndValues["string"] as? String, "stringVal")
+        // TODO: rdar://50960552
+        // XCTAssertEqual(partialKeysAndValues["bool"] as? Bool, true)
 
-            var partialKeys = try await KVStoreTestCase._sharedStore.keys(matching: stringOrBool).sorted { $0.compare($1) == .orderedAscending }
-            XCTAssert(partialKeys.count == 2)
-            XCTAssertEqual(partialKeys, ["bool", "string"])
+        var partialKeys = try await KVStoreTestCase._sharedStore.keys(matching: stringOrBool).sorted { $0.compare($1) == .orderedAscending }
+        XCTAssert(partialKeys.count == 2)
+        XCTAssertEqual(partialKeys, ["bool", "string"])
 
-            var partialValues = try await KVStoreTestCase._sharedStore.values(for: partialKeys) as [Any?]
-            XCTAssert(partialValues.count == 2)
+        var partialValues = try await KVStoreTestCase._sharedStore.values(for: partialKeys) as [Any?]
+        XCTAssert(partialValues.count == 2)
 
-            partialValues = try await KVStoreTestCase._sharedStore.values(forKeysMatching: stringOrBool)
-            XCTAssert(partialValues.count == 2)
+        partialValues = try await KVStoreTestCase._sharedStore.values(forKeysMatching: stringOrBool)
+        XCTAssert(partialValues.count == 2)
 
-            let startWithSOrEndsWithOl = KBGenericCondition(.beginsWith, value: "s").or(KBGenericCondition(.endsWith, value: "ol"))
-            partialKeysAndValues = try await KVStoreTestCase._sharedStore.dictionaryRepresentation(forKeysMatching: startWithSOrEndsWithOl) as Dictionary
-            XCTAssertEqual(partialKeysAndValues.keys.count, 3)
-            XCTAssertEqual(partialKeysAndValues["string"] as? String, "stringVal")
-            // TODO: rdar://50960552
-            // XCTAssertEqual(partialKeysAndValues["bool"] as? Bool, true)
-            // XCTAssertEqual(partialKeysAndValues["NOTbool"] as? Bool, false)
+        let startWithSOrEndsWithOl = KBGenericCondition(.beginsWith, value: "s").or(KBGenericCondition(.endsWith, value: "ol"))
+        partialKeysAndValues = try await KVStoreTestCase._sharedStore.dictionaryRepresentation(forKeysMatching: startWithSOrEndsWithOl) as Dictionary
+        XCTAssertEqual(partialKeysAndValues.keys.count, 3)
+        XCTAssertEqual(partialKeysAndValues["string"] as? String, "stringVal")
+        // TODO: rdar://50960552
+        // XCTAssertEqual(partialKeysAndValues["bool"] as? Bool, true)
+        // XCTAssertEqual(partialKeysAndValues["NOTbool"] as? Bool, false)
 
-            partialKeys = try await KVStoreTestCase._sharedStore.keys(matching: startWithSOrEndsWithOl).sorted { $0.compare($1) == .orderedAscending }
-            XCTAssertEqual(partialKeys.count, 3)
-            XCTAssertEqual(partialKeys, ["NOTbool", "bool", "string"])
+        partialKeys = try await KVStoreTestCase._sharedStore.keys(matching: startWithSOrEndsWithOl).sorted { $0.compare($1) == .orderedAscending }
+        XCTAssertEqual(partialKeys.count, 3)
+        XCTAssertEqual(partialKeys, ["NOTbool", "bool", "string"])
 
-            partialValues = try await KVStoreTestCase._sharedStore.values(for: partialKeys) as [Any?]
-            XCTAssertEqual(partialValues.count, 3)
+        partialValues = try await KVStoreTestCase._sharedStore.values(for: partialKeys) as [Any?]
+        XCTAssertEqual(partialValues.count, 3)
 
-            partialValues = try await KVStoreTestCase._sharedStore.values(forKeysMatching: startWithSOrEndsWithOl)
-            XCTAssertEqual(partialValues.count, 3)
-        } catch {
-            XCTFail("\(error)")
-        }
+        partialValues = try await KVStoreTestCase._sharedStore.values(forKeysMatching: startWithSOrEndsWithOl)
+        XCTAssertEqual(partialValues.count, 3)
     }
     
-//    func testAllKeyValues() async throws {
-//        try KVStoreTestCase._sharedStore.set(value: "stringVal", for: "string")
-//        try KVStoreTestCase._sharedStore.set(value: 1, for: "int")
-//        try KVStoreTestCase._sharedStore.set(value: true, for: "bool")
-//        try KVStoreTestCase._sharedStore.set(value: false, for: "NOTbool")
-//        try KVStoreTestCase._sharedStore.set(value: ["first", "second"], for: "array")
-//        try KVStoreTestCase._sharedStore.set(value: ["first": "first", "second": "second"], for: "dictionary")
-//
-//        let allKVPairs = try KVStoreTestCase._sharedStore.dictionaryRepresentation() as Dictionary
-//        let conditionalKVPairs = try KVStoreTestCase._sharedStore.dictionaryRepresentation() as Dictionary
-//
-//        for kvPairs in [allKVPairs, conditionalKVPairs] {
-//            XCTAssertEqual(kvPairs.count, 6)
-//            XCTAssertEqual(kvPairs["string"] as? String, "stringVal")
-//            XCTAssertEqual(kvPairs["int"] as? Int, 1)
-//            XCTAssertEqual(kvPairs["bool"] as? Bool, true)
-//            XCTAssertEqual(kvPairs["NOTbool"] as? Bool, false)
-//
-//            let arrayValue = kvPairs["array"] as! [String]
-//            XCTAssertEqual(arrayValue.count, 2)
-//            XCTAssertEqual(arrayValue[0], "first")
-//            XCTAssertEqual(arrayValue[1], "second")
-//
-//            let dictValue = kvPairs["dictionary"] as! [String:String]
-//            XCTAssertEqual(dictValue.count, 2)
-//            XCTAssertEqual(dictValue["first"], "first")
-//            XCTAssertEqual(dictValue["second"], "second")
-//        }
-//
-//        let keys = try KVStoreTestCase._sharedStore
-//            .keys(matching: KBGenericCondition(value: true))
-//            .sorted { $0.compare($1) == .orderedAscending }
-//
-//        XCTAssertEqual(keys, ["NOTbool", "array", "bool", "dictionary", "int", "string"])
-//
-//        let keyedValues = try KVStoreTestCase._sharedStore.values(for: keys)
-//        XCTAssertEqual(keyedValues.count, 6)
-//
-//        let conditionalValues = try KVStoreTestCase._sharedStore.values(forKeysMatching: KBGenericCondition(value: true))
-//        XCTAssertEqual(conditionalValues.count, 6)
-//    }
+    
+    // This test fails with Swift Concurrency in 5.5 or above.
+    // It seems like integers don't retain their type when shared across closures in async methods.
+    // This is a comparison in the debugger between Swift 5.4 and Swift 5.5
+    /*
+     ==== 5.5
+
+     (lldb) p 1
+     (Int) $R0 = 1
+     (lldb) po 1
+     1
+     (lldb) p value
+     (Any?) $R2 = (payload_data_0 = 0xe978fcfef33407e3, payload_data_1 = 0x00007fff202f0f75 CoreFoundation`-[NSTaggedPointerString getBytes:maxLength:usedLength:encoding:options:range:remainingRange:] + 396, payload_data_2 = 0x000070000a170950, metadata = 0x00007fff86a71778) {
+       payload_data_0 = 0xe978fcfef33407e3 {}
+       payload_data_1 = 0x00007fff202f0f75 CoreFoundation`-[NSTaggedPointerString getBytes:maxLength:usedLength:encoding:options:range:remainingRange:] + 396
+       payload_data_2 = 0x000070000a170950
+       metadata = 0x00007fff86a71778
+     }
+     (lldb) po value
+     ▿ Optional<Any>
+       - some : 1
+
+
+     === < 5.5
+
+     (lldb) p 1
+     (Int) $R0 = 1
+     (lldb) po 1
+     1
+     (lldb) p value
+     (Any?) $R2 = 1
+     (lldb) po value
+     ▿ Optional<Any>
+       - some : 1
+     */
+    func testAllKeyValues() async throws {
+        await self.cleanup()
+        
+        try await KVStoreTestCase._sharedStore.set(value: "stringVal", for: "string")
+        try await KVStoreTestCase._sharedStore.set(value: 1, for: "int")
+        try await KVStoreTestCase._sharedStore.set(value: true, for: "bool")
+        try await KVStoreTestCase._sharedStore.set(value: false, for: "NOTbool")
+        try await KVStoreTestCase._sharedStore.set(value: ["first", "second"], for: "array")
+        try await KVStoreTestCase._sharedStore.set(value: ["first": "first", "second": "second"], for: "dictionary")
+
+        let kvPairs = try await KVStoreTestCase._sharedStore.dictionaryRepresentation() as Dictionary
+        XCTAssertEqual(kvPairs.count, 6)
+        XCTAssertEqual(kvPairs["string"] as? String, "stringVal")
+        XCTAssertEqual(kvPairs["int"] as? Int, 1)
+        XCTAssertEqual(kvPairs["bool"] as? Bool, true)
+        XCTAssertEqual(kvPairs["NOTbool"] as? Bool, false)
+
+        let arrayValue = kvPairs["array"] as! [String]
+        XCTAssertEqual(arrayValue.count, 2)
+        XCTAssertEqual(arrayValue[0], "first")
+        XCTAssertEqual(arrayValue[1], "second")
+
+        let dictValue = kvPairs["dictionary"] as! [String:String]
+        XCTAssertEqual(dictValue.count, 2)
+        XCTAssertEqual(dictValue["first"], "first")
+        XCTAssertEqual(dictValue["second"], "second")
+
+        let keys = try await KVStoreTestCase._sharedStore
+            .keys(matching: KBGenericCondition(value: true))
+            .sorted { $0.compare($1) == .orderedAscending }
+
+        XCTAssertEqual(keys, ["NOTbool", "array", "bool", "dictionary", "int", "string"])
+
+        let keyedValues = try await KVStoreTestCase._sharedStore.values(for: keys)
+        XCTAssertEqual(keyedValues.count, 6)
+
+        let conditionalValues = try await KVStoreTestCase._sharedStore.values(forKeysMatching: KBGenericCondition(value: true))
+        XCTAssertEqual(conditionalValues.count, 6)
+    }
 //
 //    struct NonNSSecureCodingCompliantStruct {
 //    }

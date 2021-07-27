@@ -141,26 +141,22 @@ class KVStoreTestCase : XCTestCase {
         try KVStoreTestCase._sharedStore.set(value: ["first", "second"], for: "array")
         try KVStoreTestCase._sharedStore.set(value: ["first": "first", "second": "second"], for: "dictionary")
         
-        let allKVPairs = try KVStoreTestCase._sharedStore.dictionaryRepresentation() as Dictionary
-        let conditionalKVPairs = try KVStoreTestCase._sharedStore.dictionaryRepresentation() as Dictionary
+        let kvPairs = try KVStoreTestCase._sharedStore.dictionaryRepresentation() as Dictionary
+        XCTAssertEqual(kvPairs.count, 6)
+        XCTAssertEqual(kvPairs["string"] as? String, "stringVal")
+        XCTAssertEqual(kvPairs["int"] as? Int, 1)
+        XCTAssertEqual(kvPairs["bool"] as? Bool, true)
+        XCTAssertEqual(kvPairs["NOTbool"] as? Bool, false)
 
-        for kvPairs in [allKVPairs, conditionalKVPairs] {
-            XCTAssertEqual(kvPairs.count, 6)
-            XCTAssertEqual(kvPairs["string"] as? String, "stringVal")
-            XCTAssertEqual(kvPairs["int"] as? Int, 1)
-            XCTAssertEqual(kvPairs["bool"] as? Bool, true)
-            XCTAssertEqual(kvPairs["NOTbool"] as? Bool, false)
+        let arrayValue = kvPairs["array"] as! [String]
+        XCTAssertEqual(arrayValue.count, 2)
+        XCTAssertEqual(arrayValue[0], "first")
+        XCTAssertEqual(arrayValue[1], "second")
 
-            let arrayValue = kvPairs["array"] as! [String]
-            XCTAssertEqual(arrayValue.count, 2)
-            XCTAssertEqual(arrayValue[0], "first")
-            XCTAssertEqual(arrayValue[1], "second")
-
-            let dictValue = kvPairs["dictionary"] as! [String:String]
-            XCTAssertEqual(dictValue.count, 2)
-            XCTAssertEqual(dictValue["first"], "first")
-            XCTAssertEqual(dictValue["second"], "second")
-        }
+        let dictValue = kvPairs["dictionary"] as! [String:String]
+        XCTAssertEqual(dictValue.count, 2)
+        XCTAssertEqual(dictValue["first"], "first")
+        XCTAssertEqual(dictValue["second"], "second")
 
         let keys = try KVStoreTestCase._sharedStore
             .keys(matching: KBGenericCondition(value: true))

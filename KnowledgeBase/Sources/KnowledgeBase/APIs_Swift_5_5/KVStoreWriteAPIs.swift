@@ -24,6 +24,7 @@ extension KBKVStore {
         
         let writeBatch = self.writeBatch()
         writeBatch.set(value: value, for: key)
+        log.info("setting value=%@ for key=%@", String(describing: value), key)
         try await writeBatch.write()
     }
     

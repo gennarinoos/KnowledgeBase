@@ -29,7 +29,7 @@ extension KBKVStore {
         
         let writeBatch = self.writeBatch()
         writeBatch.set(value: value, for: key)
-        log.info("setting value setting value=%@ for key=%@", String(describing: value), key)
+        log.info("setting value=%@ for key=%@", String(describing: value), key)
         try KBSyncMethodReturningVoid(execute:writeBatch.write)
     }
     
