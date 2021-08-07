@@ -57,8 +57,7 @@ extension KBEntity {
     open func link(to target: KBEntity,
                    withPredicate predicate: Label,
                    completionHandler: @escaping KBActionCompletion) {
-        log.debug("Linking [<%{private}@> <%{private}@> <%{private}@>]",
-                  self, predicate, target)
+        log.trace("Linking [<\(self)> <\(predicate)> <\(target)>]")
 
         let subject = self.identifier
         let predicate = predicate
@@ -76,8 +75,7 @@ extension KBEntity {
                 dispatch.interrupt(err)
             case .success(let newWeight):
                 if let _ = self {
-                    log.debug("New weight for triple [<%{private}@> <%{private}@> <%{private}@>]: %@",
-                              self!, predicate, target, newWeight)
+                    log.debug("New weight for triple [<\(self!)> <\(predicate)> <\(target)>]: \(newWeight, privacy: .public)")
                 }
                 dispatch.semaphore.signal()
             }
@@ -112,13 +110,11 @@ extension KBEntity {
                 switch result {
                 case .success():
                     if let _ = self {
-                        log.debug("Deleted link [<%{private}@> <%{private}@> <%{private}@>]",
-                                  self!, label, target)
+                        log.debug("Deleted link [<\(self!)> <\(label)> <\(target)>]")
                     }
                 case .failure(let err):
                     if let _ = self {
-                        log.debug("Could not unlink [<%{private}@> <%{private}@> <%{private}@>]: %@",
-                                  self!, label, target, err.localizedDescription)
+                        log.debug("Could not unlink [<\(self!)> <\(label)> <\(target)>]: \(err.localizedDescription, privacy: .public)")
                     }
                 }
                 completionHandler(result)
@@ -130,14 +126,12 @@ extension KBEntity {
                 switch result {
                 case .success(let newWeight):
                     if let _ = self {
-                        log.debug("New weight for triple [<%{private}@> <%{private}@> <%{private}@>]: %@",
-                                  self!, label, target, newWeight)
+                        log.debug("New weight for triple [\(self!)> <\(label)> <\(target)>]: \(newWeight, privacy: .public)")
                     }
                     completionHandler(.success(()))
                 case .failure(let err):
                     if let _ = self {
-                        log.debug("Could not unlink [<%{private}@> <%{private}@> <%{private}@>]: %@",
-                                  self!, label, target, err.localizedDescription)
+                        log.debug("Could not unlink [\(self!)> <\(label)> <\(target)>]: \(err.localizedDescription, privacy: .public)")
                     }
                     completionHandler(.failure(err))
                 }
@@ -173,8 +167,7 @@ extension KBEntity {
                              complement wantsComplementarySet: Bool = false,
                              completionHandler:@escaping (Swift.Result<[(predicate: Label, object: KBEntity)], Error>) -> ()) {
         let negatedFlag = wantsComplementarySet  == true ? "NOT " : ""
-        log.debug("%@[<%{private}@> <%{private}@:%@> $?]",
-                  negatedFlag, self, predicate, matchType.description)
+        log.trace("\(negatedFlag, privacy: .public)[<\(self)> <\(predicate):\(matchType.description, privacy: .public)> $?]")
 
         var partial = KBHexastore.JOINER.combine(KBHexastore.SPO.rawValue, self.identifier)
 
@@ -222,7 +215,7 @@ extension KBEntity {
      - parameter completionHandler: the callback method
      */
     open func linkedEntities(completionHandler: @escaping (Swift.Result<[(predicate: Label, object: KBEntity)], Error>) -> ()) {
-        log.debug("[<%{private}@> $? $?]", self)
+        log.trace("[<\(self)> $? $?]")
 
         let partial = KBHexastore.JOINER.combine(
             KBHexastore.SPO.rawValue,
@@ -261,8 +254,7 @@ extension KBEntity {
                               complement wantsComplementarySet: Bool = false,
                               completionHandler: @escaping (Swift.Result<[(subject: KBEntity, predicate: Label)], Error>) -> ()) {
         let negatedFlag = wantsComplementarySet ? "NOT " : ""
-        log.debug("%@[$? <%{private}@:%@> <%{private}@>]",
-                  negatedFlag, predicate, matchType.description, self)
+        log.trace("\(negatedFlag, privacy: .public)[$? <\(predicate):\(matchType.description, privacy: .public)> \(self)]")
 
         var condition: KBTripleCondition
 
@@ -338,7 +330,7 @@ extension KBEntity {
      - parameter completionHandler: the callback method
      */
     open func linkingEntities(completionHandler: @escaping (Swift.Result<[(subject: KBEntity, predicate: Label)], Error>) -> ()) {
-        log.debug("[$? $? <%{private}@>]", self)
+        log.trace("[$? $? <\(self)>]")
 
         let partial = KBHexastore.JOINER.combine(
             KBHexastore.OPS.rawValue,
@@ -375,8 +367,7 @@ extension KBEntity {
     open func links(to target: KBEntity,
                     matchType: KBMatchType = .equal,
                     completionHandler: @escaping (Swift.Result<[Label], Error>) -> ()) {
-        log.debug("[<%{private}@> $? <%{private}@:%@>]",
-                  self, target, matchType.description)
+        log.trace("[<\(self)> $? <\(target):\(matchType.description, privacy: .public)>]")
 
         let partial: String
 

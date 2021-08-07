@@ -63,7 +63,7 @@ open class KBSQLHandler: NSObject {
         
         let safeName = name.components(separatedBy: allowedCharSet.inverted).joined()
         if safeName.isEmpty {
-            log.fault("invalid database name %@", name)
+            log.fault("invalid database name \(name, privacy: .public)")
             return nil
         }
         
@@ -74,7 +74,7 @@ open class KBSQLHandler: NSObject {
         
         do { try KBSQLHandler.createDirectory(at: directory.path) }
         catch {
-            log.fault("could not create database directory: %@", error.localizedDescription)
+            log.fault("could not create database directory: \(error.localizedDescription, privacy: .public)")
             return nil
         }
         
@@ -111,10 +111,10 @@ open class KBSQLHandler: NSObject {
             try connection?.execute(kKBTypedKeyValuePairsDbSchema)
         } catch let error as Result {
             if (error as NSError).code != SQLITE_OK {
-                log.error("error creating SQL schema. %@", error.localizedDescription)
+                log.error("error creating SQL schema. \(error.localizedDescription, privacy: .public)")
             }
         } catch {
-            log.error("couldn't establish a connection to the database. %@", error.localizedDescription)
+            log.error("couldn't establish a connection to the database. \(error.localizedDescription, privacy: .public)")
         }
         
         return connection
@@ -500,7 +500,7 @@ open class KBSQLHandler: NSObject {
                                            between: subjectIdentifier,
                                            and: objectIdentifier)
         } catch {
-            log.error("error: %@", error.localizedDescription)
+            log.error("error: \(error.localizedDescription, privacy: .public)")
             return kKBInvalidLinkWeight
         }
     }
@@ -565,7 +565,7 @@ open class KBSQLHandler: NSObject {
                                            between: subjectIdentifier,
                                            and: objectIdentifier)
         } catch {
-            log.error("error: %@", error.localizedDescription)
+            log.error("error: \(error.localizedDescription, privacy: .public)")
             return kKBInvalidLinkWeight
         }
     }

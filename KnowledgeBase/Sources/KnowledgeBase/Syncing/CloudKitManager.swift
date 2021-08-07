@@ -73,8 +73,7 @@ public class KBCloudKitManager : NSObject {
                     return number.boolValue
                 }
             } catch {
-                log.error("Could not retrieve %@ from local cache: %@",
-                          kKBCloudKitHasSetUpRecordZoneSubscription, error.localizedDescription)
+                log.info("Could not retrieve \(kKBCloudKitHasSetUpRecordZoneSubscription, privacy: .public) from local cache: \(error.localizedDescription, privacy: .public)")
             }
             return false
         }
@@ -85,8 +84,7 @@ public class KBCloudKitManager : NSObject {
                               for: kKBCloudKitHasSetUpRecordZoneSubscription)
                 
             } catch {
-                log.error("Could not save %@ to local cache: %@",
-                          kKBCloudKitHasSetUpRecordZoneSubscription, error.localizedDescription)
+                log.error("Could not save \(kKBCloudKitHasSetUpRecordZoneSubscription, privacy: .public) to local cache: \(error.localizedDescription, privacy: .public)")
             }
         }
     }
@@ -104,7 +102,7 @@ public class KBCloudKitManager : NSObject {
                     return token
                 }
             } catch {
-                log.error("could not retrieve cloudkit settings from user defaults store: %@", error.localizedDescription)
+                log.error("could not retrieve cloudkit settings from user defaults store: \(error.localizedDescription, privacy: .public)")
             }
             return nil
         }
@@ -121,8 +119,7 @@ public class KBCloudKitManager : NSObject {
                                   for: kKBCloudKitHasSetUpRecordZoneSubscription)
                 }
             } catch {
-                log.error("Could not save %@ to local cache: %@",
-                          kKBCloudKitHasSetUpRecordZoneSubscription, error.localizedDescription)
+                log.error("Could not save \(kKBCloudKitHasSetUpRecordZoneSubscription, privacy: .public) to local cache: \(error.localizedDescription, privacy: .public)")
             }
         }
     }
@@ -159,7 +156,7 @@ public class KBCloudKitManager : NSObject {
         Dispatch.dispatchPrecondition(condition: .onQueue(self.serialQueue))
         
         self.container.accountStatus() { [unowned self] (accountStatus, error) in
-            if let error = error { log.error("%@", error.localizedDescription) }
+            if let error = error { log.error("\(error.localizedDescription, privacy: .public)") }
 
             // Update Account Status
             self.accountStatus = accountStatus
@@ -179,7 +176,7 @@ public class KBCloudKitManager : NSObject {
     
     private func createRecordZone(completionHandler: @escaping (Swift.Result<CKRecordZone?, Error>) -> ()) {
         Dispatch.dispatchPrecondition(condition: .onQueue(self.serialQueue))
-        log.debug("Creating zone: (%@)", KBCloudKitManager.recordZoneID.zoneName)
+        log.trace("Creating zone (\(KBCloudKitManager.recordZoneID.zoneName, privacy: .public))")
         
         let recordZone = CKRecordZone(zoneID: KBCloudKitManager.recordZoneID)
         let modifyRecordZonesOperation = CKModifyRecordZonesOperation(recordZonesToSave: [recordZone],
@@ -187,7 +184,7 @@ public class KBCloudKitManager : NSObject {
         modifyRecordZonesOperation.modifyRecordZonesCompletionBlock = {
             (savedRecordZones, deletedRecordZoneIDs, operationError) in
             if let error = operationError {
-                log.error("Error deleting zone (%@):(%@)", KBCloudKitManager.recordZoneID.zoneName, error.localizedDescription)
+                log.error("Failed to create zone (\(KBCloudKitManager.recordZoneID.zoneName, privacy: .public)): \(error.localizedDescription, privacy: .public)")
                 completionHandler(.failure(error))
             } else {
                 completionHandler(.success((savedRecordZones?.first)))
@@ -210,10 +207,7 @@ public class KBCloudKitManager : NSObject {
                     KBScheduleRoutine(withRetryInterval: interval, onQueue: self.serialQueue) { [weak self] in
                         self?.setupRecordZone(withRetryInterval: nextRetryInterval)
                     }
-                    log.error("Failed creating zone (%@): error=(%@) Retrying in %f seconds",
-                              KBCloudKitManager.recordZoneID.zoneName,
-                              error?.localizedDescription ?? "<nil>",
-                              nextRetryInterval)
+                    log.error("Failed to create zone (\(KBCloudKitManager.recordZoneID.zoneName, privacy: .public)): \(error?.localizedDescription ?? "<nil>", privacy: .public). Retrying in \(nextRetryInterval) seconds")
                 }
                 
                 switch result {
@@ -221,7 +215,7 @@ public class KBCloudKitManager : NSObject {
                     retryBlock(error)
                 case .success(let recordZone):
                     if let recordZone = recordZone {
-                        log.info("Zone created: (%@)", recordZone.zoneID.zoneName)
+                        log.info("Zone created (\(recordZone.zoneID.zoneName, privacy: .public)")
                         
                         if recordZone.isEqual(to: self.recordZone) == false {
                             self.recordZone = recordZone
@@ -243,13 +237,13 @@ public class KBCloudKitManager : NSObject {
     
     private func deleteRecordZone(completionHandler: @escaping KBActionCompletion) {
         Dispatch.dispatchPrecondition(condition: .onQueue(self.serialQueue))
-        log.debug("Deleting zone: (%@)", KBCloudKitManager.recordZoneID.zoneName)
+        log.trace("Deleting zone (\(KBCloudKitManager.recordZoneID.zoneName, privacy: .public)")
         let modifyRecordZonesOperation = CKModifyRecordZonesOperation(recordZonesToSave: nil,
                                                                       recordZoneIDsToDelete: [KBCloudKitManager.recordZoneID])
         modifyRecordZonesOperation.modifyRecordZonesCompletionBlock = {
             (savedRecordZones, deletedRecordZoneIDs, error) in
             if let error = error {
-                log.error("Error deleting zone (%@):(%@)", KBCloudKitManager.recordZoneID.zoneName, error.localizedDescription)
+                log.error("Failed to delete zone \(KBCloudKitManager.recordZoneID.zoneName, privacy: .public): \(error.localizedDescription, privacy: .public)")
                 completionHandler(.failure(error))
             } else {
                 completionHandler(.success(()))
@@ -263,7 +257,7 @@ public class KBCloudKitManager : NSObject {
     
     private func setUpRecordZoneSubscription(withRetryInterval interval: TimeInterval = kKBCloudKitSetupRetryIntervalMax) {
         Dispatch.dispatchPrecondition(condition: .onQueue(self.serialQueue))
-        log.debug("Creating record zone subscription (%@)", KBCloudKitManager.recordZoneID.zoneName)
+        log.trace("Creating record zone subscription (\(KBCloudKitManager.recordZoneID.zoneName, privacy: .public)")
         
         let subscriptionID = "\(kKBCloudKitZoneSubscriptionPrefix)-1"
         let subscription = CKRecordZoneSubscription(zoneID: KBCloudKitManager.recordZoneID,
@@ -284,7 +278,7 @@ public class KBCloudKitManager : NSObject {
                 self.cancel(timer: &self.subscriptionSetupTimer)
                 
                 if let subscriptions = savedSubscriptions, subscriptions.contains(subscription) {
-                    log.info("Subscription created: (%@)", String(describing: self.subscription?.subscriptionID))
+                    log.info("Subscription created: (\(String(describing: self.subscription?.subscriptionID), privacy: .public)")
                     self.subscription = subscription
                     self.hasSetUpRecordZoneSubscription = true
                     self.fetchChanges()
@@ -301,8 +295,7 @@ public class KBCloudKitManager : NSObject {
                     KBScheduleRoutine(withRetryInterval: interval, onQueue: self.serialQueue) { [weak self] in
                         self?.setUpRecordZoneSubscription(withRetryInterval: nextRetryInterval)
                     }
-                    log.error("Subscription creation failed: error=(%@) Retrying in %f seconds",
-                              error?.localizedDescription ?? "<nil>", nextRetryInterval)
+                    log.info("Subscription creation failed: (\(error?.localizedDescription ?? "<nil>", privacy: .public)). Retrying in \(nextRetryInterval, privacy: .public) seconds")
                     return
                 }
             }
@@ -344,7 +337,7 @@ public class KBCloudKitManager : NSObject {
     
     private func fetchChanges(withRetryCount count: Int = 0) {
         Dispatch.dispatchPrecondition(condition: .onQueue(self.serialQueue))
-        log.debug("Fetching changes (retry=%ld)", count)
+        log.debug("Fetching changes (retry=\(count, privacy: .public)")
         
         self.fetchChanges(from: self.serverChangeToken ?? nil) {
             error, changedRecords, deletedRecords, isAll, newToken in
@@ -382,8 +375,7 @@ public class KBCloudKitManager : NSObject {
     private func handleError(_ error: Error) {
         // Non CKError type -> just log the error
         guard let error = error as? CKError else {
-            log.error("Method failed for zone (%@) with error (%@)",
-                      KBCloudKitManager.recordZoneID.zoneName, error.localizedDescription)
+            log.error("Method failed for zone (\(KBCloudKitManager.recordZoneID.zoneName, privacy: .public)) with error \(error.localizedDescription, privacy: .public)")
             return
         }
         
@@ -393,13 +385,13 @@ public class KBCloudKitManager : NSObject {
             self.serialQueue.async {
                 self.deleteRecordZone() { result in
                     if case .failure(let err) = result {
-                        log.error("Failed to delete record zone: (%@)", err.localizedDescription)
+                        log.error("Failed to delete record zone: \(err.localizedDescription, privacy: .public)")
                     }
                     dispatch.semaphore.signal()
                 }
             }
             do { try dispatch.wait() }
-            catch { log.error("Failed to delete CKRecordZone with error (%@)", error.localizedDescription) }
+            catch { log.error("Failed to delete CKRecordZone with error \(error.localizedDescription, privacy: .public)") }
             
             // If the zone was not found and we assumed we had one, reset it
             if self.recordZone != nil {
@@ -413,19 +405,17 @@ public class KBCloudKitManager : NSObject {
         switch error {
         // .changeTokenExpired -> set the token to nil
         case CKError.changeTokenExpired:
-            log.error("Change token expired for zone (%@)", KBCloudKitManager.recordZoneID.zoneName)
+            log.warning("Change token expired for zone (\(KBCloudKitManager.recordZoneID.zoneName, privacy: .public)). Setting it to nil")
             self.serverChangeToken = nil
         default:
-            log.error("Method failed for zone (%@) with error (%@)",
-                      KBCloudKitManager.recordZoneID.zoneName, error.localizedDescription)
+            log.error("Method failed for zone (\(KBCloudKitManager.recordZoneID.zoneName, privacy: .public)) with error \(error.localizedDescription, privacy: .public)")
         }
     }
     
     private func fetchChanges(from token: CKServerChangeToken?,
                               completionHandler: @escaping KBCloudKitManagerFetchRecordsPrivateCompletionBlock) {
         let database = self.container.privateCloudDatabase
-        log.info("Fetching changes in record zone (%@) in database (%@)",
-                 KBCloudKitManager.recordZoneID.zoneName, String(describing: database.databaseScope));
+        log.trace("Fetching changes in record zone (\(KBCloudKitManager.recordZoneID.zoneName, privacy: .public)) in database (\(String(describing: database.databaseScope), privacy: .public))")
         
         var changedRecords: [CKRecord] = []
         var recordIDsToDelete: [CKRecord.ID] = []
@@ -446,25 +436,23 @@ public class KBCloudKitManager : NSObject {
             if let err = error {
                 switch err {
                 case CKError.changeTokenExpired:
-                    log.error("Change token expired for zone (%@)", KBCloudKitManager.recordZoneID.zoneName)
+                    log.warning("Change token expired for zone (\(KBCloudKitManager.recordZoneID.zoneName, privacy: .public))")
                 default:
-                    log.error("Failed to fetch changes in zone (%@) with error (%@)",
-                              KBCloudKitManager.recordZoneID.zoneName, err.localizedDescription)
+                    log.error("Failed to fetch changes in zone (\(KBCloudKitManager.recordZoneID.zoneName, privacy: .public)) with error \(err.localizedDescription, privacy: .public)")
                 }
                 updatedServerChangeToken = nil
             } else {
-                log.info("Fetched changes successfully in zone (%@)", KBCloudKitManager.recordZoneID.zoneName);
+                log.info("Fetched changes successfully in zone (\(KBCloudKitManager.recordZoneID.zoneName, privacy: .public))")
                 updatedServerChangeToken = newToken
             }
         }
 
         operation.fetchRecordZoneChangesCompletionBlock = { error in
             if let error = error {
-                log.info("Failed to fetch changes with error (%@)", error.localizedDescription)
+                log.info("Failed to fetch changes with error \(error.localizedDescription, privacy: .public)")
                 self.handleError(error)
             } else {
-                log.info("Finished fetching changes in database (%@), %ld records",
-                         String(describing: database.databaseScope), changedRecords.count)
+                log.info("Finished fetching changes in database (\(String(describing: database.databaseScope), privacy: .public)), \(changedRecords.count, privacy: .public)) records")
             }
             
             // If an error was encountered don't claim this was a complete change request (even though it may actually be)
@@ -496,7 +484,7 @@ public class KBCloudKitManager : NSObject {
                     if let error = error {
                         self.handleError(error)
                     } else {
-                        log.info("Fetched changes successfully in zone (%@)", KBCloudKitManager.recordZoneID.zoneName);
+                        log.info("Fetched changes successfully in zone (\(KBCloudKitManager.recordZoneID.zoneName, privacy: .public))")
                         self.serverChangeToken = newToken
                     }
                 }
@@ -521,10 +509,10 @@ public class KBCloudKitManager : NSObject {
         saveRecordsOperation.modifyRecordsCompletionBlock = {
             savedRecords, deletedRecordsIDs, error in
             if let error = error {
-                log.error("Failed to save records into database with error: (%@)", error.localizedDescription)
+                log.error("Failed to save records into database with error: \(error.localizedDescription, privacy: .public)")
                 self.handleError(error)
             } else {
-                log.info("Saved %ld records into database", savedRecords?.count ?? 0);
+                log.info("Saved \(savedRecords?.count ?? 0, privacy: .public) records into database");
             }
             completionHandler(error, savedRecords, deletedRecordsIDs)
         }

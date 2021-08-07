@@ -23,13 +23,13 @@ extension KBKVStore {
      */
     open func set(value: Any?, for key: String) throws {
         guard self.supportsSecureCoding(value) else {
-            log.error("Trying to save a non NSSecureCoding compliant value `%@` for key %@", String(describing: value), key);
+            log.error("Won't save a non NSSecureCoding compliant value (\(String(describing: value)) for key (\(key))")
             return
         }
         
         let writeBatch = self.writeBatch()
         writeBatch.set(value: value, for: key)
-        log.info("setting value=%@ for key=%@", String(describing: value), key)
+        log.debug("setting value \(String(describing: value)) for key (\(key))")
         try KBSyncMethodReturningVoid(execute:writeBatch.write)
     }
     

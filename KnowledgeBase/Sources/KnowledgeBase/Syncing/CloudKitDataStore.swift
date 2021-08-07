@@ -39,7 +39,7 @@ struct KBCloudKitDataStore {
                         store.removeValues(for: unvisitedKeys) { (_: Swift.Result) in }
                     }
                 case .failure(let error):
-                    log.error("could not retrieve keys: %@", error.localizedDescription)
+                    log.error("could not retrieve keys: \(error.localizedDescription, privacy: .public)")
                 }
             }
         } else {

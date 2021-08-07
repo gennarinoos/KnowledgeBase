@@ -29,7 +29,7 @@ extension KBKVStore {
      */
     open func set(value: Any?, for key: String, completionHandler: @escaping KBActionCompletion) {
         guard self.supportsSecureCoding(value) else {
-            log.error("Trying to save a non NSSecureCoding compliant value `%@` for key %@", String(describing: value), key);
+            log.error("Won't save a non NSSecureCoding compliant value (\(String(describing: value)) for key (\(key))")
             completionHandler(.failure(KBError.unexpectedData(value)))
             return
         }

@@ -238,7 +238,7 @@ open class KBGenericCondition : NSObject, NSCopying, NSSecureCoding {
             self.init(type: .composite(this!, and: and, or: or), negated: negated)
             return
         default:
-            log.error("error decoding condition with enum type=%@", enumType)
+            log.error("error decoding condition with enum type=\(enumType, privacy: .public)")
         }
         
         return nil

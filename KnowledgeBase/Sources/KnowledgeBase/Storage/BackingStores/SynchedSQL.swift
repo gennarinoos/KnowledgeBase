@@ -22,12 +22,12 @@ class KBCloudKitSQLBackingStore : KBSQLBackingStore {
     
     func triplesComponents(matching condition: KBTripleCondition?,
                            completionHandler: @escaping (Swift.Result<[KBTriple], Error>) -> ()) {
-        log.fault("%@ store is not meant to store triples", KnowledgeBaseSQLSynchedIdentifier)
+        log.fault("\(KnowledgeBaseBundleIdentifier, privacy: .public) store is not meant to store graphs")
         completionHandler(.failure(KBError.notSupported))
     }
     
     func verify(path: KBPath, completionHandler: @escaping (Swift.Result<Bool, Error>) -> ()) {
-        log.fault("%@ store is not meant to store graphs", KnowledgeBaseSQLSynchedIdentifier)
+        log.fault("\(KnowledgeBaseBundleIdentifier, privacy: .public) store is not meant to store graphs")
         completionHandler(.failure(KBError.notSupported))
     }
     
@@ -42,7 +42,7 @@ class KBCloudKitSQLBackingStore : KBSQLBackingStore {
                    and objectIdentifier: String,
                    toValue newValue: Int,
                    completionHandler: @escaping KBActionCompletion) {
-        log.fault("%@ store is not meant to store graphs", KnowledgeBaseSQLSynchedIdentifier)
+        log.fault("\(KnowledgeBaseBundleIdentifier, privacy: .public) store is not meant to store graphs")
         completionHandler(.failure(KBError.notSupported))
     }
     
@@ -50,7 +50,7 @@ class KBCloudKitSQLBackingStore : KBSQLBackingStore {
                         between subjectIdentifier: Label,
                         and objectIdentifier: Label,
                         completionHandler: @escaping (Swift.Result<Int, Error>) -> ()) {
-        log.fault("%@ store is not meant to store graphs", KnowledgeBaseSQLSynchedIdentifier)
+        log.fault("\(KnowledgeBaseBundleIdentifier, privacy: .public) store is not meant to store graphs")
         completionHandler(.failure(KBError.notSupported))
     }
     
@@ -58,7 +58,7 @@ class KBCloudKitSQLBackingStore : KBSQLBackingStore {
                         between subjectIdentifier: Label,
                         and objectIdentifier: Label,
                         completionHandler: @escaping (Swift.Result<Int, Error>) -> ()) {
-        log.fault("%@ store is not meant to store graphs", KnowledgeBaseSQLSynchedIdentifier)
+        log.fault("\(KnowledgeBaseBundleIdentifier, privacy: .public) store is not meant to store graphs")
         completionHandler(.failure(KBError.notSupported))
     }
     
@@ -68,21 +68,21 @@ class KBCloudKitSQLBackingStore : KBSQLBackingStore {
                   between subjectIdentifier: Label,
                   and objectIdentifier: Label,
                   completionHandler: @escaping KBActionCompletion) {
-        log.fault("%@ store is not meant to store graphs", KnowledgeBaseSQLSynchedIdentifier)
+        log.fault("\(KnowledgeBaseBundleIdentifier, privacy: .public) store is not meant to store graphs")
         completionHandler(.failure(KBError.notSupported))
     }
     
     func dropLinks(withLabel predicate: Label?,
                    from subjectIdentifier: Label,
                    completionHandler: @escaping KBActionCompletion) {
-        log.fault("%@ store is not meant to store graphs", KnowledgeBaseSQLSynchedIdentifier)
+        log.fault("\(KnowledgeBaseBundleIdentifier, privacy: .public) store is not meant to store graphs")
         completionHandler(.failure(KBError.notSupported))
     }
     
     func dropLinks(between subjectIdentifier: Label,
                    and objectIdentifier: Label,
                    completionHandler: @escaping KBActionCompletion) {
-        log.fault("%@ store is not meant to store graphs", KnowledgeBaseSQLSynchedIdentifier)
+        log.fault("\(KnowledgeBaseBundleIdentifier, privacy: .public) store is not meant to store graphs")
         completionHandler(.failure(KBError.notSupported))
     }
     

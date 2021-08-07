@@ -27,12 +27,12 @@ class KBUserDefaultsBackingStore : KBBackingStore {
     }
 
     init() {
-        log.info("initializing .UserDefaults Store with suite name %@", KnowledgeBaseBundleIdentifier)
+        log.trace("initializing .UserDefaults Store with suite name \(KnowledgeBaseBundleIdentifier, privacy: .public)")
 
         if let defaults = UserDefaults(suiteName: KnowledgeBaseBundleIdentifier) {
             self.kv = defaults
         } else {
-            log.fault("Can't initialize defaults with suiteName %@. Using standard user defaults", KnowledgeBaseBundleIdentifier)
+            log.fault("Can't initialize defaults with suiteName \(KnowledgeBaseBundleIdentifier, privacy: .public). Using standard user defaults")
             self.kv = UserDefaults()
         }
     }

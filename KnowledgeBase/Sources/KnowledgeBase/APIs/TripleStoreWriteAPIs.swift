@@ -16,7 +16,7 @@ extension KBKnowledgeStore {
      - parameter identifier: the identifier
      */
     open func removeEntity(_ identifier: Label, completionHandler: @escaping KBActionCompletion) {
-        log.debug("[$? <%{private}@> $?]", identifier)
+        log.trace("[$? <\(identifier)> $?]")
         
         let subjectMatches = KBTripleCondition(
             subject: identifier,
@@ -55,7 +55,7 @@ extension KBKnowledgeStore {
             objc_sync_enter(solver)
             defer { objc_sync_exit(solver) }
             
-            log.debug("SPARQL query (%@)", query)
+            log.debug("SPARQL query (\(query, privacy: .public)")
             do {
                 let results = try solver.execute(query: query)
                 completionHandler(.success(results))

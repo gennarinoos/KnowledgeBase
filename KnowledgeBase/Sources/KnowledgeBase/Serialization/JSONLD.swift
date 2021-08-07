@@ -41,7 +41,7 @@ open class KBJSONLDGraph : NSObject {
                 KBJSONLDGraph.serialize(entity) { result in
                     switch result {
                     case .failure(let err):
-                        log.error("serialization of %{private}@ failed. %@", entity, err.localizedDescription)
+                        log.error("serialization of \(entity) failed. \(err.localizedDescription)")
                         dispatch.interrupt(err)
                     case .success(let object):
                         linkedDataDictionary.append(object)
@@ -91,7 +91,7 @@ extension KBKnowledgeStore {
                                       value: Any,
                                       completionHandler: @escaping KBActionCompletion) {
         guard let _key = key as? String else {
-            log.error("key=%{private}@ is not a string. class = %@", key as! String, String(describing: type(of: key)))
+            log.error("key=\(key as! String) is not a string. class = \(String(describing: type(of: key)), privacy: .public)")
             completionHandler(.failure(KBError.unexpectedData(key)))
             return
         }
@@ -255,7 +255,7 @@ extension KBKnowledgeStore {
     
     public func importContentsOf(JSONLDFileAt path: String, completionHandler: KBActionCompletion) {
         guard FileManager.default.fileExists(atPath: path) else {
-            log.error("no such JSONLD file at path %@", path)
+            log.error("no such JSONLD file at path \(path, privacy: .public)")
             completionHandler(.failure(JSONLDParseError.resourceNotAvailable))
             return
         }
