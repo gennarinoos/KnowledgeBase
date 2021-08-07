@@ -20,14 +20,15 @@ class KBCloudKitSQLBackingStore : KBSQLBackingStore {
     
     // MARK: SELECT
     
-    func triplesComponents(matching condition: KBTripleCondition?) async throws -> [KBTriple] {
+    func triplesComponents(matching condition: KBTripleCondition?,
+                           completionHandler: @escaping (Swift.Result<[KBTriple], Error>) -> ()) {
         log.fault("%@ store is not meant to store triples", KnowledgeBaseSQLSynchedIdentifier)
-        throw KBError.notSupported
+        completionHandler(.failure(KBError.notSupported))
     }
     
-    func verify(path: KBPath) async throws -> Bool {
+    func verify(path: KBPath, completionHandler: @escaping (Swift.Result<Bool, Error>) -> ()) {
         log.fault("%@ store is not meant to store graphs", KnowledgeBaseSQLSynchedIdentifier)
-        throw KBError.notSupported
+        completionHandler(.failure(KBError.notSupported))
     }
     
     //MARK: INSERT
@@ -36,50 +37,56 @@ class KBCloudKitSQLBackingStore : KBSQLBackingStore {
         return KBCloudKitSQLWriteBatch(backingStore: self)
     }
     
+    func setWeight(forLinkWithLabel predicate: String,
+                   between subjectIdentifier: String,
+                   and objectIdentifier: String,
+                   toValue newValue: Int,
+                   completionHandler: @escaping KBActionCompletion) {
+        log.fault("%@ store is not meant to store graphs", KnowledgeBaseSQLSynchedIdentifier)
+        completionHandler(.failure(KBError.notSupported))
+    }
+    
     func increaseWeight(forLinkWithLabel predicate: Label,
                         between subjectIdentifier: Label,
-                        and objectIdentifier: Label) async throws -> Int {
+                        and objectIdentifier: Label,
+                        completionHandler: @escaping (Swift.Result<Int, Error>) -> ()) {
         log.fault("%@ store is not meant to store graphs", KnowledgeBaseSQLSynchedIdentifier)
-        throw KBError.notSupported
+        completionHandler(.failure(KBError.notSupported))
     }
     
     func decreaseWeight(forLinkWithLabel predicate: Label,
                         between subjectIdentifier: Label,
-                        and objectIdentifier: Label) async throws -> Int {
+                        and objectIdentifier: Label,
+                        completionHandler: @escaping (Swift.Result<Int, Error>) -> ()) {
         log.fault("%@ store is not meant to store graphs", KnowledgeBaseSQLSynchedIdentifier)
-        throw KBError.notSupported
-    }
-    
-    func setWeight(forLinkWithLabel predicate: Label,
-                   between subjectIdentifier: Label,
-                   and objectIdentifier: Label,
-                   toValue newValue: Int) async throws {
-        log.fault("%@ store is not meant to store graphs", KnowledgeBaseSQLSynchedIdentifier)
-        throw KBError.notSupported
+        completionHandler(.failure(KBError.notSupported))
     }
     
     //MARK: DELETE
 
     func dropLink(withLabel predicate: Label,
                   between subjectIdentifier: Label,
-                  and objectIdentifier: Label) async throws {
+                  and objectIdentifier: Label,
+                  completionHandler: @escaping KBActionCompletion) {
         log.fault("%@ store is not meant to store graphs", KnowledgeBaseSQLSynchedIdentifier)
-        throw KBError.notSupported
+        completionHandler(.failure(KBError.notSupported))
     }
     
     func dropLinks(withLabel predicate: Label?,
-                   from subjectIdentifier: Label) async throws {
+                   from subjectIdentifier: Label,
+                   completionHandler: @escaping KBActionCompletion) {
         log.fault("%@ store is not meant to store graphs", KnowledgeBaseSQLSynchedIdentifier)
-        throw KBError.notSupported
+        completionHandler(.failure(KBError.notSupported))
     }
     
     func dropLinks(between subjectIdentifier: Label,
-                   and objectIdentifier: Label) async throws {
+                   and objectIdentifier: Label,
+                   completionHandler: @escaping KBActionCompletion) {
         log.fault("%@ store is not meant to store graphs", KnowledgeBaseSQLSynchedIdentifier)
-        throw KBError.notSupported
+        completionHandler(.failure(KBError.notSupported))
     }
     
-    func disableSyncAndDeleteCloudData() async throws {
-        // TODO: Disable sync and delete cloud data
+    func disableSyncAndDeleteCloudData(completionHandler: @escaping KBActionCompletion) {
+        KBCloudKitManager.shared.disableSyncAndDeleteCloudData(completionHandler: completionHandler)
     }
 }

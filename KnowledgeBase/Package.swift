@@ -149,11 +149,13 @@ if #available(iOS 15, macOS 13, tvOS 15, watchOS 8, *) {
             // Products define the executables and libraries a package produces, and make them visible to other packages.
             .library(
                 name: "KnowledgeBase",
-                targets: ["KnowledgeBase"])
+                targets: ["KnowledgeBase"]
+            )
         ],
         dependencies: [
             // Dependencies declare other packages that this package depends on.
             .package(name: "RDFStorage", path: "../RDFStorage")
+            
         ],
         targets: [
             // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -169,6 +171,13 @@ if #available(iOS 15, macOS 13, tvOS 15, watchOS 8, *) {
                     "Indexers",
                     "Rules",
                     "Models/Event"
+                ],
+                cSettings: cSettings
+            ),
+            .executableTarget(
+                name: "KnowledgeBaseXPCService",
+                dependencies: [
+                    "KnowledgeBase"
                 ],
                 cSettings: cSettings
             ),

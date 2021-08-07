@@ -7,8 +7,6 @@
 
 import Foundation
 
-public typealias KBObjCActionCompletion = (Error?) -> ()
-
 func KBObjectiveCAPIResultReturningVoid(completionHandler: @escaping (Error?) -> (), _ f: @escaping (@escaping (Swift.Result<Void, Error>) -> ()) -> ()) {
     f { result in
         switch result {

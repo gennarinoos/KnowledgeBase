@@ -14,6 +14,7 @@ public enum KBError: CustomNSError, LocalizedError {
     case databaseException(String)
     case fatalError(String)
     case unexpectedData(Any?)
+    case genericError(Int)
     
     public static var errorDomain: String {
         return KnowledgeBaseBundleIdentifier
@@ -27,6 +28,7 @@ public enum KBError: CustomNSError, LocalizedError {
         case .databaseException(_): return 103
         case .fatalError(_): return 104
         case .unexpectedData(_): return 105
+        case .genericError(let code): return code
         }
     }
     
@@ -38,6 +40,7 @@ public enum KBError: CustomNSError, LocalizedError {
         case .databaseException(let s): return "The database threw an exception: \(s)"
         case .fatalError(let s): return "A fatal error occurred: \(s)"
         case .unexpectedData(let data): return "Unexpected data: \(String(describing: data))"
+        case .genericError(let code): return "Error with code: \(code)"
         }
     }
     

@@ -66,20 +66,18 @@ extension KBEntity {
         
         let dispatch = KBTimedDispatch()
         
-        weak var welf = self
-        
         // Increment the weight of the link and update the hexastore
         self.store.backingStore.increaseWeight(forLinkWithLabel: predicate,
                                                between: subject,
-                                               and: object) {
+                                               and: object) { [weak self]
             result in
             switch result {
             case .failure(let err):
                 dispatch.interrupt(err)
             case .success(let newWeight):
-                if let _ = welf {
+                if let _ = self {
                     log.debug("New weight for triple [<%{private}@> <%{private}@> <%{private}@>]: %@",
-                              welf!, predicate, target, newWeight)
+                              self!, predicate, target, newWeight)
                 }
                 dispatch.semaphore.signal()
             }
@@ -107,22 +105,20 @@ extension KBEntity {
                      withPredicate label: Label,
                      ignoreWeights: Bool = false,
                      completionHandler: @escaping KBActionCompletion) {
-        weak var welf = self
-        
         if ignoreWeights {
             self.store.backingStore.dropLink(withLabel: label,
                                              between: self.identifier,
-                                             and: target.identifier) { result in
+                                             and: target.identifier) { [weak self] result in
                 switch result {
                 case .success():
-                    if let _ = welf {
+                    if let _ = self {
                         log.debug("Deleted link [<%{private}@> <%{private}@> <%{private}@>]",
-                                  welf!, label, target)
+                                  self!, label, target)
                     }
                 case .failure(let err):
-                    if let _ = welf {
+                    if let _ = self {
                         log.debug("Could not unlink [<%{private}@> <%{private}@> <%{private}@>]: %@",
-                                  welf!, label, target, err.localizedDescription)
+                                  self!, label, target, err.localizedDescription)
                     }
                 }
                 completionHandler(result)
@@ -130,18 +126,18 @@ extension KBEntity {
         } else {
             self.store.backingStore.decreaseWeight(forLinkWithLabel: label,
                                                    between: self.identifier,
-                                                   and: target.identifier) { result in
+                                                   and: target.identifier) { [weak self] result in
                 switch result {
                 case .success(let newWeight):
-                    if let _ = welf {
+                    if let _ = self {
                         log.debug("New weight for triple [<%{private}@> <%{private}@> <%{private}@>]: %@",
-                                  welf!, label, target, newWeight)
+                                  self!, label, target, newWeight)
                     }
                     completionHandler(.success(()))
                 case .failure(let err):
-                    if let _ = welf {
+                    if let _ = self {
                         log.debug("Could not unlink [<%{private}@> <%{private}@> <%{private}@>]: %@",
-                                  welf!, label, target, err.localizedDescription)
+                                  self!, label, target, err.localizedDescription)
                     }
                     completionHandler(.failure(err))
                 }

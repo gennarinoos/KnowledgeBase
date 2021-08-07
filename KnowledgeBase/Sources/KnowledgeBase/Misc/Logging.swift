@@ -10,7 +10,6 @@ import os
 
 let kKBLoggingSubsystem = "com.gf.KnowledgeBase"
 let kCKLogContextFramework = "Framework"
-let kCKLogContextDaemon = "Daemon"
 
 
 class KBLogger {

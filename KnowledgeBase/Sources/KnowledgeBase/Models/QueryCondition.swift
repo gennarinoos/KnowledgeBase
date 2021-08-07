@@ -252,7 +252,7 @@ open class KBGenericCondition : NSObject, NSCopying, NSSecureCoding {
 @objc(KBTripleCondition)
 open class KBTripleCondition : NSObject, NSCopying, NSSecureCoding {
     
-    internal var rawCondition: KBGenericCondition
+    public var rawCondition: KBGenericCondition
     
     @objc open override var description: String {
         return rawCondition.description

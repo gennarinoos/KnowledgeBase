@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum KBHexastore : String {
+public enum KBHexastore : String {
     case SPO = "spo"
     case SOP = "sop"
     case OPS = "ops"
@@ -16,9 +16,9 @@ enum KBHexastore : String {
     case POS = "pos"
 
     static let JOINER: String = "::"
-    static let allValues = [SPO, SOP, OPS, OSP, PSO, POS]
+    public static let allValues = [SPO, SOP, OPS, OSP, PSO, POS]
 
-    func hexaValue(subject s: Label, predicate p: Label, object o: Label) -> String {
+    public func hexaValue(subject s: Label, predicate p: Label, object o: Label) -> String {
         switch self {
         case .SPO:
             return KBHexastore.JOINER.combine(self.rawValue, s, p, o)

@@ -10,6 +10,7 @@ import Foundation
 //@objc(KBKVStoreWriteBatch)
 public protocol KBKVStoreWriteBatch {
     func set(value: Any?, for key: String)
+    func set(keysAndValues: [String: Any?])
     func write(completionHandler: @escaping KBActionCompletion)
 }
 
@@ -24,6 +25,10 @@ class KBAbstractWriteBatch {
     
     @objc func set(value: Any?, for key: String) {
         self.buffer[key] = value
+    }
+    
+    func set(keysAndValues: [String: Any?]) {
+        self.buffer.merge(keysAndValues, uniquingKeysWith: { (_, last) in last })
     }
 }
 

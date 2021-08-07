@@ -51,10 +51,10 @@ class KBSQLXPCBackingStore : KBBackingStore {
         return self.init(name: KnowledgeBaseSQLDefaultIdentifier)
     }
     
-    func daemon() -> KBStorageXPCInterface? {
+    func xpcService() -> KBStorageXPCProtocol? {
         return self.connection.remoteObjectProxyWithErrorHandler { (error) in
             log.fault("XPC connection error %s", error.localizedDescription)
-            } as? KBStorageXPCInterface
+            } as? KBStorageXPCProtocol
     }
     
     @objc static var directory: URL? = {
@@ -91,41 +91,41 @@ class KBSQLXPCBackingStore : KBBackingStore {
     //MARK: SELECT
     
     func keys() async throws -> [String] {
-        guard let daemon = self.daemon() else {
+        guard let service = self.xpcService() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
-        return try await daemon.keys(inStoreWithIdentifier: self.name)
+        return try await service.keys(inStoreWithIdentifier: self.name)
     }
     
     func keys(matching condition: KBGenericCondition) async throws -> [String] {
-        guard let daemon = self.daemon() else {
+        guard let service = self.xpcService() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
-        let keys = try await daemon.keys(matching: condition, inStoreWithIdentifier: self.name)
+        let keys = try await service.keys(matching: condition, inStoreWithIdentifier: self.name)
         let _ = self // Retain self in the block to keep XPC connection alive
         return keys
     }
     
     func value(for key: String) async throws -> Any? {
-        guard let daemon = self.daemon() else {
+        guard let service = self.xpcService() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
-        let value = try await daemon.value(forKey: key, inStoreWithIdentifier: self.name)
+        let value = try await service.value(forKey: key, inStoreWithIdentifier: self.name)
         let _ = self // Retain self in the block to keep XPC connection alive
         return value
     }
     
     func values() async throws -> [Any] {
-        guard let daemon = self.daemon() else {
+        guard let service = self.xpcService() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
-        let keysAndValues = try await daemon.keysAndValues(inStoreWithIdentifier: self.name)
+        let keysAndValues = try await service.keysAndValues(inStoreWithIdentifier: self.name)
         let _ = self // Retain self in the block to keep XPC connection alive
         return keysAndValues.map { $1 }
     }
     
     func values(for keys: [String]) async throws -> [Any?] {
-        guard let daemon = self.daemon() else {
+        guard let service = self.xpcService() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
         
@@ -139,47 +139,47 @@ class KBSQLXPCBackingStore : KBBackingStore {
             }
         }
 
-        let keysAndValues = try await daemon.keysAndvalues(forKeysMatching: condition!, inStoreWithIdentifier: self.name)
+        let keysAndValues = try await service.keysAndvalues(forKeysMatching: condition!, inStoreWithIdentifier: self.name)
         let _ = self // Retain self in the block to keep XPC connection alive
         return keysAndValues.map { $1 }
     }
     
     func values(forKeysMatching condition: KBGenericCondition) async throws -> [Any] {
-        guard let daemon = self.daemon() else {
+        guard let service = self.xpcService() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
         
-        let keysAndValues = try await daemon.keysAndvalues(forKeysMatching: condition, inStoreWithIdentifier: self.name)
+        let keysAndValues = try await service.keysAndvalues(forKeysMatching: condition, inStoreWithIdentifier: self.name)
         let _ = self // Retain self in the block to keep XPC connection alive
         return keysAndValues.map { $1 }
     }
     
     func dictionaryRepresentation() async throws -> KBJSONObject {
-        guard let daemon = self.daemon() else {
+        guard let service = self.xpcService() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
         
-        let keysAndValues = try await daemon.keysAndValues(inStoreWithIdentifier: self.name)
+        let keysAndValues = try await service.keysAndValues(inStoreWithIdentifier: self.name)
         let _ = self // Retain self in the block to keep XPC connection alive
         return keysAndValues
     }
     
     func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition) async throws -> KBJSONObject {
-        guard let daemon = self.daemon() else {
+        guard let service = self.xpcService() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
         
-        let keysAndValues = try await daemon.keysAndvalues(forKeysMatching: condition, inStoreWithIdentifier: self.name)
+        let keysAndValues = try await service.keysAndvalues(forKeysMatching: condition, inStoreWithIdentifier: self.name)
         let _ = self // Retain self in the block to keep XPC connection alive
         return keysAndValues
     }
     
     func triplesComponents(matching condition: KBTripleCondition?) async throws -> [KBTriple] {
-        guard let daemon = self.daemon() else {
+        guard let service = self.xpcService() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
         
-        let triples = try await daemon.tripleComponents(matching: condition, inStoreWithIdentifier: self.name)
+        let triples = try await service.tripleComponents(matching: condition, inStoreWithIdentifier: self.name)
         let _ = self // Retain self in the block to keep XPC connection alive
         return triples
     }
@@ -192,11 +192,11 @@ class KBSQLXPCBackingStore : KBBackingStore {
     //MARK: INSERT
     
     func set(value: Any?, for key: String) async throws {
-        guard let daemon = self.daemon() else {
+        guard let service = self.xpcService() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
         
-        try await daemon.save([key: value ?? NSNull()], toStoreWithIdentifier: self.name)
+        try await service.save([key: value ?? NSNull()], toStoreWithIdentifier: self.name)
     }
 
     func writeBatch() -> KBKVStoreWriteBatch {
@@ -207,11 +207,11 @@ class KBSQLXPCBackingStore : KBBackingStore {
                    between subjectIdentifier: String,
                    and objectIdentifier: String,
                    toValue newValue: Int) async throws {
-        guard let daemon = self.daemon() else {
+        guard let service = self.xpcService() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
         
-        try await daemon.setWeight(forLinkWithLabel: predicate,
+        try await service.setWeight(forLinkWithLabel: predicate,
                                    between: subjectIdentifier,
                                    and: objectIdentifier,
                                    toValue: newValue,
@@ -221,11 +221,11 @@ class KBSQLXPCBackingStore : KBBackingStore {
     func increaseWeight(forLinkWithLabel predicate: String,
                         between subjectIdentifier: String,
                         and objectIdentifier: String) async throws -> Int {
-        guard let daemon = self.daemon() else {
+        guard let service = self.xpcService() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
         
-        let newWeight = try await daemon.increaseWeight(forLinkWithLabel: predicate,
+        let newWeight = try await service.increaseWeight(forLinkWithLabel: predicate,
                                                         between: subjectIdentifier,
                                                         and: objectIdentifier,
                                                         inStoreWithIdentifier: self.name)
@@ -235,11 +235,11 @@ class KBSQLXPCBackingStore : KBBackingStore {
     func decreaseWeight(forLinkWithLabel predicate: Label,
                         between subjectIdentifier: Label,
                         and objectIdentifier: Label) async throws -> Int {
-        guard let daemon = self.daemon() else {
+        guard let service = self.xpcService() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
         
-        let newWeight = try await daemon.decreaseWeight(forLinkWithLabel: predicate,
+        let newWeight = try await service.decreaseWeight(forLinkWithLabel: predicate,
                                                         between: subjectIdentifier,
                                                         and: objectIdentifier,
                                                         inStoreWithIdentifier: self.name)
@@ -249,45 +249,45 @@ class KBSQLXPCBackingStore : KBBackingStore {
     //MARK: DELETE
     
     func removeValue(for key: String) async throws {
-        guard let daemon = self.daemon() else {
+        guard let service = self.xpcService() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
         
-        try await daemon.removeValue(for: key, fromStoreWithIdentifier: self.name)
+        try await service.removeValue(for: key, fromStoreWithIdentifier: self.name)
     }
     
     func removeValues(for keys: [String]) async throws {
-        guard let daemon = self.daemon() else {
+        guard let service = self.xpcService() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
         
-        try await daemon.removeValues(for: keys, fromStoreWithIdentifier: self.name)
+        try await service.removeValues(for: keys, fromStoreWithIdentifier: self.name)
     }
     
     func removeValues(forKeysMatching condition: KBGenericCondition) async throws {
-        guard let daemon = self.daemon() else {
+        guard let service = self.xpcService() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
         
-        try await daemon.removeValues(forKeysMatching: condition, fromStoreWithIdentifier: self.name)
+        try await service.removeValues(forKeysMatching: condition, fromStoreWithIdentifier: self.name)
     }
     
     func removeAll() async throws {
-        guard let daemon = self.daemon() else {
+        guard let service = self.xpcService() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
         
-        try await daemon.removeAll(fromStoreWithIdentifier: self.name)
+        try await service.removeAll(fromStoreWithIdentifier: self.name)
     }
     
     func dropLink(withLabel predicate: String,
                   between subjectIdentifier: String,
                   and objectIdentifier: String) async throws {
-        guard let daemon = self.daemon() else {
+        guard let service = self.xpcService() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
         
-        try await daemon.dropLink(withLabel: predicate,
+        try await service.dropLink(withLabel: predicate,
                                   between: subjectIdentifier,
                                   and: objectIdentifier,
                                   inStoreWithIdentifier: self.name)
@@ -295,22 +295,22 @@ class KBSQLXPCBackingStore : KBBackingStore {
     
     func dropLinks(withLabel predicate: String?,
                    from subjectIdentifier: String) async throws {
-        guard let daemon = self.daemon() else {
+        guard let service = self.xpcService() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
         
-        try await daemon.dropLinks(withLabel: predicate,
+        try await service.dropLinks(withLabel: predicate,
                                    from: subjectIdentifier,
                                    inStoreWithIdentifier: self.name)
     }
     
     func dropLinks(between subjectIdentifier: String,
                    and objectIdentifier: String) async throws {
-        guard let daemon = self.daemon() else {
+        guard let service = self.xpcService() else {
             throw KBError.fatalError("Could not connect to XPC service")
         }
         
-        try await daemon.dropLinks(between: subjectIdentifier,
+        try await service.dropLinks(between: subjectIdentifier,
                                    and: objectIdentifier,
                                    inStoreWithIdentifier: self.name)
     }
