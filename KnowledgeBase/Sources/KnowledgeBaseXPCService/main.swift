@@ -6,12 +6,14 @@
 //
 
 import Foundation
+import KnowledgeBase
+
 import os
 
-let log = Logger(subsystem: "com.gf.knowledgebase", category: "XPC")
+let log = Logger(subsystem: "com.gf.knowledgebase", category: KnowledgeBaseXPCServiceBundleIdentifier)
 
-let listener = NSXPCListener.service()
+let listener = NSXPCListener(machServiceName: KnowledgeBaseXPCServiceBundleIdentifier)
 let delegate = KBStorageServiceDelegate()
-listener.delegate = delegate;
+listener.delegate = delegate
 listener.resume()
 RunLoop.main.run()

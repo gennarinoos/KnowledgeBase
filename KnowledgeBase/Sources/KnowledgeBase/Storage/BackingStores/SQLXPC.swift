@@ -7,8 +7,7 @@
 
 import Foundation
 
-
-let KnowledgeBaseXPCServiceBundleIdentifier = "com.gf.knowledgebase.storage.service"
+public let KnowledgeBaseXPCServiceBundleIdentifier = "com.gf.knowledgebase.storage.service"
 
 
 #if (!os(macOS)) || DEBUG
