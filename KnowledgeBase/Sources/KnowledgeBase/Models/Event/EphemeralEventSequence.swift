@@ -24,15 +24,15 @@ public extension KBEvent {
     
     convenience init(entity: KBEntity) throws {
         guard let identifier = entity.value(forAttribute: "identifier") as? String else {
-            log.error("Missing event identifier for entity %@", entity.identifier)
+            log.error("Missing event identifier for entity \(entity.identifier, privacy: .private(mask: .hash))")
             throw KBError.unexpectedData(entity.value(forAttribute: "identifier"))
         }
         guard let startDate = entity.value(forAttribute: "startDate") as? Date else {
-            log.error("Missing event startDate for entity %@", entity.identifier)
+            log.error("Missing event startDate for entity \(entity.identifier, privacy: .private(mask: .hash))")
             throw KBError.unexpectedData(entity.value(forAttribute: "startDate"))
         }
         guard let endDate = entity.value(forAttribute: "endDate") as? Date else {
-            log.error("Missing event endDate for entity %@", entity.identifier)
+            log.error("Missing event endDate for entity identifier \(entity.identifier, privacy: .private(mask: .hash))")
             throw KBError.unexpectedData(entity.value(forAttribute: "endDate"))
         }
         

@@ -81,13 +81,13 @@ extension KBKVStore {
      Remove a set of tuples in the KVS, matching the condition.
      
      - parameter condition: the condition
-     - parameter completionHandler: the callback method
+     - parameter completionHandler: the callback method. Returns the keys removed
      */
-    open func removeValues(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping KBActionCompletion) {
+    open func removeValues(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<[String], Error>) -> ()) {
         self.backingStore.removeValues(forKeysMatching: condition, completionHandler: completionHandler)
     }
-    @objc func removeValues(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping KBObjCActionCompletion) {
-        KBObjectiveCAPIResultReturningVoid(completionHandler: completionHandler) { c in
+    @objc func removeValues(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Error?, [String]) -> ()) {
+        KBObjectiveCAPIResultReturningInitiable(completionHandler: completionHandler) { c in
             self.removeValues(forKeysMatching: condition, completionHandler: c)
         }
     }
@@ -95,14 +95,14 @@ extension KBKVStore {
     /**
      Remove all values in the KVS
      
-     - parameter completionHandler: the callback method
+     - parameter completionHandler: the callback method. Returns the keys removed
      
      */
-    open func removeAll(completionHandler: @escaping KBActionCompletion) {
+    open func removeAll(completionHandler: @escaping (Swift.Result<[String], Error>) -> ()) {
         self.backingStore.removeAll(completionHandler: completionHandler)
     }
-    @objc func removeAll(completionHandler: @escaping KBObjCActionCompletion) {
-        KBObjectiveCAPIResultReturningVoid(completionHandler: completionHandler, self.removeAll(completionHandler:))
+    @objc func removeAll(completionHandler: @escaping (Error?, [String]) -> ()) {
+        KBObjectiveCAPIResultReturningInitiable(completionHandler: completionHandler, self.removeAll(completionHandler:))
     }
     
     /**

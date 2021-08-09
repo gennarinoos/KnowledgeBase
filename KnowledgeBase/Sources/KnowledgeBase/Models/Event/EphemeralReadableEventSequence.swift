@@ -93,11 +93,11 @@ extension KBEphemeralEventSequence : KBEphemeralReadableEventSequence {
     open func events(between startDate: Date, and endDate: Date) async throws -> [KBEvent] {
         return try await self.findEvents { (entity: KBEntity) -> Bool in
             guard let eventStartDate: Date = entity.value(forKey: "startDate") as? Date else {
-                log.error("missing startDate for entity %@", entity.identifier)
+                log.error("missing startDate for entity identifier \(entity.identifier, privacy: .private(mask: .hash))")
                 return false
             }
             guard let eventEndDate: Date = entity.value(forKey: "endDate") as? Date else {
-                log.error("missing endDate for entity %@", entity.identifier)
+                log.error("missing endDate for entity identifier \(entity.identifier, privacy: .private(mask: .hash))")
                 return false
             }
             
@@ -109,7 +109,7 @@ extension KBEphemeralEventSequence : KBEphemeralReadableEventSequence {
     open func events(withIdentifier identifier: String) async throws -> [KBEvent] {
         return try await self.findEvents { (entity: KBEntity) -> Bool in
             guard let eventIdentifier: String = entity.value(forKey: "identifier") as? String else {
-                log.error("missing identifier for entity %@", entity.identifier)
+                log.error("missing identifier for entity  identifier \(entity.identifier, privacy: .private(mask: .hash))")
                 return false
             }
             

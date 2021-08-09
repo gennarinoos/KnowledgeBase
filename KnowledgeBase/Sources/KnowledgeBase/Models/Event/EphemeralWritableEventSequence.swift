@@ -30,7 +30,7 @@ extension KBEphemeralEventSequence : KBEphemeralWritableEventSequence {
         
         // Identity check
         if try await KBKnowledgeStore.inMemoryGraph.triples(matching: condition).count > 0 {
-            log.info("event %@ already recorded", event)
+            log.info("event \(event) already recorded")
         } else {
             let previousEventEntity: KBEntity = try await self.findEntity(preceding: event.startDate)
             

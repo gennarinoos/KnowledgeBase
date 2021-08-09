@@ -36,7 +36,7 @@ open class KBClosure : NSObject, KBExecutableClosure {
             let location = try KBKnowledgeStore.Location.decode(location)
             self.store = KBKnowledgeStore.store(location) as! KBKnowledgeStore
         } catch {
-            log.error("error extracting store location. %@", "\(error)")
+            log.error("error extracting store location. \(error.localizedDescription, privacy: .public)")
             return nil
         }
         self.entity = self.store.entity(withIdentifier: entityIdentifier)
@@ -82,8 +82,7 @@ public extension KBKnowledgeStore {
         let ruleEntity = self.entity(withIdentifier: rule.identifier)
         let closureEntity = self.entity(withIdentifier: closure.identifier)
 
-        log.info("will execute behavior with identifier %@ every time %@",
-                 closure.identifier, rule.body)
+        log.info("will execute behavior with identifier \(closure.identifier, privacy: .private(mask: .hash)) every time \(rule.body, privacy: .public)")
         try await ruleEntity.link(to: closureEntity, withPredicate: "\(CLOSURE_PREFIX)\(closure)")
         
         for ruleLiteral in rule.body {

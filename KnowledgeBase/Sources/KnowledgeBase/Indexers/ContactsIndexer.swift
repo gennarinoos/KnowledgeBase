@@ -38,9 +38,9 @@ public class KBAddressBookIndexer : KBKnowledgeStore, KBAddressBookChangesDelega
         store.requestAccess(for: CNEntityType.contacts, completionHandler: {
             (granted, error) in
             if let e = error {
-                log.error("%@", e.localizedDescription)
+                log.error("\(e.localizedDescription, privacy: .public)")
             } else {
-                log.info("access to CNContactStore entity type (CNEntityType = %@) has been granted", CNEntityType.contacts.rawValue)
+                log.info("access to CNContactStore entity type (CNEntityType = \(CNEntityType.contacts.rawValue, privacy: .public) has been granted")
             }
             
         })

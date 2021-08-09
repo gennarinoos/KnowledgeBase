@@ -30,9 +30,14 @@ extension KBKnowledgeStore {
         )
         let condition = subjectMatches.or(objectMatches)
         
-        self.backingStore.removeValues(forKeysMatching: condition.rawCondition) { [weak self] in
+        self.backingStore.removeValues(forKeysMatching: condition.rawCondition) { [weak self] result in
             self?.delegate?.linkedDataDidChange()
-            completionHandler($0)
+            switch result {
+            case .failure(let err):
+                completionHandler(.failure(err))
+            case .success(_):
+                completionHandler(.success(()))
+            }
         }
     }
     

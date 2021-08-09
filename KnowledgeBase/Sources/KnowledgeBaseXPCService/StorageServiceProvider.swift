@@ -203,7 +203,7 @@ class KBStorageServiceProviderXPC: KBStorageXPCProtocol {
             do {
                 let handler = try self.handler(forStoreWithIdentifier: identifier)
                 let keys = try handler.keys()
-                try handler.removeAll()
+                try handler.removeValues(for: keys)
                 self.notifyAboutDeletion(inStoreWithIdentifier: identifier, ofKeys: keys)
                 completionHandler(nil, keys)
             } catch {
@@ -259,7 +259,7 @@ class KBStorageServiceProviderXPC: KBStorageXPCProtocol {
                 self.notifyAboutUpsert(inStoreWithIdentifier: identifier, ofKeys: keys)
                 completionHandler(nil, newWeight)
             } catch {
-                completionHandler(error, KBInvalidLinkWeight)
+                completionHandler(error, kKBInvalidLinkWeight)
             }
         }
     }
@@ -282,7 +282,7 @@ class KBStorageServiceProviderXPC: KBStorageXPCProtocol {
                 }
                 completionHandler(nil, newWeight)
             } catch {
-                completionHandler(error, KBInvalidLinkWeight)
+                completionHandler(error, kKBInvalidLinkWeight)
             }
         }
     }

@@ -106,11 +106,11 @@ extension KBEntity {
                           radius: inout Int) async throws -> [(Label, Label)] {
         guard radius > 0 else {
             let error = KBError.fatalError("path search with negative radius doesn't make sense")
-            log.fault("%@", error.localizedDescription)
+            log.fault("\(error.localizedDescription, privacy: .public)")
             throw error
         }
 
-        log.debug("[<%{private}@> * <%{private}@>]", self, target)
+        log.debug("[<\(self)> * <\(target)>]")
 
         var couplePath: [(Label, Label)] = []
         let directLinks = try await self.linkedEntities()
@@ -128,8 +128,8 @@ extension KBEntity {
             return []
         } else {
             if (radius > 10) {
-                log.info("requested reachability with radius %@ > 10", radius)
-                log.info("force setting radius. %@ => 10", radius)
+                log.trace("requested reachability with radius \(radius, privacy: .public) > 10")
+                log.debug("force setting radius. \(radius, privacy: .public) => 10")
                 radius = 10
             }
 
@@ -169,8 +169,7 @@ extension KBEntity {
                              matchType: KBMatchType = .equal,
                              complement wantsComplementarySet: Bool = false) async throws -> [(predicate: Label, object: KBEntity)] {
         let negatedFlag = wantsComplementarySet  == true ? "NOT " : ""
-        log.debug("%@[<%{private}@> <%{private}@:%@> $?]",
-                  negatedFlag, self, predicate, matchType.description)
+        log.trace("\(negatedFlag, privacy: .public)[<\(self)> <\(predicate):\(matchType.description, privacy: .public)> $?]")
 
         var partial = KBHexastore.JOINER.combine(KBHexastore.SPO.rawValue, self.identifier)
 
@@ -210,7 +209,7 @@ extension KBEntity {
      
      */
     open func linkedEntities() async throws -> [(predicate: Label, object: KBEntity)] {
-        log.debug("[<%{private}@> $? $?]", self)
+        log.trace("[<\(self)> $? $?]")
 
         let partial = KBHexastore.JOINER.combine(
             KBHexastore.SPO.rawValue,
@@ -245,8 +244,7 @@ extension KBEntity {
                               matchType: KBMatchType = .equal,
                               complement wantsComplementarySet: Bool = false) async throws -> [(subject: KBEntity, predicate: Label)] {
         let negatedFlag = wantsComplementarySet ? "NOT " : ""
-        log.debug("%@[$? <%{private}@:%@> <%{private}@>]",
-                  negatedFlag, predicate, matchType.description, self)
+        log.trace("\(negatedFlag, privacy: .public)[$? <\(predicate):\(matchType.description, privacy: .public)> <\(self)>]")
 
         var condition: KBTripleCondition
 
@@ -314,7 +312,7 @@ extension KBEntity {
      
      */
     open func linkingEntities() async throws -> [(subject: KBEntity, predicate: Label)] {
-        log.debug("[$? $? <%{private}@>]", self)
+        log.debug("[$? $? <\(self)>]")
 
         let partial = KBHexastore.JOINER.combine(
             KBHexastore.OPS.rawValue,
@@ -342,8 +340,7 @@ extension KBEntity {
      */
     @objc open func links(to target: KBEntity,
                           matchType: KBMatchType = .equal) async throws -> [Label] {
-        log.debug("[<%{private}@> $? <%{private}@:%@>]",
-                  self, target, matchType.description)
+        log.debug("[<\(self)> $? <\(target):\(matchType.description)>]")
 
         let partial: String
 

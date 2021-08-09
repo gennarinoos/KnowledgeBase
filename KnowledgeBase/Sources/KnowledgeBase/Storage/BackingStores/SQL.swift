@@ -157,15 +157,19 @@ extension KBSQLBackingStoreProtocol {
         }
     }
     
-    func removeValues(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping KBActionCompletion) {
-        genericMethodReturningVoid(completionHandler) {
-            try self.sqlHandler.removeValues(forKeysMatching: condition)
+    func removeValues(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<[String], Error>) -> ()) {
+        genericMethodReturningInitiable(completionHandler) {
+            let keys = try self.sqlHandler.keys(matching: condition)
+            try self.sqlHandler.removeValues(for: keys)
+            return keys
         }
     }
     
-    func removeAll(completionHandler: @escaping KBActionCompletion) {
-        genericMethodReturningVoid(completionHandler) {
-            try self.sqlHandler.removeAll()
+    func removeAll(completionHandler: @escaping (Swift.Result<[String], Error>) -> ()) {
+        genericMethodReturningInitiable(completionHandler) {
+            let keys = try self.sqlHandler.keys()
+            try self.sqlHandler.removeValues(for: keys)
+            return keys
         }
     }
     
@@ -227,14 +231,14 @@ class KBSQLBackingStore : KBSQLBackingStoreProtocol {
         let directory: URL, path: URL
         
         do {
-#if os(macOS)
-            path = URL(string: StoreLocationForMacOS)!
-#else
+//#if os(macOS)
+//            path = URL(string: StoreLocationForMacOS)!
+//#else
             path = try FileManager.default.url(for: .libraryDirectory,
                                                in: .userDomainMask,
                                                appropriateFor: nil,
                                                create: true)
-#endif
+//#endif
         } catch {
             log.fault("Could not find library directory")
             return nil

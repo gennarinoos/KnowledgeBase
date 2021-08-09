@@ -106,8 +106,8 @@ extension KBPermanentEventStore : KBPermanentWritableEventStore {
         let historicEvent = try await self.createEventIfNotExists(withIdentifier: event.identifier,
                                                                   dateInterval: dateInterval,
                                                                   metadata: event.metadata as KBJSONObject)
-        log.info("Updating the store with event=%@. New historic event is %@", event, historicEvent)
-        log.debug("event.metadata=%@. historicEvent.metadata=%@", event.metadata, historicEvent.metadata)
+        log.info("Updating the store with event (\(event)). New historic event is (\(historicEvent))")
+        log.debug("event.metadata (\(event.metadata)) historicEvent.metadata (\(historicEvent.metadata))")
             
         try await self.knowledgeStore.set(value: historicEvent, for: historicEvent.identifier)
     }

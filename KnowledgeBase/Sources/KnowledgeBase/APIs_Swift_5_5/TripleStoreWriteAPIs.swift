@@ -17,7 +17,7 @@ extension KBKnowledgeStore {
      - parameter identifier: the identifier
      */
     @objc open func removeEntity(_ identifier: Label) async throws {
-        log.debug("[$? <%{private}@> $?]", identifier)
+        log.debug("[$? <\(identifier)> $?]")
         
         let subjectMatches = KBTripleCondition(
             subject: identifier,
@@ -31,7 +31,7 @@ extension KBKnowledgeStore {
         )
         let condition = subjectMatches.or(objectMatches)
         
-        try await self.backingStore.removeValues(forKeysMatching: condition.rawCondition)
+        let _ = try await self.backingStore.removeValues(forKeysMatching: condition.rawCondition)
     }
     
     @objc open func importContentsOf(turtleFileAt path: String) async throws {
@@ -54,7 +54,7 @@ extension KBKnowledgeStore {
             objc_sync_enter(solver)
             defer { objc_sync_exit(solver) }
             
-            log.debug("SPARQL query (%@)", query)
+            log.debug("SPARQL query (\(query))")
             do {
                 let results = try solver.execute(query: query)
                 completionHandler(.success(results))

@@ -153,32 +153,36 @@ class KBUserDefaultsBackingStore : KBBackingStore {
         }
     }
     
-    func removeValues(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping KBActionCompletion) {
+    func removeValues(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<[String], Error>) -> ()) {
         self.keys() { result in
             switch result {
             case .success(let allKeys):
+                var removedKeys = [String]()
                 for key in allKeys {
                     if condition.evaluate(on: key) {
                         self.kv.removeObject(forKey: key)
+                        removedKeys.append(key)
                     }
                 }
                 self.synchronize()
-                completionHandler(.success(()))
+                completionHandler(.success(removedKeys))
             case .failure(let error):
                 completionHandler(.failure(error))
             }
         }
     }
     
-    func removeAll(completionHandler: @escaping KBActionCompletion) {
+    func removeAll(completionHandler: @escaping (Swift.Result<[String], Error>) -> ()) {
         self.keys() { result in
             switch result {
             case .success(let allKeys):
+                var removedKeys = [String]()
                 for key in allKeys {
                     self.kv.removeObject(forKey: key)
+                    removedKeys.append(key)
                 }
                 self.synchronize()
-                completionHandler(.success(()))
+                completionHandler(.success(removedKeys))
             case .failure(let error):
                 completionHandler(.failure(error))
             }

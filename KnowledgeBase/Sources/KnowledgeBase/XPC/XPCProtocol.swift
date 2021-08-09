@@ -7,8 +7,6 @@
 
 import Foundation
 
-public let KBInvalidLinkWeight = -1
-
 @objc(KBStorageXPCProtocol)
 public protocol KBStorageXPCProtocol {
     

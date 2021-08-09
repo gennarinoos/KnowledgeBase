@@ -8,7 +8,7 @@
 import Foundation
 import SQLite3
 
-let kKBInvalidLinkWeight = -1
+public let kKBInvalidLinkWeight = -1
 
 enum SQLTableType : String {
     case IntegerValue = "intval", DoubleValue = "realval", StringValue = "textval", AnyValue = "blobval"
@@ -72,7 +72,10 @@ open class KBSQLHandler: NSObject {
             return nil
         }
         
-        do { try KBSQLHandler.createDirectory(at: directory.path) }
+        do {
+            try KBSQLHandler.createDirectory(at: directory.path)
+            log.debug("Created directory at path \(directory.path, privacy: .public)")
+        }
         catch {
             log.fault("could not create database directory: \(error.localizedDescription, privacy: .public)")
             return nil
@@ -400,19 +403,6 @@ open class KBSQLHandler: NSObject {
         
         try connection.transaction(Connection.TransactionMode.immediate) {
             try self._removeValues(forKeysMatching: condition)
-        }
-    }
-    
-    @objc open func removeAll() throws {
-        guard let connection = self.connection else {
-            throw KBError.databaseNotReady
-        }
-        
-        try connection.transaction(Connection.TransactionMode.immediate) {
-            for query in SQLTableType.allValues.map({ "delete from \($0.rawValue)" }) {
-                _ = try connection.run(query)
-            }
-            _ = try connection.run("delete from link")
         }
     }
     

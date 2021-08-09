@@ -440,15 +440,10 @@ extension KBEntity {
     //                    if let data = self.store._value(forKey: closureIdentifier) as? Data {
     //                        if let closure = NSKeyedUnarchiver.unarchiveObject(with: data)
     //                            as? KBExecutableClosure {
-    //                            log.debug("executing behavior %@ fired by linking [<%{private}@> <%{private}@> <%{private}@>]",
-    //                                closure.identifier,
-    //                                self,
-    //                                rule.predicate,
-    //                                target
-    //                            )
+    //                            log.debug("executing behavior \(closure.identifier, privacy: .public) fired by linking [<\(self)> <\(rule.predicate)> <\(target)>]")
     //                            closure.execute()
     //                        } else {
-    //                            log.error("bad data for %@", closureIdentifier)
+    //                            log.error("bad data for \(closure.identifier, privacy: .public)")
     //                            dispatch.interrupt(KBError.unexpectedData)
     //                        }
     //                        dispatch.interrupt(KBError.notSupported)

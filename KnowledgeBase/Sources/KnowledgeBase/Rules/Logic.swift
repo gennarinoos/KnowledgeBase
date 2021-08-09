@@ -99,8 +99,7 @@ public extension KBKnowledgeStore {
         
         let ruleEntity = self.entity(withIdentifier: rule.identifier)
 
-        log.info("will infer link %@ to %@ every time %@",
-                 predicate, linkedEntitiy, rule.body)
+        log.info("will infer link \(predicate) to \(linkedEntity) every time \(rule.body)")
         
         try await ruleEntity.link(to: linkedEntitiy, withPredicate: predicate)
         

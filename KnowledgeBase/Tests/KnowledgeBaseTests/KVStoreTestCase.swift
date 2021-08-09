@@ -18,7 +18,7 @@ class KVStoreTestCase : XCTestCase {
 
     private func cleanup() {
         do {
-            try self.sharedStore().removeAll()
+            let _ = try self.sharedStore().removeAll()
             let keys = try self.sharedStore().keys()
             XCTAssert(keys.count == 0, "Removed all values")
         } catch {

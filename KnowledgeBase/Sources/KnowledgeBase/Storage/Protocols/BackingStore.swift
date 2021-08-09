@@ -23,8 +23,8 @@ protocol KBAsynchronousBackingStore {
     func set(value: Any?, for key: String, completionHandler: @escaping KBActionCompletion)
     func removeValue(for key: String, completionHandler: @escaping KBActionCompletion)
     func removeValues(for keys: [String], completionHandler: @escaping KBActionCompletion)
-    func removeValues(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping KBActionCompletion)
-    func removeAll(completionHandler: @escaping KBActionCompletion)
+    func removeValues(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<[String], Error>) -> ())
+    func removeAll(completionHandler: @escaping (Swift.Result<[String], Error>) -> ())
     
     // MARK: KnowledgeStore
     func triplesComponents(matching condition: KBTripleCondition?,
@@ -76,8 +76,8 @@ protocol KBSynchronousBackingStore : KBAsynchronousBackingStore {
     func set(value: Any?, for key: String) throws
     func removeValue(for key: String) throws
     func removeValues(for keys: [String]) throws
-    func removeValues(forKeysMatching condition: KBGenericCondition) throws
-    func removeAll() throws
+    func removeValues(forKeysMatching condition: KBGenericCondition) throws -> [String]
+    func removeAll() throws -> [String]
     
     // MARK: KnowledgeStore
     func triplesComponents(matching condition: KBTripleCondition?) throws -> [KBTriple]
@@ -173,14 +173,14 @@ extension KBSynchronousBackingStore {
         }
     }
     
-    func removeValues(forKeysMatching condition: KBGenericCondition) throws {
-        try KBSyncMethodReturningVoid { c in
+    func removeValues(forKeysMatching condition: KBGenericCondition) throws -> [String] {
+        try KBSyncMethodReturningInitiable { c in
             self.removeValues(forKeysMatching: condition, completionHandler: c)
         }
     }
     
-    func removeAll() throws {
-        try KBSyncMethodReturningVoid(execute: self.removeAll)
+    func removeAll() throws -> [String] {
+        try KBSyncMethodReturningInitiable(execute: self.removeAll)
     }
     
     func triplesComponents(matching condition: KBTripleCondition?) throws -> [KBTriple] {
