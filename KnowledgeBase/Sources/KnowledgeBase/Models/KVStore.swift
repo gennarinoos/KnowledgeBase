@@ -146,21 +146,25 @@ open class KBKVStore : NSObject {
             self.backingStore = KBInMemoryBackingStore()
         case .userDefaults, .sql(KnowledgeBaseUserDefaultsIdentifier):
             self.backingStore = KBUserDefaultsBackingStore()
+#if os(macOS) // Only use XPC on macOS
+        case .sql(""):
+            self.backingStore = KBSQLXPCBackingStore.mainInstance()
+        case .sql(let name):
+            self.backingStore = KBSQLXPCBackingStore(name: name)
+        case .sqlSynched(""):
+            self.backingStore = KBCloudKitSQLXPCBackingStore.mainInstance()
+        case .sqlSynched(let name):
+            log.error("creating named sqlSynched database is not supported. \(name, privacy: .public)")
+            self.backingStore = KBCloudKitSQLXPCBackingStore.mainInstance()
+#else
         case .sql(""):
             self.backingStore = KBSQLBackingStore.mainInstance()
         case .sql(let name):
             self.backingStore = KBSQLBackingStore(name: name)
         case .sqlSynched(""):
-#if os(macOS)
-            self.backingStore = KBCloudKitSQLXPCBackingStore.mainInstance()
-#else
             self.backingStore = KBCloudKitSQLBackingStore.mainInstance()
-#endif
         case .sqlSynched(let name):
             log.error("creating named sqlSynched database is not supported. \(name, privacy: .public)")
-#if os(macOS)
-            self.backingStore = KBCloudKitSQLXPCBackingStore.mainInstance()
-#else
             self.backingStore = KBCloudKitSQLBackingStore.mainInstance()
 #endif
         }

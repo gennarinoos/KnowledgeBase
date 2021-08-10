@@ -7,10 +7,10 @@
 
 import Foundation
 
-public let KnowledgeBaseXPCServiceBundleIdentifier = "com.gf.knowledgebase.storage.service"
+public let KnowledgeBaseXPCServiceBundleIdentifier = "com.gf.knowledgebase.storage.xpc"
 
 
-#if (!os(macOS)) || DEBUG
+#if false // (!os(macOS)) || DEBUG
 // Do not use XPC in DEBUG mode or platforms other than macOS
 
 class KBSQLXPCBackingStore : KBSQLBackingStore {
@@ -57,33 +57,7 @@ class KBSQLXPCBackingStore : KBBackingStore {
     }
     
     @objc static var directory: URL? = {
-        let directory: URL, path: URL
-        
-        do {
-            #if CK_IS_MAC
-            path = URL(string: StoreLocationForMacOS)!
-            #else
-            path = try FileManager.default.url(for: .libraryDirectory,
-                                               in: .userDomainMask,
-                                               appropriateFor: nil,
-                                               create: true)
-            #endif
-        } catch {
-            log.fault("Could not find library directory")
-            return nil
-        }
-            
-        #if CK_IS_MAC
-        directory = path
-        #else
-        if let mobileUser = getpwnam("mobile") {
-            directory = URL(fileURLWithPath: String(cString: mobileUser.pointee.pw_dir)).appendingPathComponent("Library")
-        } else {
-            directory = path
-        }
-        #endif
-        
-        return directory.appendingPathComponent(KnowledgeBaseBundleIdentifier)
+        return KBSQLBackingStore.directory
     }()
     
     

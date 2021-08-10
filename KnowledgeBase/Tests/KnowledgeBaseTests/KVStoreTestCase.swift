@@ -18,8 +18,9 @@ class KVStoreTestCase : XCTestCase {
 
     private func cleanup() {
         do {
-            let _ = try self.sharedStore().removeAll()
-            let keys = try self.sharedStore().keys()
+            let store = self.sharedStore()
+            let _ = try store.removeAll()
+            let keys = try store.keys()
             XCTAssert(keys.count == 0, "Removed all values")
         } catch {
             XCTFail("\(error)")
@@ -133,7 +134,7 @@ class KVStoreTestCase : XCTestCase {
         }
     }
     
-    func testAllKeyValues() async throws {
+    func testAllKeyValues() throws {
         try KVStoreTestCase._sharedStore.set(value: "stringVal", for: "string")
         try KVStoreTestCase._sharedStore.set(value: 1, for: "int")
         try KVStoreTestCase._sharedStore.set(value: true, for: "bool")
@@ -177,7 +178,7 @@ class KVStoreTestCase : XCTestCase {
     class NonNSSecureCodingCompliantClass {
     }
     
-    func testSetValueForKeyUnsecure() async throws {
+    func testSetValueForKeyUnsecure() throws {
         let key = "NonNSSecureCodingCompliant"
         let emptyString = ""
 

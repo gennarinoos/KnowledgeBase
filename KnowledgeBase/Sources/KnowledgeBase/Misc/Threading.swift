@@ -81,13 +81,13 @@ class KBTimedDispatch {
 
 internal func KBSyncMethodReturningVoid(execute asyncMethod: @escaping (@escaping (Swift.Result<Void, Error>) -> ()) -> ()) throws {
     try KBSyncMethodReturningVoid(value: kKBDispatchSemaphoreDefaultValue,
-                                         timeout: KBDispatchSemaphoreDefaultTimeout,
-                                         execute: asyncMethod)
+                                  timeout: KBDispatchSemaphoreDefaultTimeout,
+                                  execute: asyncMethod)
 }
 
 internal func KBSyncMethodReturningVoid(value: Int,
-                                               timeout: DispatchTime,
-                                               execute: @escaping (@escaping (Swift.Result<Void, Error>) -> ()) -> ()) throws {
+                                        timeout: DispatchTime,
+                                        execute: @escaping (@escaping (Swift.Result<Void, Error>) -> ()) -> ()) throws {
     var error: Error? = nil
     
     let semaphore = DispatchSemaphore(value: value)
@@ -112,13 +112,13 @@ internal func KBSyncMethodReturningVoid(value: Int,
 
 internal func KBSyncMethodReturningInitiable<T: Initiable>(execute asyncMethod: @escaping (@escaping (Swift.Result<T, Error>) -> ()) -> ()) throws -> T {
     return try KBSyncMethodReturningInitiable(value: kKBDispatchSemaphoreDefaultValue,
-                                                     timeout: KBDispatchSemaphoreDefaultTimeout,
-                                                     execute: asyncMethod)
+                                              timeout: KBDispatchSemaphoreDefaultTimeout,
+                                              execute: asyncMethod)
 }
 
 internal func KBSyncMethodReturningInitiable<T: Initiable>(value: Int,
-                                                    timeout: DispatchTime,
-                                                    execute: @escaping (@escaping (Swift.Result<T, Error>) -> ()) -> ()) throws -> T {
+                                                           timeout: DispatchTime,
+                                                           execute: @escaping (@escaping (Swift.Result<T, Error>) -> ()) -> ()) throws -> T {
     var error: Error? = nil
     var result = T.init()
     

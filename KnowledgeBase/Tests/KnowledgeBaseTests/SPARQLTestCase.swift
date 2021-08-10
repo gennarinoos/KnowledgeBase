@@ -2,7 +2,7 @@ import XCTest
 @testable import KnowledgeBase
 
 final class KBSPARQLTests: XCTestCase {
-    func testSPARQL() async throws {
+    func testSPARQL() {
         let insertExpectation = XCTestExpectation(description: "insert")
         
         let knowledgeStore = KBKnowledgeStore.defaultStore()

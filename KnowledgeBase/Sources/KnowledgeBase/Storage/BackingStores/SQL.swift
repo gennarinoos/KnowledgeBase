@@ -8,7 +8,6 @@
 import Foundation
 
 public var DatabaseExtension = "db"
-private var StoreLocationForMacOS = "/private/var/db";
 
 protocol KBSQLBackingStoreProtocol : KBPersistentBackingStore {
 }
@@ -115,9 +114,9 @@ extension KBSQLBackingStoreProtocol {
                    completionHandler: @escaping KBActionCompletion) {
         genericMethodReturningVoid(completionHandler) {
             try self.sqlHandler.setWeight(forLinkWithLabel: predicate,
-                                                   between: subjectIdentifier,
-                                                   and: objectIdentifier,
-                                                   toValue: newValue)
+                                          between: subjectIdentifier,
+                                          and: objectIdentifier,
+                                          toValue: newValue)
         }
     }
     
@@ -127,8 +126,8 @@ extension KBSQLBackingStoreProtocol {
                         completionHandler: @escaping (Swift.Result<Int, Error>) -> ()) {
         genericMethodReturningInitiable(completionHandler) {
             try self.sqlHandler.increaseWeight(forLinkWithLabel: predicate,
-                                                        between: subjectIdentifier,
-                                                        and: objectIdentifier)
+                                               between: subjectIdentifier,
+                                               and: objectIdentifier)
         }
     }
     
@@ -138,8 +137,8 @@ extension KBSQLBackingStoreProtocol {
                         completionHandler: @escaping (Swift.Result<Int, Error>) -> ()) {
         genericMethodReturningInitiable(completionHandler) {
             try self.sqlHandler.decreaseWeight(forLinkWithLabel: predicate,
-                                                        between: subjectIdentifier,
-                                                        and: objectIdentifier)
+                                               between: subjectIdentifier,
+                                               and: objectIdentifier)
         }
     }
     
@@ -231,14 +230,10 @@ class KBSQLBackingStore : KBSQLBackingStoreProtocol {
         let directory: URL, path: URL
         
         do {
-//#if os(macOS)
-//            path = URL(string: StoreLocationForMacOS)!
-//#else
             path = try FileManager.default.url(for: .libraryDirectory,
                                                in: .userDomainMask,
                                                appropriateFor: nil,
                                                create: true)
-//#endif
         } catch {
             log.fault("Could not find library directory")
             return nil
