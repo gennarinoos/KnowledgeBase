@@ -16,4 +16,11 @@ let listener = NSXPCListener(machServiceName: KnowledgeBaseXPCServiceBundleIdent
 let delegate = KBStorageServiceDelegate()
 listener.delegate = delegate
 listener.resume()
+
+let photoUploaderDelegate = EncryptedPhotoUploaderDelegate()
+let photosIndexer = KBPhotosIndexer()
+photosIndexer.shouldIndexPhotosInKnowledgeGraph = false
+photosIndexer.addDelegate(photoUploaderDelegate)
+photosIndexer.ingestCameraRoll() { _ in }
+
 RunLoop.main.run()

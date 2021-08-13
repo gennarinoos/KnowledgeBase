@@ -126,7 +126,6 @@ if #available(iOS 15, macOS 13, tvOS 15, watchOS 8, *) {
                     "APIs",
                     "Serialization",
                     // TODO: Enable
-                    "Indexers",
                     "Rules",
                     "Models/Event"
                 ],
@@ -168,7 +167,6 @@ if #available(iOS 15, macOS 13, tvOS 15, watchOS 8, *) {
                     "APIs_Swift_5_5",
                     "Serialization_Swift_5_5",
                     // TODO: Enable
-                    "Indexers",
                     "Rules",
                     "Models/Event"
                 ],

@@ -2,6 +2,7 @@
 [x] new Apple logging API
 [ ] Verify String AnyHashable casting (search for dictionary as! KBJSONObject)
 [ ] Return NSNull for values set to null, nil for missing kv pairs
+[ ] Support named UserDefaults store (currently one common using KB bundle identifier)
 [ ] WriteBatch save is not async
 [ ] Remove raptor_config.h in favor of cSettings in PackageDescription
 [ ] Test SPARQL

@@ -27,8 +27,8 @@ internal extension CNContact {
 
 
 public protocol KBAddressBookChangesDelegate {
-    func wasDeleted(contactIdentifier: String) async throws
-    func wasUpdated(contactIdentifier: String, toContact contact: CNContact) async throws
+    func wasDeleted(contactIdentifier: String) throws
+    func wasUpdated(contactIdentifier: String, toContact contact: CNContact) throws
 }
 
 public class KBAddressBookIndexer : KBKnowledgeStore, KBAddressBookChangesDelegate {
@@ -47,33 +47,33 @@ public class KBAddressBookIndexer : KBKnowledgeStore, KBAddressBookChangesDelega
         return store
     }()
     
-    public func run() async throws {
+    public func run() throws {
         let allContacts = try self.cnStore.unifiedContacts(matching: NSPredicate(value: true), keysToFetch: [])
         for contact in allContacts {
-            try await self.wasUpdated(contactIdentifier: contact.identifier, toContact: contact)
+            try self.wasUpdated(contactIdentifier: contact.identifier, toContact: contact)
         }
     }
 
-    public func wasDeleted(contactIdentifier: String) async throws {
+    public func wasDeleted(contactIdentifier: String) throws {
         let contactId = self.entity(withIdentifier: contactIdentifier)
-        try await contactId.remove()
+        try contactId.remove()
     }
 
-    public func wasUpdated(contactIdentifier: String, toContact contact: CNContact) async throws {
+    public func wasUpdated(contactIdentifier: String, toContact contact: CNContact) throws {
         // Invalidate previous connections
         // TODO: Should we be less agressisve, and invalidate/update only changed fields?
-        try await self.wasDeleted(contactIdentifier: contactIdentifier)
+        try self.wasDeleted(contactIdentifier: contactIdentifier)
 
         let contactId = self.entity(withIdentifier: contactIdentifier)
 
         // Link the relevant names associated to this contact
-        try await contactId.link(to: self.entity(withIdentifier: contact.givenName),
-                                 withPredicate: KBCanonicalName.givenName)
-        try await contactId.link(to: self.entity(withIdentifier: contact.familyName),
-                                 withPredicate: KBCanonicalName.familyName)
-        try await contactId.link(to: self.entity(withIdentifier: contact.nickname),
-                                 withPredicate: KBCanonicalName.nickName)
-        try await contactId.link(to: self.entity(withIdentifier: contact.organizationName),
-                                 withPredicate: KBCanonicalName.organizationName)
+        try contactId.link(to: self.entity(withIdentifier: contact.givenName),
+                           withPredicate: KBCanonicalName.givenName)
+        try contactId.link(to: self.entity(withIdentifier: contact.familyName),
+                           withPredicate: KBCanonicalName.familyName)
+        try contactId.link(to: self.entity(withIdentifier: contact.nickname),
+                           withPredicate: KBCanonicalName.nickName)
+        try contactId.link(to: self.entity(withIdentifier: contact.organizationName),
+                           withPredicate: KBCanonicalName.organizationName)
     }
 }
