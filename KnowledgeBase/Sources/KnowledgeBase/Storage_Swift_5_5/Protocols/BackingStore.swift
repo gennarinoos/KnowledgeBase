@@ -20,8 +20,8 @@ protocol KBAsynchronousBackingStore {
     func set(value: Any?, for key: String, completionHandler: @escaping KBActionCompletion)
     func removeValue(for key: String, completionHandler: @escaping KBActionCompletion)
     func removeValues(for keys: [String], completionHandler: @escaping KBActionCompletion)
-    func removeValues(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping KBActionCompletion)
-    func removeAll(completionHandler: @escaping KBActionCompletion)
+    func removeValues(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<[String], Error>) -> ())
+    func removeAll(completionHandler: @escaping (Swift.Result<[String], Error>) -> ())
     
     // MARK: KnowledgeStore
     func triplesComponents(matching condition: KBTripleCondition?,
@@ -219,13 +219,13 @@ extension KBBackingStoreProtocol {
         }
     }
     func removeValues(forKeysMatching condition: KBGenericCondition) async throws -> [String] {
-        try await KBModernAsyncMethodReturningVoid { c in
+        try await KBModernAsyncMethodReturningInitiable { c in
             self.removeValues(forKeysMatching: condition, completionHandler: c)
         }
     }
     
     func removeAll() async throws -> [String] {
-        try await KBModernAsyncMethodReturningVoid { c in
+        try await KBModernAsyncMethodReturningInitiable { c in
             self.removeAll(completionHandler: c)
         }
     }

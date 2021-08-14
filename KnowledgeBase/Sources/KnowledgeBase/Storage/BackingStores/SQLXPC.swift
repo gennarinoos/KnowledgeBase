@@ -10,7 +10,7 @@ import Foundation
 public let KnowledgeBaseXPCServiceBundleIdentifier = "com.gf.knowledgebase.storage.xpc"
 
 
-#if false // (!os(macOS)) || DEBUG
+#if (!os(macOS)) || DEBUG
 // Do not use XPC in DEBUG mode or platforms other than macOS
 
 class KBSQLXPCBackingStore : KBSQLBackingStore {

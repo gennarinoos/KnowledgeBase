@@ -104,49 +104,50 @@ extension KBEntity {
 
     fileprivate func path(to target: KBEntity,
                           radius: inout Int) async throws -> [(Label, Label)] {
-        guard radius > 0 else {
-            let error = KBError.fatalError("path search with negative radius doesn't make sense")
-            log.fault("\(error.localizedDescription, privacy: .public)")
-            throw error
-        }
-
-        log.debug("[<\(self)> * <\(target)>]")
-
-        var couplePath: [(Label, Label)] = []
-        let directLinks = try await self.linkedEntities()
-
-        for directLink in directLinks {
-            let linkedEntity: KBEntity = directLink.1
-            if (linkedEntity == target) {
-                couplePath.append((self.identifier, linkedEntity.identifier));
-            }
-        }
-
-        if (couplePath.count > 0) {
-            return couplePath
-        } else if (radius < 2) {
-            return []
-        } else {
-            if (radius > 10) {
-                log.trace("requested reachability with radius \(radius, privacy: .public) > 10")
-                log.debug("force setting radius. \(radius, privacy: .public) => 10")
-                radius = 10
-            }
-
-            let directlyLinkedEntities = directLinks.map { $0.object }
-            var _radius_copy = radius - 1
-
-            for entity in directlyLinkedEntities {
-                let subPaths = try await entity.path(to: target, radius: &_radius_copy)
-
-                couplePath.append((self.identifier, entity.identifier))
-                for subPath in subPaths {
-                    couplePath.append(subPath)
-                }
-            }
-
-            return couplePath
-        }
+        throw KBError.notSupported
+//        guard radius > 0 else {
+//            let error = KBError.fatalError("path search with negative radius doesn't make sense")
+//            log.fault("\(error.localizedDescription, privacy: .public)")
+//            throw error
+//        }
+//
+//        log.debug("[<\(self)> * <\(target)>]")
+//
+//        var couplePath: [(Label, Label)] = []
+//        let directLinks = try await self.linkedEntities()
+//
+//        for directLink in directLinks {
+//            let linkedEntity: KBEntity = directLink.1
+//            if (linkedEntity == target) {
+//                couplePath.append((self.identifier, linkedEntity.identifier));
+//            }
+//        }
+//
+//        if (couplePath.count > 0) {
+//            return couplePath
+//        } else if (radius < 2) {
+//            return []
+//        } else {
+//            if (radius > 10) {
+//                log.trace("requested reachability with radius \(radius, privacy: .public) > 10")
+//                log.debug("force setting radius. \(radius, privacy: .public) => 10")
+//                radius = 10
+//            }
+//
+//            let directlyLinkedEntities = directLinks.map { $0.object }
+//            var _radius_copy = radius - 1
+//
+//            for entity in directlyLinkedEntities {
+//                let subPaths = try await entity.path(to: target, radius: &_radius_copy)
+//
+//                couplePath.append((self.identifier, entity.identifier))
+//                for subPath in subPaths {
+//                    couplePath.append(subPath)
+//                }
+//            }
+//
+//            return couplePath
+//        }
     }
 }
 

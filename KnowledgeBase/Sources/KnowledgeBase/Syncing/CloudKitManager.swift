@@ -217,7 +217,7 @@ public class KBCloudKitManager : NSObject {
                     if let recordZone = recordZone {
                         log.info("Zone created (\(recordZone.zoneID.zoneName, privacy: .public)")
                         
-                        if recordZone.isEqual(to: self.recordZone) == false {
+                        if recordZone.isEqual(self.recordZone) == false {
                             self.recordZone = recordZone
                             self.serverChangeToken = nil
                         }

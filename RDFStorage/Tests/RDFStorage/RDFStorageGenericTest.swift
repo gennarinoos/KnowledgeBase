@@ -9,9 +9,10 @@ import XCTest
 @testable import RDFStorage
 
 class TestTripleStore: NSObject, TripleStore {
+    
     var name: String = "TestTripleStore"
     
-    func insertTriple(withSubject subject: String, predicate: String, object: String, error: NSErrorPointer) {
+    func insertTriple(withSubject subject: String, predicate: String, object: String, completionHandler: @escaping (Error?) -> Void) {
         // TODO: Implement in-memory triple store
     }
     

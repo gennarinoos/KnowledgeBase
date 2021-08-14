@@ -18,7 +18,7 @@
 @implementation TestTripleStore
 @synthesize name;
 
-- (void)insertTripleWithSubject:(nonnull NSString *)subject predicate:(nonnull NSString *)predicate object:(nonnull NSString *)object error:(NSError *__autoreleasing  _Nullable * _Nullable)error {
+- (void)insertTripleWithSubject:(nonnull NSString *)subject predicate:(nonnull NSString *)predicate object:(nonnull NSString *)object completionHandler:(nonnull void (^)(NSError * _Nullable))completionHandler {
     // TODO: Implement in-memory triple store
 }
 

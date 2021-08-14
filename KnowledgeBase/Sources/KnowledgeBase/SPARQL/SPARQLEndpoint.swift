@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  SPARQLEndpoint.swift
 //  
 //
 //  Created by Gennaro Frazzingaro on 7/8/21.

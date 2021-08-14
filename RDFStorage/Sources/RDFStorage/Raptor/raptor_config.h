@@ -14,11 +14,7 @@
 #define HAVE_C99_VSNPRINTF 1
 
 /* Have curl/curl.h */
-/// <rdar://problem/30260188> Tigris15A195: GraphDB-37.1 is linking curl dylib but this dylib is excluded from the shared cache
 #undef HAVE_CURL_CURL_H
-//#if (!(defined(TARGET_OS_WATCH) && TARGET_OS_WATCH))
-//#  define HAVE_CURL_CURL_H 1
-//#endif
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #define HAVE_DLFCN_H 1

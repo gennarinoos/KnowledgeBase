@@ -87,6 +87,6 @@ class KBCloudKitSQLBackingStore : KBSQLBackingStore {
     }
     
     func disableSyncAndDeleteCloudData(completionHandler: @escaping KBActionCompletion) {
-        KBCloudKitManager.shared.disableSyncAndDeleteCloudData(completionHandler: completionHandler)
+        // TODO: Implement
     }
 }

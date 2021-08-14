@@ -11,5 +11,5 @@
 [ ] Check serialization of nil
 [ ] OBJC support
 [ ] Rename Event and related API to more generic LinkedList
-[ ] Change _setValue(forKey:) to set(value:forKey:)
+[x] Change _setValue(forKey:) to set(value:forKey:)
 [~] CloudKit KnowledgeBase support
