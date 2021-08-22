@@ -41,6 +41,12 @@ class KBSQLWriteBatch : KBAbstractWriteBatch, KBKVStoreWriteBatch {
             return
         }
         
+        if self.buffer.count == 0 {
+            log.warning("No values in writebatch to save. Returning early")
+            completionHandler(.success(()))
+            return
+        }
+        
         // Write buffer into the store
         // No need to arbitrate writes through the XPC service for SQL stores (only SQLXPC do)
         var unwrappedBuffer = Dictionary<String, Any>()
@@ -64,6 +70,12 @@ class KBUserDefaultsWriteBatch : KBAbstractWriteBatch, KBKVStoreWriteBatch {
         guard let backingStore = self.backingStore as? KBUserDefaultsBackingStore else {
             log.fault("KBUserDefaultsWriteBatch should back a KBUserDefaultsBackingStore")
             completionHandler(.failure(KBError.notSupported))
+            return
+        }
+        
+        if self.buffer.count == 0 {
+            log.warning("No values in writebatch to save. Returning early")
+            completionHandler(.success(()))
             return
         }
         

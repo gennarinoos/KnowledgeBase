@@ -7,15 +7,6 @@
 
 import Foundation
 
-let kKBEntityPhAssetPrefix = KBHexastore.JOINER.combine("KB", "PHAsset")
-
-enum KBGraphPredicate : Label {
-    case approximateLatLon = "approximateLatLon"
-    case day = "day"
-    case month = "month"
-    case year = "year"
-}
-
 extension KBEntity {
     
     // MARK: KBEntity attributes

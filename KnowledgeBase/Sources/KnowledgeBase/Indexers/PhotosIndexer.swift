@@ -8,7 +8,7 @@
 import Foundation
 import Photos
 
-let kKBPhotosAssetIdCacheStoreName = "com.gf.knowledgebase.PhotosAssetIdCache"
+let kKBPhotosAssetCacheStoreName = "com.gf.knowledgebase.PhotosAssetCache"
 let kKBPhotosIndexStoreName = "com.gf.knowledgebase.PhotosIndexStore"
 let kKBPhotosAuthorizationStatusKey = "com.gf.knowledgebase.indexer.photos.authorizationStatus"
 
@@ -18,31 +18,35 @@ public protocol KBPhotoAssetChangeDelegate {
     func wasRemoved(asset: PHAsset)
 }
 
-public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver, KBPhotoAssetChangeDelegate {
+public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
+    
+    // TODO: Maybe hashing can be handled better by overriding Hashable/Equatable? That would also make it unnecessarily complex though :(
     public var identifier: String {
         "\(self.hashValue)"
     }
     
-    var delegates = [String: KBPhotoAssetChangeDelegate]()
+    private let photosIndexerDefaults = KBKVStore.userDefaultsStore()
+    private var delegates = [String: KBPhotoAssetChangeDelegate]()
     
-    let photosIndexerDefaults = KBKVStore.userDefaultsStore()
-    let assetIdsCache: KBKVStore // The local identifiers of the PHAssets that have already been indexed
-    let photosKnowledgeGraph: KBKnowledgeStore
-    public var shouldIndexPhotosInKnowledgeGraph = false
+    private let indexedAssets: KBKVStore // The `KBPhotoAsset` ob that have already been indexed
+    public var cameraRollInMemoryCache: PHFetchResult<PHAsset>? = nil
+    public let imageManager: PHCachingImageManager
     
-    private var cameraRollAssets: PHFetchResult<PHAsset>?
+    private var authorizationStatus: PHAuthorizationStatus = .notDetermined
+    private let ingestionQueue = DispatchQueue(label: "com.gf.knowledgebase.indexer.photos.ingestion", qos: .userInteractive)
+    private let processingQueue = DispatchQueue(label: "com.gf.knowledgebase.indexer.photos.processing", qos: .background)
     
-    var authorizationStatus: PHAuthorizationStatus = .notDetermined
-    let serialQueue = DispatchQueue(label: "com.gf.knowledgebase.indexer.photos.serialQueue")
+    /// Enables the indexing of the retrieved `PHAsset` in the `indexedAssetIds`
+    /// as `KBPhotoAsset` objects, keyed by the `localIdentifier` of the asset
+    public var shouldIndexAssets = true
     
     public override init() {
-        self.assetIdsCache = KBKVStore.store(withName: kKBPhotosAssetIdCacheStoreName)
-        self.photosKnowledgeGraph = KBKnowledgeStore.store(withName: kKBPhotosIndexStoreName)
+        self.indexedAssets = KBKVStore.store(withName: kKBPhotosAssetCacheStoreName)
+        self.imageManager = PHCachingImageManager()
+        self.imageManager.allowsCachingHighQualityImages = true
         super.init()
-        // TODO: Maybe this can be handled better by overriding Hashable/Equatable? It also makes it unnecessarily complex
-        self.delegates[String(describing: self)] = self
         self.requestAuthorization()
-//        PHPhotoLibrary.shared().register(self)
+        PHPhotoLibrary.shared().register(self)
     }
     
     public func requestAuthorization() {
@@ -72,87 +76,78 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver, KBPhotoAs
         self.delegates.removeValue(forKey: String(describing: delegate))
     }
     
+    private static func cameraRollPredicate() -> NSPredicate {
+        return NSPredicate(format: "(mediaType = %d || mediaType = %d) && NOT (mediaSubtype & %d) != 0", PHAssetMediaType.image.rawValue, PHAssetMediaType.video.rawValue, PHAssetMediaSubtype.photoScreenshot.rawValue)
+    }
+    
     // TODO: Support parameter `since: Date`
-    public func ingestCameraRoll(completionHandler: @escaping (Swift.Result<Void, Error>) -> ()) {
-        self.serialQueue.async {
-            let cachedAssetIds: [String]
-            do { cachedAssetIds = try self.assetIdsCache.keys() }
-            catch {
-                cachedAssetIds = []
-                log.warning("Unable to read from the cache in \(kKBPhotosAssetIdCacheStoreName): \(error.localizedDescription)")
+    /// Fetches the latest assets in the Camera Roll using the Photos Framework in the background
+    /// and updates the `cameraRollInMemoryCache` with the corresponding `PHFetchResult`.
+    /// If `shouldIndexAssets` is `true`, this method also triggers an update to the `indexedAssetIds`,
+    /// storing `KBPhotoAsset` objects from the fetch result on the serial background `processingQueue`.
+    /// - Parameters:
+    ///   - assetIdsToExclude: a list of `PHAsset` localIdentifier to exclude from the search
+    ///   - completionHandler: the completion handler
+    public func updateCameraRollCache(excluding assetIdsToExclude: [String]? = nil,
+                                      completionHandler: @escaping (Swift.Result<Void, Error>) -> ()) {
+        self.ingestionQueue.async { [weak self] in
+            guard let self = self else {
+                return completionHandler(.failure(KBError.fatalError("self not available after executing block on the serial queue")))
             }
             
             // Get all the camera roll photos and videos
             let fetchResults = PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumUserLibrary, options: nil)
             fetchResults.enumerateObjects { collection, count, stop in
                 let fetchOptions = PHFetchOptions()
-                fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
+                fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: true)]
                 
-                var predicate = NSPredicate(format: "(mediaType = %d || mediaType = %d) && NOT (mediaSubtype & %d) != 0)", PHAssetMediaType.image.rawValue, PHAssetMediaType.video.rawValue, PHAssetMediaSubtype.photoScreenshot.rawValue)
-                if cachedAssetIds.count > 0 {
-                    let skipCachedIdsPredicate = NSPredicate(format: "NOT (localIdentifier IN %@)", cachedAssetIds)
+                var predicate = KBPhotosIndexer.cameraRollPredicate()
+                if let assetIdsToExclude = assetIdsToExclude, assetIdsToExclude.count > 0 {
+                    let skipCachedIdsPredicate = NSPredicate(format: "NOT (localIdentifier IN %@)", assetIdsToExclude)
                     predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, skipCachedIdsPredicate])
                 }
                 fetchOptions.predicate = predicate
                 
-                self.cameraRollAssets = PHAsset.fetchAssets(in: collection, options: fetchOptions)
-                completionHandler(.success(()))
+                self.cameraRollInMemoryCache = PHAsset.fetchAssets(in: collection, options: fetchOptions)
+                
+                if self.shouldIndexAssets {
+                    self.processingQueue.async {
+                        self.updateAssetsIndex()
+                    }
+                }
             }
+            completionHandler(.success(()))
         }
     }
     
-    public func wasAdded(asset: PHAsset) {
-        do { try self.assetIdsCache.set(value: Date(), for: asset.localIdentifier) }
-        catch {
-            log.warning("Unable to add item to the cache in \(kKBPhotosAssetIdCacheStoreName): \(error.localizedDescription)")
+    private func updateAssetsIndex() {
+        let cache: [String: Any]
+        do {
+            cache = try self.indexedAssets.dictionaryRepresentation()
+        } catch {
+            cache = [:]
         }
+        var cachedAssetIdsToInvalidate = [String]()
         
-        
-        if self.shouldIndexPhotosInKnowledgeGraph {
-            let assetEntityId = KBHexastore.JOINER.combine(kKBEntityPhAssetPrefix, asset.localIdentifier)
-            let assetEntity = self.photosKnowledgeGraph.entity(withIdentifier: assetEntityId)
-            do {
-                // link the asset to its approximate location in the graph
-                if let location = asset.location {
-                    let approxLat = floor(location.coordinate.latitude * 1000)
-                    let approxLon = floor(location.coordinate.longitude * 1000)
-                    
-                    let approxLatLonEntity = self.photosKnowledgeGraph.entity(withIdentifier: "latlon:\(approxLat),\(approxLon)")
-                    try assetEntity.link(to: approxLatLonEntity, withPredicate: KBGraphPredicate.approximateLatLon.rawValue)
+        let writeBatch = self.indexedAssets.writeBatch()
+        self.cameraRollInMemoryCache?.enumerateObjects { asset, count, stop in
+            if let cacheHit = cache[asset.localIdentifier] as? KBPhotoAsset {
+                if let whenCached = cacheHit.cacheUpdatedAt,
+                   whenCached.compare(asset.modificationDate ?? .distantPast) == .orderedAscending {
+                    // Asset was modified since cached -> remove from the persistent cache
+                    cachedAssetIdsToInvalidate.append(asset.localIdentifier)
                 }
-                
-                // link the asset to its approximate date in the graph
-                if let createdDate = asset.creationDate {
-                    let components = createdDate.dateTimeComponents()
-                    let dayEntity = self.photosKnowledgeGraph.entity(withIdentifier: "DTd:\(String(describing: components.day))")
-                    try assetEntity.link(to: dayEntity, withPredicate: KBGraphPredicate.day.rawValue)
-                    let monthEntity = self.photosKnowledgeGraph.entity(withIdentifier: "DTM:\(String(describing: components.month))")
-                    try assetEntity.link(to: monthEntity, withPredicate: KBGraphPredicate.month.rawValue)
-                    let yearEntity = self.photosKnowledgeGraph.entity(withIdentifier: "DTy:\(String(describing: components.year))")
-                    try assetEntity.link(to: yearEntity, withPredicate: KBGraphPredicate.year.rawValue)
-                }
-                
-                // TODO: People's faces in the photos?
-            } catch {
-                log.error("Unable to ingest asset into the graph: \(error.localizedDescription)")
+            } else {
+                let kvsAssetValue = KBPhotoAsset(for: asset, usingCachingImageManager: self.imageManager)
+                writeBatch.set(value: kvsAssetValue, for: asset.localIdentifier)
             }
         }
-    }
-    
-    public func wasRemoved(asset: PHAsset) {
-        do { try self.assetIdsCache.removeValue(for: asset.localIdentifier) }
-        catch {
-            log.warning("Unable to remove item from the cache in \(kKBPhotosAssetIdCacheStoreName): \(error.localizedDescription)")
+        do {
+            try writeBatch.write()
+            try self.indexedAssets.removeValues(for: cachedAssetIdsToInvalidate)
         }
-        
-        if self.shouldIndexPhotosInKnowledgeGraph {
-            do {
-                let assetEntityId = KBHexastore.JOINER.combine(kKBEntityPhAssetPrefix, asset.localIdentifier)
-                let assetEntity = self.photosKnowledgeGraph.entity(withIdentifier: assetEntityId)
-                try assetEntity.remove()
-            } catch {
-                log.error("Unable to ingest asset into the graph: \(error.localizedDescription)")
-            }
+        catch {
+            log.error("Unable to save in-memory cache to disk: \(error.localizedDescription)")
         }
     }
     
@@ -160,16 +155,18 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver, KBPhotoAs
     // MARK: PHPhotoLibraryChangeObserver protocol
     
     public func photoLibraryDidChange(_ changeInstance: PHChange) {
-        guard let cameraRoll = self.cameraRollAssets else {
+        guard let cameraRoll = self.cameraRollInMemoryCache else {
             log.warning("No assets were ever fetched. Ignoring change notification")
             return
         }
         
-        self.serialQueue.async {
+        self.ingestionQueue.async {
             let changeDetails = changeInstance.changeDetails(for: cameraRoll)
-            self.cameraRollAssets = (changeDetails?.fetchResultAfterChanges)!
             if let changeDetails = changeDetails {
+                self.cameraRollInMemoryCache = changeDetails.fetchResultAfterChanges
+                let writeBatch = self.indexedAssets.writeBatch()
                 for asset in changeDetails.insertedObjects {
+                    writeBatch.set(value: KBPhotoAsset(for: asset), for: asset.localIdentifier)
                     for delegate in self.delegates.values {
                         delegate.wasAdded(asset: asset)
                     }
@@ -177,6 +174,15 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver, KBPhotoAs
                 for asset in changeDetails.removedObjects {
                     for delegate in self.delegates.values {
                         delegate.wasRemoved(asset: asset)
+                    }
+                }
+                
+                if self.shouldIndexAssets {
+                    do {
+                        try writeBatch.write()
+                        try self.indexedAssets.removeValues(for: changeDetails.removedObjects.map { $0.localIdentifier })
+                    } catch {
+                        log.error("Failed to update cache on library change notification: \(error.localizedDescription)")
                     }
                 }
             } else {

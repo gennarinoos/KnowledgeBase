@@ -26,6 +26,8 @@ struct EncryptedPhotoUploaderDelegate: KBPhotoAssetChangeDelegate {
                     log.error("Failed to retrieve picture from asset \(asset): \(error.localizedDescription)")
                 }
             }
+        } else {
+            
         }
     }
     
