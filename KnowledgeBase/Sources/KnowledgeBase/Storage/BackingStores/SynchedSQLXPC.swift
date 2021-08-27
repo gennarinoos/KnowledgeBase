@@ -7,8 +7,8 @@
 
 import Foundation
 
-#if (!os(macOS)) || DEBUG
-// Do not use XPC in DEBUG mode or platforms other than macOS
+#if !os(macOS)
+// Use XPC only on macOS
 
 class KBCloudKitSQLXPCBackingStore : KBCloudKitSQLBackingStore {
 }

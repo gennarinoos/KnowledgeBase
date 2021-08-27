@@ -99,10 +99,8 @@ class KBCloudKitSQLWriteBatch : KBSQLWriteBatch {
     }
 }
 
-#if os(macOS)
-
-#if DEBUG
-// Do not use XPC in DEBUG mode
+#if !os(macOS)
+// Use XPC only on macOS
 
 class KBSQLXPCWriteBatch : KBSQLWriteBatch {
 }
@@ -133,8 +131,8 @@ class KBSQLXPCWriteBatch : KBAbstractWriteBatch, KBKVStoreWriteBatch {
 }
 #endif
 
-#if DEBUG
-// Do not use XPC in DEBUG mode
+#if !os(macOS)
+// Use XPC only on macOS
 
 class KBCloudKitSQLXPCWriteBatch : KBSQLXPCWriteBatch {
 }
@@ -153,5 +151,4 @@ class KBCloudKitSQLXPCWriteBatch : KBSQLXPCWriteBatch {
     }
 }
 
-#endif
 #endif

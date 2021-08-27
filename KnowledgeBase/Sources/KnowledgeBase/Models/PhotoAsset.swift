@@ -17,9 +17,9 @@ public class KBPhotoAsset : NSObject, NSSecureCoding {
     
     var imageManager: PHImageManager
     
-    let phAsset: PHAsset
-    var cachedData: Data?
-    var cacheUpdatedAt: Date?
+    public let phAsset: PHAsset
+    public var cachedData: Data?
+    public var cacheUpdatedAt: Date?
     
     public init(for asset: PHAsset, cachedData: Data? = nil, cacheUpdatedAt: Date? = nil) {
         self.phAsset = asset

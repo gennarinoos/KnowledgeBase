@@ -31,6 +31,7 @@ extension KBKnowledgeStore {
         let condition = subjectMatches.or(objectMatches)
         
         let _ = try await self.backingStore.removeValues(forKeysMatching: condition.rawCondition)
+        self?.delegate?.linkedDataDidChange()
     }
     
     open func verify(path: KBPath) async throws -> Bool {

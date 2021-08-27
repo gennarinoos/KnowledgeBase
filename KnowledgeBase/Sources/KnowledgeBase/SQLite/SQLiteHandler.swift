@@ -31,7 +31,8 @@ public let BlobValueAllowedClasses = [
     NSDictionary.self,
     NSDate.self,
 //    KBHistoricEvent.self,
-    KBTriple.self
+    KBTriple.self,
+    KBPhotoAsset.self
 ]
 
 @objc(KBSQLHandler)

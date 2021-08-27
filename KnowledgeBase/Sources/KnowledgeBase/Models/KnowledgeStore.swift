@@ -7,16 +7,9 @@
 
 import Foundation
 
-
-@objc(KBKnowledgeStoreDelegate)
-public protocol KBKnowledgeStoreDelegate {
-    func linkedDataDidChange()
-}
-
 @objc(KBKnowledgeStore)
 open class KBKnowledgeStore : KBKVStore {
     internal let sparqlQueue: DispatchQueue
-    @objc open var delegate: KBKnowledgeStoreDelegate?
     
     public static let inMemoryGraph = KBKnowledgeStore.inMemoryStore()
     

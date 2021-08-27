@@ -85,6 +85,7 @@ extension KBEntity {
         do {
             try dispatch.wait()
             self.linkBasedOnRules(afterConnecting: target, completionHandler: completionHandler)
+            self.store.delegate?.linkedDataDidChange()
         } catch {
             completionHandler(.failure(error))
         }
@@ -118,6 +119,7 @@ extension KBEntity {
                     }
                 }
                 completionHandler(result)
+                self?.store.delegate?.linkedDataDidChange()
             }
         } else {
             self.store.backingStore.decreaseWeight(forLinkWithLabel: label,
@@ -129,6 +131,7 @@ extension KBEntity {
                         log.debug("New weight for triple [\(self!)> <\(label)> <\(target)>]: \(newWeight, privacy: .public)")
                     }
                     completionHandler(.success(()))
+                    self?.store.delegate?.linkedDataDidChange()
                 case .failure(let err):
                     if let _ = self {
                         log.debug("Could not unlink [\(self!)> <\(label)> <\(target)>]: \(err.localizedDescription, privacy: .public)")
@@ -145,6 +148,7 @@ extension KBEntity {
      */
     open func remove(completionHandler: @escaping KBActionCompletion) {
         self.store.backingStore.dropLinks(withLabel: nil, from: self.identifier, completionHandler: completionHandler)
+        self.store.delegate?.linkedDataDidChange()
     }
 }
 

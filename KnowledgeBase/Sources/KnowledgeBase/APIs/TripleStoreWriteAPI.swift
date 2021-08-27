@@ -37,6 +37,7 @@ extension KBKnowledgeStore {
                 completionHandler(.failure(err))
             case .success(_):
                 completionHandler(.success(()))
+                self?.delegate?.linkedDataDidChange()
             }
         }
     }

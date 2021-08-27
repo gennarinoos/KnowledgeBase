@@ -36,7 +36,10 @@ extension KBKVStore {
         
         let writeBatch = self.writeBatch()
         writeBatch.set(value: value, for: key)
-        writeBatch.write(completionHandler: completionHandler)
+        writeBatch.write { result in
+            completionHandler(result)
+            self.delegate?.kvDataDidChange(addedKeys: [key], removedKeys: [])
+        }
     }
     @objc open func set(value: Any?, for key: String, completionHandler: @escaping KBObjCActionCompletion) {
         KBObjectiveCAPIResultReturningVoid(completionHandler: completionHandler) { c in
@@ -52,7 +55,10 @@ extension KBKVStore {
      
      */
     open func removeValue(for key: String, completionHandler: @escaping KBActionCompletion) {
-        self.backingStore.removeValue(for: key, completionHandler: completionHandler)
+        self.backingStore.removeValue(for: key) { result in
+            completionHandler(result)
+            self.delegate?.kvDataDidChange(addedKeys: [], removedKeys: [key])
+        }
     }
     @objc open func removeValue(for key: String, completionHandler: @escaping KBObjCActionCompletion) {
         KBObjectiveCAPIResultReturningVoid(completionHandler: completionHandler) { c in
@@ -99,7 +105,10 @@ extension KBKVStore {
      
      */
     open func removeAll(completionHandler: @escaping (Swift.Result<[String], Error>) -> ()) {
-        self.backingStore.removeAll(completionHandler: completionHandler)
+        self.backingStore.removeAll { result in
+            completionHandler(result)
+            self.delegate?.kvWasDestroyed()
+        }
     }
     @objc func removeAll(completionHandler: @escaping (Error?, [String]) -> ()) {
         KBObjectiveCAPIResultReturningInitiable(completionHandler: completionHandler, self.removeAll(completionHandler:))

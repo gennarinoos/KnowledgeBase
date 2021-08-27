@@ -8,8 +8,7 @@
 import Foundation
 import Photos
 
-let kKBPhotosAssetCacheStoreName = "com.gf.knowledgebase.PhotosAssetCache"
-let kKBPhotosIndexStoreName = "com.gf.knowledgebase.PhotosIndexStore"
+public let kKBPhotosAssetCacheStoreName = "com.gf.knowledgebase.PhotosAssetCache"
 let kKBPhotosAuthorizationStatusKey = "com.gf.knowledgebase.indexer.photos.authorizationStatus"
 
 
@@ -28,12 +27,12 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
     private let photosIndexerDefaults = KBKVStore.userDefaultsStore()
     private var delegates = [String: KBPhotoAssetChangeDelegate]()
     
-    private let indexedAssets: KBKVStore // The `KBPhotoAsset` ob that have already been indexed
+    public let indexedAssets: KBKVStore // The `KBPhotoAsset` ob that have already been indexed
     public var cameraRollInMemoryCache: PHFetchResult<PHAsset>? = nil
     public let imageManager: PHCachingImageManager
     
     private var authorizationStatus: PHAuthorizationStatus = .notDetermined
-    private let ingestionQueue = DispatchQueue(label: "com.gf.knowledgebase.indexer.photos.ingestion", qos: .userInteractive)
+    private let ingestionQueue = DispatchQueue(label: "com.gf.knowledgebase.indexer.photos.ingestion", qos: .userInitiated)
     private let processingQueue = DispatchQueue(label: "com.gf.knowledgebase.indexer.photos.processing", qos: .background)
     
     /// Enables the indexing of the retrieved `PHAsset` in the `indexedAssetIds`
@@ -99,7 +98,7 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
             let fetchResults = PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumUserLibrary, options: nil)
             fetchResults.enumerateObjects { collection, count, stop in
                 let fetchOptions = PHFetchOptions()
-                fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: true)]
+                fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
                 
                 var predicate = KBPhotosIndexer.cameraRollPredicate()
                 if let assetIdsToExclude = assetIdsToExclude, assetIdsToExclude.count > 0 {
@@ -111,8 +110,16 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
                 self.cameraRollInMemoryCache = PHAsset.fetchAssets(in: collection, options: fetchOptions)
                 
                 if self.shouldIndexAssets {
-                    self.processingQueue.async {
-                        self.updateAssetsIndex()
+                    if let cameraRollCache = self.cameraRollInMemoryCache {
+                        self.processingQueue.async {
+                            let cache: [String: Any]
+                            do {
+                                cache = try self.indexedAssets.dictionaryRepresentation()
+                            } catch {
+                                cache = [:]
+                            }
+                            self.updateAssetsIndex(inCache: cache, with: cameraRollCache)
+                        }
                     }
                 }
             }
@@ -120,17 +127,13 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
         }
     }
     
-    private func updateAssetsIndex() {
-        let cache: [String: Any]
-        do {
-            cache = try self.indexedAssets.dictionaryRepresentation()
-        } catch {
-            cache = [:]
-        }
+    private func updateAssetsIndex(inCache cache: [String: Any], with result: PHFetchResult<PHAsset>) {
+        Dispatch.dispatchPrecondition(condition: .onQueue(self.processingQueue))
+        
         var cachedAssetIdsToInvalidate = [String]()
         
         let writeBatch = self.indexedAssets.writeBatch()
-        self.cameraRollInMemoryCache?.enumerateObjects { asset, count, stop in
+        result.enumerateObjects { asset, count, stop in
             if let cacheHit = cache[asset.localIdentifier] as? KBPhotoAsset {
                 if let whenCached = cacheHit.cacheUpdatedAt,
                    whenCached.compare(asset.modificationDate ?? .distantPast) == .orderedAscending {
@@ -148,6 +151,44 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
         }
         catch {
             log.error("Unable to save in-memory cache to disk: \(error.localizedDescription)")
+        }
+    }
+    
+    public func updateAssetsIndex(with assets: [PHAsset], completionHandler: @escaping KBActionCompletion) {
+        self.processingQueue.async {
+            let cache: [String: Any]
+            do {
+                cache = try self.indexedAssets.dictionaryRepresentation()
+            } catch {
+                cache = [:]
+            }
+            
+            var cachedAssetIdsToInvalidate = [String]()
+            let writeBatch = self.indexedAssets.writeBatch()
+            
+            for asset in assets {
+                if let cacheHit = cache[asset.localIdentifier] as? KBPhotoAsset {
+                    if let whenCached = cacheHit.cacheUpdatedAt,
+                       whenCached.compare(asset.modificationDate ?? .distantPast) == .orderedAscending {
+                        // Asset was modified since cached -> remove from the persistent cache
+                        cachedAssetIdsToInvalidate.append(asset.localIdentifier)
+                    }
+                } else {
+                    autoreleasepool {
+                        let kvsAssetValue = KBPhotoAsset(for: asset, usingCachingImageManager: self.imageManager)
+                        writeBatch.set(value: kvsAssetValue, for: asset.localIdentifier)
+                    }
+                }
+            }
+            
+            do {
+                try writeBatch.write()
+                try self.indexedAssets.removeValues(for: cachedAssetIdsToInvalidate)
+                completionHandler(.success(()))
+            }
+            catch {
+                completionHandler(.failure(KBError.databaseNotReady))
+            }
         }
     }
     

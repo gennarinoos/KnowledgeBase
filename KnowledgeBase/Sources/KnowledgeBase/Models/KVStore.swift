@@ -19,6 +19,13 @@ protocol Serializable {
     static func decode(_ encoded: String) throws -> Self
 }
 
+@objc(KBStoreDelegate)
+public protocol KBStoreDelegate {
+    func kvDataDidChange(addedKeys: [String], removedKeys: [String])
+    func kvWasDestroyed()
+    func linkedDataDidChange()
+}
+
 
 @objc(KBKVStore)
 open class KBKVStore : NSObject {
@@ -70,6 +77,8 @@ open class KBKVStore : NSObject {
         }
     }
 
+    @objc open var delegate: KBStoreDelegate?
+    
     internal let backingStore: KBBackingStore
     public let location: Location
 
