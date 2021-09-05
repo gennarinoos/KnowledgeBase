@@ -7,7 +7,7 @@
 
 import Foundation
 
-public typealias KBJSONObject = [String: Any]
+public typealias KBKVPairs = [String: Any]
 
 enum JSONLDParseError: Error {
     case unexpectedFormat, resourceNotAvailable
@@ -26,8 +26,8 @@ open class KBJSONLDGraph : NSObject {
         return self._entities.map { $0.identifier }
     }
 
-    @objc open func linkedData() async throws -> [KBJSONObject] {
-        var linkedDataDictionary = [KBJSONObject]()
+    @objc open func linkedData() async throws -> [KBKVPairs] {
+        var linkedDataDictionary = [KBKVPairs]()
         let entities = Array(Set(self._entities))
         
         for entity in entities {
@@ -42,8 +42,8 @@ open class KBJSONLDGraph : NSObject {
         return linkedDataDictionary
     }
 
-    private static func serialize(_ entity: KBEntity) async throws -> KBJSONObject {
-        var object = KBJSONObject()
+    private static func serialize(_ entity: KBEntity) async throws -> KBKVPairs {
+        var object = KBKVPairs()
         //            object["@context"] = "http://schema.org/"
         object["@id"] = entity.identifier
 
@@ -85,7 +85,7 @@ extension KBKnowledgeStore {
                 let otherEntity = self.entity(withIdentifier: stringValue)
                 try await entity.link(to: otherEntity, withPredicate: _key)
             }
-        } else if let jsonObject = value as? KBJSONObject {
+        } else if let jsonObject = value as? KBKVPairs {
             let targetEntity = self.entity(withIdentifier: (jsonObject["@id"] ?? "_:\(UUID().uuidString)") as! String)
             
             for (k, v) in jsonObject {
@@ -94,7 +94,7 @@ extension KBKnowledgeStore {
             
             try await entity.link(to: targetEntity,
                         withPredicate: _key)
-        } else if let jsonObjects = value as? [KBJSONObject] {
+        } else if let jsonObjects = value as? [KBKVPairs] {
             for jsonObject in jsonObjects {
                 try await self.evaluateJSONLDEntry(forEntity: entity, key: key, value: jsonObject)
             }
@@ -105,7 +105,7 @@ extension KBKnowledgeStore {
     
     fileprivate func `import`(entity: KBEntity,
                               fromJsonld jsonObject: Any) async throws {
-        if let dictionary = jsonObject as? KBJSONObject {
+        if let dictionary = jsonObject as? KBKVPairs {
             for (k, v) in dictionary {
                 try await self.evaluateJSONLDEntry(forEntity: entity, key: k, value: v)
             }
@@ -116,18 +116,18 @@ extension KBKnowledgeStore {
     
     internal func importJSONLD(data: Data) async throws {
         let evaluate = {
-            (object: KBJSONObject) async throws -> Void in
+            (object: KBKVPairs) async throws -> Void in
             let entity = self.entity(withIdentifier: (object["@id"] ?? "_:\(UUID().uuidString)") as! String)
             try await self.import(entity: entity, fromJsonld: object)
         }
         
         let object = try JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions())
         
-        if let array = object as? [KBJSONObject] {
+        if let array = object as? [KBKVPairs] {
             for obj in array {
                 try await evaluate(obj)
             }
-        } else if let obj = object as? KBJSONObject {
+        } else if let obj = object as? KBKVPairs {
             try await evaluate(obj)
         } else {
             throw KBError.unexpectedData(object)

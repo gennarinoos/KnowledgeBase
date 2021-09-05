@@ -18,9 +18,15 @@ public protocol KBStorageXPCProtocol {
     
     func value(forKey: String, inStoreWithIdentifier identifier: String, completionHandler: @escaping (Error?, Any?) -> ())
     
-    func keysAndValues(inStoreWithIdentifier identifier: String, completionHandler: @escaping (Error?, KBJSONObject?) -> ())
+    func keysAndValues(inStoreWithIdentifier identifier: String, completionHandler: @escaping (Error?, KBKVPairs?) -> ())
     
-    func keysAndValues(forKeysMatching: KBGenericCondition, inStoreWithIdentifier identifier: String, completionHandler: @escaping (Error?, KBJSONObject?) -> ())
+    func keysAndValues(forKeysMatching: KBGenericCondition, inStoreWithIdentifier identifier: String, completionHandler: @escaping (Error?, KBKVPairs?) -> ())
+    
+    func keysAndValues(createdWithin interval: DateInterval,
+                       limit: Int,
+                       order: ComparisonResult,
+                       inStoreWithIdentifier identifier: String,
+                       completionHandler: @escaping (Error?, [Date: KBKVPairs]?) -> ())
     
     func tripleComponents(matching: KBTripleCondition?, inStoreWithIdentifier identifier: String, completionHandler: @escaping (Error?, [KBTriple]?) -> ())
 

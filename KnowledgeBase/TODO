@@ -1,6 +1,6 @@
 [x] removeValues(matching condition:) should be removeValues(forKeysMatching condition:)?
 [x] new Apple logging API
-[ ] Verify String AnyHashable casting (search for dictionary as! KBJSONObject)
+[ ] Verify String AnyHashable casting (search for dictionary as! KBKVPairs)
 [ ] Return NSNull for values set to null, nil for missing kv pairs
 [ ] Support named UserDefaults store (currently one common using KB bundle identifier)
 [ ] WriteBatch save is not async

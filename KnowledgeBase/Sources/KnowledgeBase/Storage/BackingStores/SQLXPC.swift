@@ -168,7 +168,7 @@ class KBSQLXPCBackingStore : KBBackingStore {
         }
     }
     
-    func dictionaryRepresentation(completionHandler: @escaping (Swift.Result<KBJSONObject, Error>) -> ()) {
+    func dictionaryRepresentation(completionHandler: @escaping (Swift.Result<KBKVPairs, Error>) -> ()) {
         guard let service = self.xpcService() else {
             completionHandler(.failure(KBError.fatalError("Could not connect to XPC service")))
             return
@@ -185,7 +185,8 @@ class KBSQLXPCBackingStore : KBBackingStore {
         }
     }
     
-    func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<KBJSONObject, Error>) -> ()) {
+    func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition,
+                                  completionHandler: @escaping (Swift.Result<KBKVPairs, Error>) -> ()) {
         guard let service = self.xpcService() else {
             completionHandler(.failure(KBError.fatalError("Could not connect to XPC service")))
             return
@@ -198,6 +199,26 @@ class KBSQLXPCBackingStore : KBBackingStore {
                 completionHandler(.failure(error))
             } else {
                 completionHandler(.success(keysAndValues!))
+            }
+        }
+    }
+    
+    func dictionaryRepresentation(createdWithin interval: DateInterval,
+                                  limit: Int?,
+                                  order: ComparisonResult,
+                                  completionHandler: @escaping (Swift.Result<[Date: KBKVPairs], Error>) -> ()) {
+        guard let service = self.xpcService() else {
+            completionHandler(.failure(KBError.fatalError("Could not connect to XPC service")))
+            return
+        }
+        
+        service.keysAndValues(createdWithin: interval, limit: limit ?? -1, order: order, inStoreWithIdentifier: self.name) {
+            error, keysAndValuesByDate in
+            let _ = self // Retain self in the block to keep XPC connection alive
+            if let error = error {
+                completionHandler(.failure(error))
+            } else {
+                completionHandler(.success(keysAndValuesByDate!))
             }
         }
     }

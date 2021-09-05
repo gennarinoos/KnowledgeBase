@@ -15,7 +15,7 @@ extension KBKVStore {
      - returns the dictionary containing all keys and values
      
      */
-    @objc open func dictionaryRepresentation() async throws -> KBJSONObject {
+    @objc open func dictionaryRepresentation() async throws -> KBKVPairs {
         return try await self.backingStore.dictionaryRepresentation()
     }
     
@@ -26,7 +26,7 @@ extension KBKVStore {
      - returns the dictionary containing all keys and values matching the condition
      
      */
-    @objc open func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition) async throws -> KBJSONObject {
+    @objc open func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition) async throws -> KBKVPairs {
         return try await self.backingStore.dictionaryRepresentation(forKeysMatching: condition)
     }
     

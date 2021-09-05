@@ -19,9 +19,9 @@ listener.resume()
 
 let photoUploaderDelegate = EncryptedPhotoUploaderDelegate()
 let photosIndexer = KBPhotosIndexer()
-photosIndexer.shouldIndexPhotosInKnowledgeGraph = false
+photosIndexer.shouldIndexAssets = false
 photosIndexer.addDelegate(photoUploaderDelegate)
 let sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: true)]
-photosIndexer.fetchCameraRoll(sortDescriptors: sortDescriptors, excludingAssetIDs: <#T##[String]?#>) { _ in }
+photosIndexer.updateCameraRollCache { _ in }
 
 RunLoop.main.run()

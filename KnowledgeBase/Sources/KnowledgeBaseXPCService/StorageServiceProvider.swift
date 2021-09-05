@@ -55,7 +55,7 @@ class KBStorageServiceProviderXPC: KBStorageXPCProtocol {
     
     func keys(inStoreWithIdentifier identifier: String, completionHandler: @escaping (Error?, [String]?) -> ()) {
         serializeReadMethodCall(storeIdentifier: identifier,
-                            completionHandler: completionHandler) { handler in
+                                completionHandler: completionHandler) { handler in
             log.trace("Getting all keys in store with identifier \(identifier)")
             return try handler.keys()
         }
@@ -63,7 +63,7 @@ class KBStorageServiceProviderXPC: KBStorageXPCProtocol {
     
     func keys(matching condition: KBGenericCondition, inStoreWithIdentifier identifier: String, completionHandler: @escaping (Error?, [String]?) -> ()) {
         serializeReadMethodCall(storeIdentifier: identifier,
-                            completionHandler: completionHandler) { handler in
+                                completionHandler: completionHandler) { handler in
             log.trace("Getting all keys matching condition \(condition) in store with identifier \(identifier)")
             return try handler.keys(matching: condition)
         }
@@ -71,7 +71,7 @@ class KBStorageServiceProviderXPC: KBStorageXPCProtocol {
     
     func value(forKey key: String, inStoreWithIdentifier identifier: String, completionHandler: @escaping (Error?, Any?) -> ()) {
         serializeReadMethodCall(storeIdentifier: identifier,
-                            completionHandler: completionHandler) { handler in
+                                completionHandler: completionHandler) { handler in
             log.trace("Getting value for key \(key) in store with identifier \(identifier)")
             let value = try handler.values(for: [key]).first
             if let v = value, v is NSNull {
@@ -81,25 +81,33 @@ class KBStorageServiceProviderXPC: KBStorageXPCProtocol {
         }
     }
     
-    func keysAndValues(inStoreWithIdentifier identifier: String, completionHandler: @escaping (Error?, KBJSONObject?) -> ()) {
+    func keysAndValues(inStoreWithIdentifier identifier: String, completionHandler: @escaping (Error?, KBKVPairs?) -> ()) {
         serializeReadMethodCall(storeIdentifier: identifier,
-                            completionHandler: completionHandler) { handler in
-            log.trace("Getting all values in store with identifier \(identifier)")
+                                completionHandler: completionHandler) { handler in
+            log.trace("Getting all keys and values in store with identifier \(identifier)")
             return try handler.keysAndValues()
         }
     }
     
-    func keysAndValues(forKeysMatching condition: KBGenericCondition, inStoreWithIdentifier identifier: String, completionHandler: @escaping (Error?, KBJSONObject?) -> ()) {
+    func keysAndValues(forKeysMatching condition: KBGenericCondition, inStoreWithIdentifier identifier: String, completionHandler: @escaping (Error?, KBKVPairs?) -> ()) {
         serializeReadMethodCall(storeIdentifier: identifier,
-                            completionHandler: completionHandler) { handler in
-            log.trace("Getting all values matching condition \(condition) in store with identifier \(identifier)")
+                                completionHandler: completionHandler) { handler in
+            log.trace("Getting all keys and values matching condition \(condition) in store with identifier \(identifier)")
             return try handler.keysAndvalues(forKeysMatching: condition)
+        }
+    }
+    
+    func keysAndValues(createdWithin interval: DateInterval, limit: Int, order: ComparisonResult, inStoreWithIdentifier identifier: String, completionHandler: @escaping (Error?, [Date: KBKVPairs]?) -> ()) {
+        serializeReadMethodCall(storeIdentifier: identifier,
+                                completionHandler: completionHandler) { handler in
+            log.trace("Getting all keys and values within interval \(interval) [limit=\(limit)] in store with identifier \(identifier)")
+            return try handler.keysAndValues(within: interval, limit: limit, order: order)
         }
     }
     
     func tripleComponents(matching condition: KBTripleCondition?, inStoreWithIdentifier identifier: String, completionHandler: @escaping (Error?, [KBTriple]?) -> ()) {
         serializeReadMethodCall(storeIdentifier: identifier,
-                            completionHandler: completionHandler) { handler in
+                                completionHandler: completionHandler) { handler in
             log.trace("Getting triples matching condition \(condition?.description ?? "<nil>") in store with identifier \(identifier)")
             return try handler.tripleComponents(matching: condition)
         }
@@ -115,7 +123,7 @@ class KBStorageServiceProviderXPC: KBStorageXPCProtocol {
                                                      userInfo: userInfo)
     }
     
-    func save(_ dict: KBJSONObject, toStoreWithIdentifier identifier: String, completionHandler: @escaping KBObjCActionCompletion) {
+    func save(_ dict: KBKVPairs, toStoreWithIdentifier identifier: String, completionHandler: @escaping KBObjCActionCompletion) {
         self.serialQueue.async {
             log.trace("Getting \(dict.count) keys and values in store with identifier \(identifier)")
             do {
@@ -129,7 +137,7 @@ class KBStorageServiceProviderXPC: KBStorageXPCProtocol {
         }
     }
     
-    func save(_ dict: KBJSONObject, toSynchedStoreWithIdentifier identifier: String, completionHandler: @escaping KBObjCActionCompletion) {
+    func save(_ dict: KBKVPairs, toSynchedStoreWithIdentifier identifier: String, completionHandler: @escaping KBObjCActionCompletion) {
         log.trace("Getting \(dict.count) keys and values in SYNCHED store with identifier \(identifier)")
         self.save(dict, toStoreWithIdentifier: identifier) { error in
             if error == nil {

@@ -84,6 +84,20 @@ public class KnowledgeBaseXPCUtils : NSObject {
                              for: #selector(KBStorageXPCProtocol.keysAndValues(forKeysMatching:inStoreWithIdentifier:completionHandler:)),
                              argumentIndex: 1,
                              ofReply: true)
+        
+        // MARK: keysAndValues(createdWithin:limit:order:inStoreWithIdentifier:completionHandler:)
+        interface.setClasses(NSSet(array: [DateInterval.self]) as! Set<AnyHashable>,
+                             for: #selector(KBStorageXPCProtocol.keysAndValues(createdWithin:limit:order:inStoreWithIdentifier:completionHandler:)),
+                             argumentIndex: 0,
+                             ofReply: false)
+        interface.setClasses(NSSet(array: [NSString.self]) as! Set<AnyHashable>,
+                             for: #selector(KBStorageXPCProtocol.keysAndValues(createdWithin:limit:order:inStoreWithIdentifier:completionHandler:)),
+                             argumentIndex: 3,
+                             ofReply: false)
+        interface.setClasses(NSSet(array: [NSDate.self, NSDictionary.self, NSString.self] + allowedValues) as! Set<AnyHashable>,
+                             for: #selector(KBStorageXPCProtocol.keysAndValues(createdWithin:limit:order:inStoreWithIdentifier:completionHandler:)),
+                             argumentIndex: 1,
+                             ofReply: true)
 
         // MARK: tripleComponents(matching:inStoreWithIdentifier:completionHandler:)
         interface.setClasses(NSSet(array: [KBTripleCondition.self]) as! Set<AnyHashable>,

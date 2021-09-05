@@ -199,12 +199,12 @@ open class KBSQLHandler: NSObject {
         return values
     }
     
-    @objc open func keysAndValues() throws -> KBJSONObject {
+    @objc open func keysAndValues() throws -> KBKVPairs {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
         
-        var dict = KBJSONObject()
+        var dict = KBKVPairs()
         
         let query = SQLTableType.allValues.map { "select k, v from \($0.rawValue)" }.joined(separator: " union all ")
         let stmt = try connection.prepare(query)
@@ -219,12 +219,42 @@ open class KBSQLHandler: NSObject {
         return dict
     }
     
-    @objc open func keysAndvalues(forKeysMatching condition: KBGenericCondition) throws -> KBJSONObject {
+    @objc open func keysAndValues(within interval: DateInterval, limit: Int, order: ComparisonResult) throws -> [Date: KBKVPairs] {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
         
-        var dict = KBJSONObject()
+        var pairsByDate = [Date: KBKVPairs]()
+        let sqlOrder: String = order == .orderedAscending ? "asc" : "desc"
+        
+        let query = SQLTableType.allValues.map { "select k, v, t from \($0.rawValue) where t between ? and ?" }
+            .joined(separator: " union all ") + " order by t \(sqlOrder) limit ?"
+        let dateBindings: [Binding?] = [interval.start.timeIntervalSince1970, interval.end.timeIntervalSince1970]
+        var bindings: [Binding?] = ([[Binding?]](repeating: dateBindings, count: SQLTableType.allValues.count )).flatMap { $0 }
+        bindings.append(limit)
+        
+        let stmt = try connection.prepare(query, bindings)
+        for row in stmt {
+            var dict = KBKVPairs()
+            assert(row.count == 3, "retrieved the right number of columns")
+            if let key = try self.deserializeValue(row[0]) as? String,
+               let value = try self.deserializeValue(row[1]),
+               let timestamp = row[2] as? TimeInterval
+            {
+                dict[key] = value
+                pairsByDate[Date(timeIntervalSince1970: timestamp)] = dict
+            }
+        }
+        
+        return pairsByDate
+    }
+    
+    @objc open func keysAndvalues(forKeysMatching condition: KBGenericCondition) throws -> KBKVPairs {
+        guard let connection = self.connection else {
+            throw KBError.databaseNotReady
+        }
+        
+        var dict = KBKVPairs()
         
         let query = SQLTableType.allValues.map { "select k, v from \($0.rawValue) where \(condition.sql)" }.joined(separator: " union all ")
         let stmt = try connection.prepare(query)
@@ -240,8 +270,8 @@ open class KBSQLHandler: NSObject {
     }
     
     internal func selectQuery(project: [String],
-                             whereField: String,
-                             isIn array: [Binding?]) -> (String, [Binding?]) {
+                              whereField: String,
+                              isIn array: [Binding?]) -> (String, [Binding?]) {
         let arrayQuery = [String](repeating: "?", count: array.count).joined(separator: ",")
         let projection = project.joined(separator: ",")
         let query = SQLTableType.allValues
@@ -287,7 +317,7 @@ open class KBSQLHandler: NSObject {
     }
     
     @objc(saveKeysAndValues:error:)
-    open func save(keysAndValues: KBJSONObject) throws {
+    open func save(keysAndValues: KBKVPairs) throws {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
@@ -297,9 +327,10 @@ open class KBSQLHandler: NSObject {
         try connection.transaction(Connection.TransactionMode.immediate) {
             for (key, value) in keysAndValues {
                 
-                let format = "insert or replace into %@ (k, v) values (?, ?)"
+                let format = "insert or replace into %@ (k, v, t) values (?, ?, ?)"
                 let query: String
                 var bindings = Array<Binding?>()
+                let timestamp = Date().timeIntervalSince1970
                 
                 switch(value) {
                 case is NSNull:
@@ -307,7 +338,7 @@ open class KBSQLHandler: NSObject {
                     continue
                 case let doubleValue as Double:
                     query = String(format: format, SQLTableType.DoubleValue.rawValue)
-                    bindings = [key, doubleValue]
+                    bindings = [key, doubleValue, timestamp]
                     break
                 case let numberValue as Number:
                     guard let nsnumber = numberValue as? NSNumber else {
@@ -317,19 +348,19 @@ open class KBSQLHandler: NSObject {
                         throw KBError.fatalError("Could not convert Numeric to Int64 for value: \(value)")
                     }
                     query = String(format: format, SQLTableType.IntegerValue.rawValue)
-                    bindings = [key, int64Value]
+                    bindings = [key, int64Value, timestamp]
                     break
                 case let intValue as Int:
                     query = String(format: format, SQLTableType.IntegerValue.rawValue)
-                    bindings = [key, intValue]
+                    bindings = [key, intValue, timestamp]
                     break
                 case let boolValue as Bool:
                     query = String(format: format, SQLTableType.IntegerValue.rawValue)
-                    bindings = [key, boolValue ? 1 : 0]
+                    bindings = [key, boolValue ? 1 : 0, timestamp]
                     break
                 case let stringValue as String:
                     query = String(format: format, SQLTableType.StringValue.rawValue)
-                    bindings = [key, stringValue]
+                    bindings = [key, stringValue, timestamp]
                     break
                 default:
                     let data: Data
@@ -339,7 +370,7 @@ open class KBSQLHandler: NSObject {
                         data = NSKeyedArchiver.archivedData(withRootObject: value)
                     }
                     query = String(format: format, SQLTableType.AnyValue.rawValue)
-                    bindings = [key, data.datatypeValue]
+                    bindings = [key, data.datatypeValue, timestamp]
                 }
                 
                 try connection.run(query, bindings)
@@ -468,7 +499,7 @@ open class KBSQLHandler: NSObject {
         }
         
         // reflect the change in the Hexastore
-        var kvs = KBJSONObject()
+        var kvs = KBKVPairs()
         let tripleValue = KBTriple(subject: subjectIdentifier,
                                    predicate: predicate,
                                    object: objectIdentifier,
@@ -531,7 +562,7 @@ open class KBSQLHandler: NSObject {
         assert(weights.count == 1, "one entry per triple")
         
         // reflect the change in the Hexastore
-        var kvs = KBJSONObject()
+        var kvs = KBKVPairs()
         let tripleValue = KBTriple(subject: subjectIdentifier,
                                    predicate: predicate,
                                    object: objectIdentifier,

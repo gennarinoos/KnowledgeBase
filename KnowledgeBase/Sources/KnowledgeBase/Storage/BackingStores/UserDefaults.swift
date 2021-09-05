@@ -98,14 +98,14 @@ class KBUserDefaultsBackingStore : KBBackingStore {
         }
     }
     
-    func dictionaryRepresentation(completionHandler: @escaping (Swift.Result<KBJSONObject, Error>) -> ()) {
+    func dictionaryRepresentation(completionHandler: @escaping (Swift.Result<KBKVPairs, Error>) -> ()) {
         KBAsyncMethodReturningInitiable(completionHandler) {
             return self.kv.dictionaryRepresentation()
         }
     }
     
     func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition,
-                                  completionHandler: @escaping (Swift.Result<KBJSONObject, Error>) -> ()) {
+                                  completionHandler: @escaping (Swift.Result<KBKVPairs, Error>) -> ()) {
         self.keys() { result in
             switch result {
             case .success(let allKeys):
@@ -118,11 +118,19 @@ class KBUserDefaultsBackingStore : KBBackingStore {
                     }
                     return dict
                 })
-                completionHandler(.success(dictionary as! KBJSONObject))
+                completionHandler(.success(dictionary as! KBKVPairs))
             case .failure(let error):
                 completionHandler(.failure(error))
             }
         }
+    }
+    
+    func dictionaryRepresentation(createdWithin interval: DateInterval,
+                                  limit: Int?,
+                                  order: ComparisonResult,
+                                  completionHandler: @escaping (Swift.Result<[Date: KBKVPairs], Error>) -> ()) {
+        log.fault(".UserDefaults store does not support timestamps")
+        completionHandler(.failure(KBError.notSupported))
     }
     
     func triplesComponents(matching condition: KBTripleCondition?,

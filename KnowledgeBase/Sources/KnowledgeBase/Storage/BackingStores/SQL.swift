@@ -72,16 +72,25 @@ extension KBSQLBackingStoreProtocol {
         }
     }
     
-    func dictionaryRepresentation(completionHandler: @escaping (Swift.Result<KBJSONObject, Error>) -> ()) {
+    func dictionaryRepresentation(completionHandler: @escaping (Swift.Result<KBKVPairs, Error>) -> ()) {
         genericMethodReturningInitiable(completionHandler) {
             return try self.sqlHandler.keysAndValues()
         }
     }
     
     func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition,
-                                  completionHandler: @escaping (Swift.Result<KBJSONObject, Error>) -> ()) {
+                                  completionHandler: @escaping (Swift.Result<KBKVPairs, Error>) -> ()) {
         genericMethodReturningInitiable(completionHandler) {
             return try self.sqlHandler.keysAndvalues(forKeysMatching: condition)
+        }
+    }
+    
+    func dictionaryRepresentation(createdWithin interval: DateInterval,
+                                  limit: Int?,
+                                  order: ComparisonResult,
+                                  completionHandler: @escaping (Swift.Result<[Date: KBKVPairs], Error>) -> ()) {
+        genericMethodReturningInitiable(completionHandler) {
+            return try self.sqlHandler.keysAndValues(within: interval, limit: limit ?? -1, order: order)
         }
     }
     

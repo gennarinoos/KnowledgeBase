@@ -9,7 +9,7 @@ import XCTest
 @testable import KnowledgeBase
 
 // Use this to locally test the XPC service after running "KnowledgeBaseXPCService"
-#if false
+#if true
 class KBXPCTestCase: KVStoreTestCase {
     
     private static let _sharedStore = KBKVStore.store(withName: dbName)

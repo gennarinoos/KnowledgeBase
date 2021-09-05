@@ -5,6 +5,8 @@
 //  Created by Gennaro Frazzingaro on 6/19/21.
 //
 
+import Foundation
+
 typealias KBBackingStoreProtocol = KBAsynchronousBackingStore & KBSynchronousBackingStore
 
 
@@ -17,9 +19,13 @@ protocol KBAsynchronousBackingStore {
     func values(completionHandler: @escaping (Swift.Result<[Any], Error>) -> ())
     func values(for keys: [String], completionHandler: @escaping (Swift.Result<[Any?], Error>) -> ())
     func values(forKeysMatching: KBGenericCondition, completionHandler: @escaping (Swift.Result<[Any?], Error>) -> ())
-    func dictionaryRepresentation(completionHandler: @escaping (Swift.Result<KBJSONObject, Error>) -> ())
+    func dictionaryRepresentation(completionHandler: @escaping (Swift.Result<KBKVPairs, Error>) -> ())
     func dictionaryRepresentation(forKeysMatching: KBGenericCondition,
-                                  completionHandler: @escaping (Swift.Result<KBJSONObject, Error>) -> ())
+                                  completionHandler: @escaping (Swift.Result<KBKVPairs, Error>) -> ())
+    func dictionaryRepresentation(createdWithin interval: DateInterval,
+                                  limit: Int?,
+                                  order: ComparisonResult,
+                                  completionHandler: @escaping (Swift.Result<[Date: KBKVPairs], Error>) -> ()) 
     func set(value: Any?, for key: String, completionHandler: @escaping KBActionCompletion)
     func removeValue(for key: String, completionHandler: @escaping KBActionCompletion)
     func removeValues(for keys: [String], completionHandler: @escaping KBActionCompletion)
@@ -71,8 +77,9 @@ protocol KBSynchronousBackingStore : KBAsynchronousBackingStore {
     func values() throws -> [Any]
     func values(for keys: [String]) throws -> [Any?]
     func values(forKeysMatching: KBGenericCondition) throws -> [Any?]
-    func dictionaryRepresentation() throws -> KBJSONObject
-    func dictionaryRepresentation(forKeysMatching: KBGenericCondition) throws -> KBJSONObject
+    func dictionaryRepresentation() throws -> KBKVPairs
+    func dictionaryRepresentation(forKeysMatching: KBGenericCondition) throws -> KBKVPairs
+    func dictionaryRepresentation(createdWithin: DateInterval, limit: Int?, order: ComparisonResult) throws -> [Date: KBKVPairs]
     func set(value: Any?, for key: String) throws
     func removeValue(for key: String) throws
     func removeValues(for keys: [String]) throws
@@ -150,14 +157,21 @@ extension KBSynchronousBackingStore {
         }
     }
     
-    func dictionaryRepresentation() throws -> KBJSONObject {
+    func dictionaryRepresentation() throws -> KBKVPairs {
         return try KBSyncMethodReturningInitiable(execute: self.dictionaryRepresentation)
     }
     
-    func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition) throws -> KBJSONObject {
+    func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition) throws -> KBKVPairs {
         return try KBSyncMethodReturningInitiable {
             (completionHandler) in
             self.dictionaryRepresentation(forKeysMatching: condition, completionHandler: completionHandler)
+        }
+    }
+    
+    func dictionaryRepresentation(createdWithin interval: DateInterval, limit: Int?, order: ComparisonResult) throws -> [Date: KBKVPairs] {
+        return try KBSyncMethodReturningInitiable {
+            (completionHandler) in
+            self.dictionaryRepresentation(createdWithin: interval, limit: limit, order: order, completionHandler: completionHandler)
         }
     }
     

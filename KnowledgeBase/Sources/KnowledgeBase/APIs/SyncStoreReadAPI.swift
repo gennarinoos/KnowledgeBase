@@ -16,7 +16,7 @@ extension KBKVStore {
      - returns: the Dictionary representation of all values in the KVS.
      
      */
-    @objc open func dictionaryRepresentation() throws -> KBJSONObject {
+    @objc open func dictionaryRepresentation() throws -> KBKVPairs {
         return try self.backingStore.dictionaryRepresentation()
     }
     
@@ -28,7 +28,7 @@ extension KBKVStore {
      - returns: the Dictionary representation of all values in the KVS.
      
      */
-    @objc open func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition) throws -> KBJSONObject {
+    @objc open func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition) throws -> KBKVPairs {
         return try self.backingStore.dictionaryRepresentation(forKeysMatching: condition)
     }
     

@@ -626,7 +626,7 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
                 case .failure(let err):
                     XCTFail("\(err)")
                 case .success(let entities):
-                    let expectedEntities: [KBJSONObject] = [["@id": "subject",
+                    let expectedEntities: [KBKVPairs] = [["@id": "subject",
                                                              "predicate": ["object",
                                                                            "secondObject"],
                                                              "newPredicate": "object"],

@@ -27,10 +27,10 @@ extension KBKVStore {
      - parameter completionHandler: the callback method
      
      */
-    open func dictionaryRepresentation(completionHandler: @escaping (Swift.Result<KBJSONObject, Error>) -> ()) {
+    open func dictionaryRepresentation(completionHandler: @escaping (Swift.Result<KBKVPairs, Error>) -> ()) {
         return self.backingStore.dictionaryRepresentation(completionHandler: completionHandler)
     }
-    @objc open func dictionaryRepresentation(completionHandler: @escaping (Error?, KBJSONObject) -> ()) {
+    @objc open func dictionaryRepresentation(completionHandler: @escaping (Error?, KBKVPairs) -> ()) {
         KBObjectiveCAPIResultReturningInitiable(completionHandler: completionHandler, self.dictionaryRepresentation)
     }
     
@@ -41,11 +41,11 @@ extension KBKVStore {
      - parameter completionHandler: the callback method
      
      */
-    open func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<KBJSONObject, Error>) -> ()) {
+    open func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<KBKVPairs, Error>) -> ()) {
         
         return self.backingStore.dictionaryRepresentation(forKeysMatching: condition, completionHandler: completionHandler)
     }
-    @objc open func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Error?, KBJSONObject) -> ()) {
+    @objc open func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Error?, KBKVPairs) -> ()) {
         KBObjectiveCAPIResultReturningInitiable(completionHandler: completionHandler, self.dictionaryRepresentation)
     }
     
