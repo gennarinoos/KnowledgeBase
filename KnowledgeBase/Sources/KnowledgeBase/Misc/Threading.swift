@@ -35,15 +35,15 @@ extension Bool : Initiable {
 }
 
 
-class KBTimedDispatch {
+public class KBTimedDispatch {
     let queue: DispatchQueue
-    let semaphore: DispatchSemaphore
+    public let semaphore: DispatchSemaphore
     
     var _interruptError: Error? = nil
     let _timeout: DispatchTime
     var _group: DispatchGroup?
     
-    var group: DispatchGroup {
+    public var group: DispatchGroup {
         if self._group == nil {
             self._group = DispatchGroup()
         }
@@ -57,12 +57,16 @@ class KBTimedDispatch {
         self.semaphore = DispatchSemaphore(value: kKBDispatchSemaphoreDefaultValue)
     }
     
-    func interrupt(_ error: Error) {
+    public convenience init() {
+        self.init(timeout: KBDispatchSemaphoreDefaultTimeout)
+    }
+    
+    public func interrupt(_ error: Error) {
         self._interruptError = error
         self.semaphore.signal()
     }
     
-    func wait() throws {
+    public func wait() throws {
         if self._group != nil {
             self._group!.notify(queue: queue) {
                 self.semaphore.signal()

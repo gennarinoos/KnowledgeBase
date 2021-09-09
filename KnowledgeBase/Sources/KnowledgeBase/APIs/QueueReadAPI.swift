@@ -66,7 +66,7 @@ extension KBQueueStore {
      
      - parameter createdWithin: the time range
      - parameter limit: limits the number of items
-     - returns: the key value pairs in a dictionary, keyed by Date.
+     - returns: the list of items
      
      */
     open func peekItems(createdWithin interval: DateInterval, limit: Int? = nil) throws -> [KBQueueItem] {

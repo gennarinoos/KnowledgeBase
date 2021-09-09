@@ -19,6 +19,7 @@ class KBSQLXPCBackingStore : KBSQLBackingStore {
 #else
 
 class KBSQLXPCBackingStore : KBBackingStore {
+    
     var name: String
     let connection: NSXPCConnection
 

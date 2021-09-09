@@ -75,7 +75,7 @@ open class KBSQLHandler: NSObject {
         
         do {
             try KBSQLHandler.createDirectory(at: directory.path)
-            log.debug("Created directory at path \(directory.path, privacy: .public)")
+            log.debug("using directory at path \(directory.path, privacy: .public)")
         }
         catch {
             log.fault("could not create database directory: \(error.localizedDescription, privacy: .public)")

@@ -9,13 +9,13 @@ import Foundation
 
 @objc(KBQueueItem)
 public class KBQueueItem : NSObject {
-    let identifier: String
-    let value: Any
-    let createdAt: Date
+    public let identifier: String
+    public let content: Any
+    public let createdAt: Date
     
-    init(identifier: String, value: Any, createdAt: Date) {
+    init(identifier: String, content: Any, createdAt: Date) {
         self.identifier = identifier
-        self.value = value
+        self.content = content
         self.createdAt = createdAt
     }
     
@@ -24,7 +24,7 @@ public class KBQueueItem : NSObject {
             throw KBError.unexpectedData(item)
         }
         self.init(identifier: item.first!.key,
-                  value: item.first!.value,
+                  content: item.first!.value,
                   createdAt: createdAt)
     }
 }

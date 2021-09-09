@@ -27,20 +27,18 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
     private let photosIndexerDefaults = KBKVStore.userDefaultsStore()
     private var delegates = [String: KBPhotoAssetChangeDelegate]()
     
-    public let indexedAssets: KBKVStore // The `KBPhotoAsset` ob that have already been indexed
-    public var cameraRollInMemoryCache: PHFetchResult<PHAsset>? = nil
+    /// The index of `KBPhotoAsset`s
+    public let index: KBKVStore?
     public let imageManager: PHCachingImageManager
+    
+    private var cameraRollFetchResult: PHFetchResult<PHAsset>? = nil
     
     private var authorizationStatus: PHAuthorizationStatus = .notDetermined
     private let ingestionQueue = DispatchQueue(label: "com.gf.knowledgebase.indexer.photos.ingestion", qos: .userInitiated)
     private let processingQueue = DispatchQueue(label: "com.gf.knowledgebase.indexer.photos.processing", qos: .background)
     
-    /// Enables the indexing of the retrieved `PHAsset` in the `indexedAssetIds`
-    /// as `KBPhotoAsset` objects, keyed by the `localIdentifier` of the asset
-    public var shouldIndexAssets = true
-    
-    public override init() {
-        self.indexedAssets = KBKVStore.store(withName: kKBPhotosAssetCacheStoreName)
+    public init(withIndex index: KBKVStore? = nil) {
+        self.index = index
         self.imageManager = PHCachingImageManager()
         self.imageManager.allowsCachingHighQualityImages = true
         super.init()
@@ -80,114 +78,104 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
     }
     
     // TODO: Support parameter `since: Date`
-    /// Fetches the latest assets in the Camera Roll using the Photos Framework in the background
-    /// and updates the `cameraRollInMemoryCache` with the corresponding `PHFetchResult`.
-    /// If `shouldIndexAssets` is `true`, this method also triggers an update to the `indexedAssetIds`,
-    /// storing `KBPhotoAsset` objects from the fetch result on the serial background `processingQueue`.
+    /// Fetches the latest assets in the Camera Roll using the Photos Framework in the background and returns a `PHFetchResult`.
+    /// If an `index` is available, it also stores the`KBPhotoAsset`s corresponding to the assets in the fetch result.
+    /// The first operation is executed on the`ingestionQueue`, while the latter on the `processingQueue`.
     /// - Parameters:
-    ///   - assetIdsToExclude: a list of `PHAsset` localIdentifier to exclude from the search
     ///   - completionHandler: the completion handler
-    public func updateCameraRollCache(excluding assetIdsToExclude: [String]? = nil,
-                                      completionHandler: @escaping (Swift.Result<Void, Error>) -> ()) {
+    public func fetchCameraRoll(completionHandler: @escaping (Swift.Result<PHFetchResult<PHAsset>?, Error>) -> ()) {
+        self.fetchCameraRollAssets(withLocalIdentifiers: nil) { result in
+            switch result {
+            case .success(let fetchResult):
+                self.cameraRollFetchResult = fetchResult
+                completionHandler(.success(fetchResult))
+            case .failure(let error):
+                completionHandler(.failure(error))
+            }
+        }
+    }
+    
+    // TODO: Support parameter `since: Date`
+    /// Fetches the latest assets in the Camera Roll using the Photos Framework in the background and returns a `PHFetchResult`.
+    /// If an `index` is available, it also stores the`KBPhotoAsset`s corresponding to the assets in the fetch result.
+    /// The first operation is executed on the`ingestionQueue`, while the latter on the `processingQueue`.
+    /// - Parameters:
+    ///   - localIdentifiers: limit the search to a subset of PHAsset localIdentifier
+    ///   - completionHandler: the completion handler
+    public func fetchCameraRollAssets(withLocalIdentifiers localIdentifiers: [String]?,
+                                      completionHandler: @escaping (Swift.Result<PHFetchResult<PHAsset>?, Error>) -> ()) {
         self.ingestionQueue.async { [weak self] in
             guard let self = self else {
                 return completionHandler(.failure(KBError.fatalError("self not available after executing block on the serial queue")))
             }
             
             // Get all the camera roll photos and videos
-            let fetchResults = PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumUserLibrary, options: nil)
-            fetchResults.enumerateObjects { collection, count, stop in
-                let fetchOptions = PHFetchOptions()
-                fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
+            let albumFetchResult = PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumUserLibrary, options: nil)
+            albumFetchResult.enumerateObjects { collection, count, stop in
+                let assetsFetchOptions = PHFetchOptions()
+                assetsFetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
                 
                 var predicate = KBPhotosIndexer.cameraRollPredicate()
-                if let assetIdsToExclude = assetIdsToExclude, assetIdsToExclude.count > 0 {
-                    let skipCachedIdsPredicate = NSPredicate(format: "NOT (localIdentifier IN %@)", assetIdsToExclude)
-                    predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, skipCachedIdsPredicate])
+                if let localIdentifiers = localIdentifiers, localIdentifiers.count > 0 {
+                    let onlyIdsPredicate = NSPredicate(format: "(localIdentifier IN %@)", localIdentifiers)
+                    predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, onlyIdsPredicate])
                 }
-                fetchOptions.predicate = predicate
+                assetsFetchOptions.predicate = predicate
                 
-                self.cameraRollInMemoryCache = PHAsset.fetchAssets(in: collection, options: fetchOptions)
+                let cameraRollFetchResult = PHAsset.fetchAssets(in: collection, options: assetsFetchOptions)
                 
-                if self.shouldIndexAssets {
-                    if let cameraRollCache = self.cameraRollInMemoryCache {
-                        self.processingQueue.async {
-                            let cache: [String: Any]
-                            do {
-                                cache = try self.indexedAssets.dictionaryRepresentation()
-                            } catch {
-                                cache = [:]
-                            }
-                            self.updateAssetsIndex(inCache: cache, with: cameraRollCache)
+                if let _ = self.index {
+                    self.updateIndex(with: cameraRollFetchResult) { result in
+                        switch result {
+                        case .success():
+                            completionHandler(.success(cameraRollFetchResult))
+                        case .failure(let error):
+                            completionHandler(.failure(error))
                         }
                     }
+                } else {
+                    completionHandler(.success(cameraRollFetchResult))
                 }
             }
-            completionHandler(.success(()))
+            
+            if albumFetchResult.count == 0 {
+                completionHandler(.success(nil))
+            }
         }
     }
     
-    private func updateAssetsIndex(inCache cache: [String: Any], with result: PHFetchResult<PHAsset>) {
-        Dispatch.dispatchPrecondition(condition: .onQueue(self.processingQueue))
+    /// Update the cache with the latest fetch result
+    /// - Parameters:
+    ///   - fetchResult: the fresh Photos fetch result
+    private func updateIndex(with fetchResult: PHFetchResult<PHAsset>, completionHandler: @escaping KBActionCompletion) {
+        guard let index = self.index else {
+            completionHandler(.failure(KBError.notSupported))
+            return
+        }
         
-        var cachedAssetIdsToInvalidate = [String]()
-        
-        let writeBatch = self.indexedAssets.writeBatch()
-        result.enumerateObjects { asset, count, stop in
-            if let cacheHit = cache[asset.localIdentifier] as? KBPhotoAsset {
-                if let whenCached = cacheHit.cacheUpdatedAt,
-                   whenCached.compare(asset.modificationDate ?? .distantPast) == .orderedAscending {
-                    // Asset was modified since cached -> remove from the persistent cache
-                    cachedAssetIdsToInvalidate.append(asset.localIdentifier)
-                }
-            } else {
-                let kvsAssetValue = KBPhotoAsset(for: asset, usingCachingImageManager: self.imageManager)
-                writeBatch.set(value: kvsAssetValue, for: asset.localIdentifier)
-            }
-        }
-        do {
-            try writeBatch.write()
-            try self.indexedAssets.removeValues(for: cachedAssetIdsToInvalidate)
-        }
-        catch {
-            log.error("Unable to save in-memory cache to disk: \(error.localizedDescription)")
-        }
-    }
-    
-    public func updateAssetsIndex(with assets: [PHAsset], completionHandler: @escaping KBActionCompletion) {
         self.processingQueue.async {
-            let cache: [String: Any]
-            do {
-                cache = try self.indexedAssets.dictionaryRepresentation()
-            } catch {
-                cache = [:]
-            }
-            
             var cachedAssetIdsToInvalidate = [String]()
-            let writeBatch = self.indexedAssets.writeBatch()
+            let writeBatch = index.writeBatch()
             
-            for asset in assets {
-                if let cacheHit = cache[asset.localIdentifier] as? KBPhotoAsset {
+            fetchResult.enumerateObjects { asset, count, stop in
+                if let cacheHit = try? index.value(for: asset.localIdentifier) as? KBPhotoAsset {
                     if let whenCached = cacheHit.cacheUpdatedAt,
                        whenCached.compare(asset.modificationDate ?? .distantPast) == .orderedAscending {
                         // Asset was modified since cached -> remove from the persistent cache
                         cachedAssetIdsToInvalidate.append(asset.localIdentifier)
                     }
                 } else {
-                    autoreleasepool {
-                        let kvsAssetValue = KBPhotoAsset(for: asset, usingCachingImageManager: self.imageManager)
-                        writeBatch.set(value: kvsAssetValue, for: asset.localIdentifier)
-                    }
+                    let kvsAssetValue = KBPhotoAsset(for: asset, usingCachingImageManager: self.imageManager)
+                    writeBatch.set(value: kvsAssetValue, for: asset.localIdentifier)
                 }
             }
             
             do {
                 try writeBatch.write()
-                try self.indexedAssets.removeValues(for: cachedAssetIdsToInvalidate)
+                try index.removeValues(for: cachedAssetIdsToInvalidate)
                 completionHandler(.success(()))
-            }
-            catch {
-                completionHandler(.failure(KBError.databaseNotReady))
+            } catch {
+                completionHandler(.failure(error))
             }
         }
     }
@@ -196,7 +184,7 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
     // MARK: PHPhotoLibraryChangeObserver protocol
     
     public func photoLibraryDidChange(_ changeInstance: PHChange) {
-        guard let cameraRoll = self.cameraRollInMemoryCache else {
+        guard let cameraRoll = self.cameraRollFetchResult else {
             log.warning("No assets were ever fetched. Ignoring change notification")
             return
         }
@@ -204,10 +192,11 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
         self.ingestionQueue.async {
             let changeDetails = changeInstance.changeDetails(for: cameraRoll)
             if let changeDetails = changeDetails {
-                self.cameraRollInMemoryCache = changeDetails.fetchResultAfterChanges
-                let writeBatch = self.indexedAssets.writeBatch()
+                self.cameraRollFetchResult = changeDetails.fetchResultAfterChanges
+                let writeBatch = self.index?.writeBatch()
+                
                 for asset in changeDetails.insertedObjects {
-                    writeBatch.set(value: KBPhotoAsset(for: asset), for: asset.localIdentifier)
+                    writeBatch?.set(value: KBPhotoAsset(for: asset), for: asset.localIdentifier)
                     for delegate in self.delegates.values {
                         delegate.wasAdded(asset: asset)
                     }
@@ -218,10 +207,10 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
                     }
                 }
                 
-                if self.shouldIndexAssets {
+                if let index = self.index {
                     do {
-                        try writeBatch.write()
-                        try self.indexedAssets.removeValues(for: changeDetails.removedObjects.map { $0.localIdentifier })
+                        try writeBatch!.write()
+                        try index.removeValues(for: changeDetails.removedObjects.map { $0.localIdentifier })
                     } catch {
                         log.error("Failed to update cache on library change notification: \(error.localizedDescription)")
                     }

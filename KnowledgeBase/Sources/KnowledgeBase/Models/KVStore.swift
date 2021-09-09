@@ -152,28 +152,38 @@ open class KBKVStore : NSObject {
 
         switch (self.location) {
         case .inMemory, .sql(KnowledgeBaseInMemoryIdentifier):
+            log.debug("using KBInMemoryBackingStore")
             self.backingStore = KBInMemoryBackingStore()
         case .userDefaults, .sql(KnowledgeBaseUserDefaultsIdentifier):
+            log.debug("using KBUserDefaultsBackingStore")
             self.backingStore = KBUserDefaultsBackingStore()
 #if os(macOS) // Only use XPC on macOS
         case .sql(""):
+            log.debug("using KBSQLXPCBackingStore")
             self.backingStore = KBSQLXPCBackingStore.mainInstance()
         case .sql(let name):
+            log.debug("using KBSQLXPCBackingStore with name \(name)")
             self.backingStore = KBSQLXPCBackingStore(name: name)
         case .sqlSynched(""):
+            log.debug("using KBCloudKitSQLXPCBackingStore")
             self.backingStore = KBCloudKitSQLXPCBackingStore.mainInstance()
         case .sqlSynched(let name):
             log.error("creating named sqlSynched database is not supported. \(name, privacy: .public)")
+            log.debug("using KBCloudKitSQLXPCBackingStore")
             self.backingStore = KBCloudKitSQLXPCBackingStore.mainInstance()
 #else
         case .sql(""):
+            log.debug("using KBSQLBackingStore")
             self.backingStore = KBSQLBackingStore.mainInstance()
         case .sql(let name):
+            log.debug("using KBSQLBackingStore with name \(name)")
             self.backingStore = KBSQLBackingStore(name: name)
         case .sqlSynched(""):
+            log.debug("using KBCloudKitSQLBackingStore")
             self.backingStore = KBCloudKitSQLBackingStore.mainInstance()
         case .sqlSynched(let name):
             log.error("creating named sqlSynched database is not supported. \(name, privacy: .public)")
+            log.debug("using KBCloudKitSQLBackingStore")
             self.backingStore = KBCloudKitSQLBackingStore.mainInstance()
 #endif
         }

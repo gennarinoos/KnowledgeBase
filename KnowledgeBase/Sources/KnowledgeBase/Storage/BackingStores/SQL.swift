@@ -221,14 +221,11 @@ class KBSQLBackingStore : KBSQLBackingStoreProtocol {
     var name: String
     
     // SQL database on disk
-    var sqlHandler: KBSQLHandler {
-        get {
-            return KBSQLHandler.init(name: self.name)!
-        }
-    }
+    let sqlHandler: KBSQLHandler
 
     @objc required init(name: String) {
         self.name = name
+        self.sqlHandler = KBSQLHandler.init(name: self.name)!
     }
 
     class func mainInstance() -> Self {
