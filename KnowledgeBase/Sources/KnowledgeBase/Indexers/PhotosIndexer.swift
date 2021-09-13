@@ -13,8 +13,8 @@ let kKBPhotosAuthorizationStatusKey = "com.gf.knowledgebase.indexer.photos.autho
 
 
 public protocol KBPhotoAssetChangeDelegate {
-    func wasAdded(asset: PHAsset)
-    func wasRemoved(asset: PHAsset)
+    func wasAddedToCameraRoll(asset: PHAsset)
+    func wasRemovedFromCameraRoll(asset: PHAsset)
 }
 
 public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
@@ -198,12 +198,12 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
                 for asset in changeDetails.insertedObjects {
                     writeBatch?.set(value: KBPhotoAsset(for: asset), for: asset.localIdentifier)
                     for delegate in self.delegates.values {
-                        delegate.wasAdded(asset: asset)
+                        delegate.wasAddedToCameraRoll(asset: asset)
                     }
                 }
                 for asset in changeDetails.removedObjects {
                     for delegate in self.delegates.values {
-                        delegate.wasRemoved(asset: asset)
+                        delegate.wasRemovedFromCameraRoll(asset: asset)
                     }
                 }
                 
