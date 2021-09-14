@@ -85,19 +85,22 @@ open class KBKVStore : NSObject {
     @objc open var name: String {
         return self.backingStore.name
     }
- 
-    @objc(directoryURL)
-    public static func directory() -> URL? {
-        return KBSQLBackingStore.directory
-    }
     
-    @objc open var dbURL: URL? {
-        if self.backingStore is KBSQLBackingStore {
-            return KBKVStore.directory()?
-                .appendingPathComponent(self.name)
-                .appendingPathExtension(DatabaseExtension)
+    @objc public static var defaultBaseURL: URL? {
+        KBSQLBackingStore.baseURL()
+    }
+ 
+    @objc open var baseURL: URL? {
+        if let backingStore = self.backingStore as? KBSQLBackingStore {
+            return backingStore.baseURL
         }
         return nil
+    }
+    
+    @objc open var fullURL: URL? {
+        return self.baseURL?
+            .appendingPathComponent(self.name)
+            .appendingPathExtension(DatabaseExtension)
     }
     
     // MARK: NSObjectProtocol, Hashable, Equatable
@@ -157,7 +160,7 @@ open class KBKVStore : NSObject {
         case .userDefaults, .sql(KnowledgeBaseUserDefaultsIdentifier):
             log.debug("using KBUserDefaultsBackingStore")
             self.backingStore = KBUserDefaultsBackingStore()
-#if os(macOS) // Only use XPC on macOS
+#if os(macOS) && !DEBUG // Only use XPC on macOS in RELEASE mode
         case .sql(""):
             log.debug("using KBSQLXPCBackingStore")
             self.backingStore = KBSQLXPCBackingStore.mainInstance()
@@ -187,6 +190,15 @@ open class KBKVStore : NSObject {
             self.backingStore = KBCloudKitSQLBackingStore.mainInstance()
 #endif
         }
+    }
+    
+    /// Only used for debugging
+    /// - Parameter existingDB: URL to the existing DB
+    internal init(existingDB: URL) {
+        let name = existingDB.lastPathComponent
+        self.location = .sql(name)
+        self.backingStore = KBSQLBackingStore(name: name,
+                                              baseURL: existingDB.deletingLastPathComponent())
     }
     
     /**

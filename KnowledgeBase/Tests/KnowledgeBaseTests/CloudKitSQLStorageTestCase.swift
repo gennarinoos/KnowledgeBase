@@ -17,7 +17,7 @@ class KBCloudKitSQLBackingStoreTests: KVStoreTestCase {
     }
 
     deinit {
-        if let url = KBCloudKitSQLBackingStoreTests._sharedStore.dbURL {
+        if let url = KBCloudKitSQLBackingStoreTests._sharedStore.fullURL {
             do {
                 try FileManager.default.removeItem(at: url)
             } catch {
@@ -47,13 +47,13 @@ class KBCloudKitSQLBackingStoreTests: KVStoreTestCase {
 
         XCTAssert(sharedKnowledgeBase.name == KnowledgeBaseSQLSynchedIdentifier, "KnowledgeBase shared instance name")
         
-        guard let directory = KBKnowledgeStore.directory() else {
+        guard let basePath = KBCloudKitSQLBackingStoreTests._sharedStore.baseURL else {
             XCTFail()
             return
         }
 
-        let sharedDBPath = directory.appendingPathComponent(sharedKnowledgeBase.name)
-        let testDBPath = directory.appendingPathComponent(store.name)
+        let sharedDBPath = basePath.appendingPathComponent(sharedKnowledgeBase.name)
+        let testDBPath = basePath.appendingPathComponent(store.name)
 
         XCTAssert(sharedDBPath == testDBPath, "KnowledgeBase test instance is the shared instance")
         

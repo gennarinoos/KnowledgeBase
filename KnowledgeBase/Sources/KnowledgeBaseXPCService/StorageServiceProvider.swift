@@ -35,7 +35,7 @@ class KBStorageServiceProviderXPC: KBStorageXPCProtocol {
         if let handler = cachedHandlers[identifier] {
             return handler
         } else {
-            cachedHandlers[identifier] = KBSQLHandler(name: identifier)
+            cachedHandlers[identifier] = KBSQLHandler(name: identifier, baseURL: KBKVStore.defaultBaseURL!)
             return cachedHandlers[identifier]!
         }
     }

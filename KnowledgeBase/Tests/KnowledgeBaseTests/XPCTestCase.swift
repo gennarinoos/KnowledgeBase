@@ -19,7 +19,7 @@ class KBXPCTestCase: KVStoreTestCase {
     }
 
     deinit {
-        if let url = KBXPCTestCase._sharedStore.dbURL {
+        if let url = KBXPCTestCase._sharedStore.fullURL {
             do {
                 try FileManager.default.removeItem(at: url)
             } catch {

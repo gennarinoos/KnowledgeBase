@@ -50,7 +50,7 @@ class KBQueueTestCase: KVStoreTestCase {
         var count = 0
         while let item = try self.sharedStore().dequeue() {
             XCTAssertEqual(item.identifier, itemIds[count])
-            XCTAssertEqual(item.value as! String, items[count])
+            XCTAssertEqual(item.content as! String, items[count])
             count += 1
         }
         
@@ -71,7 +71,7 @@ class KBQueueTestCase: KVStoreTestCase {
         var count = 1
         while let item = try store.dequeue() {
             XCTAssertEqual(item.identifier, itemIds[count])
-            XCTAssertEqual(item.value as! String, items[count])
+            XCTAssertEqual(item.content as! String, items[count])
             count -= 1
         }
         

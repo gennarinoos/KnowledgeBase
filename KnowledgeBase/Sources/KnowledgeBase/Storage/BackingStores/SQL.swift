@@ -222,17 +222,20 @@ class KBSQLBackingStore : KBSQLBackingStoreProtocol {
     
     // SQL database on disk
     let sqlHandler: KBSQLHandler
+    
+    private var _baseURL: URL?
 
-    @objc required init(name: String) {
+    @objc required init(name: String, baseURL: URL? = nil) {
         self.name = name
-        self.sqlHandler = KBSQLHandler.init(name: self.name)!
+        self._baseURL = baseURL
+        self.sqlHandler = KBSQLHandler(name: self.name, baseURL: KBSQLBackingStore.baseURL()!)!
     }
 
     class func mainInstance() -> Self {
         return self.init(name: KnowledgeBaseSQLDefaultIdentifier)
     }
     
-    @objc static var directory: URL? = {
+    static func baseURL() -> URL? {
         let directory: URL, path: URL
         
         do {
@@ -256,7 +259,16 @@ class KBSQLBackingStore : KBSQLBackingStoreProtocol {
 #endif
         
         return directory.appendingPathComponent(KnowledgeBaseBundleIdentifier)
-    }()
+    }
+    
+    @objc var baseURL: URL? {
+        if let dir = self._baseURL {
+            return dir
+        } else {
+            self._baseURL = KBSQLBackingStore.baseURL()
+            return self._baseURL
+        }
+    }
     
     func writeBatch() -> KBKVStoreWriteBatch {
         return KBSQLWriteBatch(backingStore: self)

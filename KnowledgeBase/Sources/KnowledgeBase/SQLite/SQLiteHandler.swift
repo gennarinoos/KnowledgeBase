@@ -56,7 +56,7 @@ open class KBSQLHandler: NSObject {
         super.init()
     }
     
-    @objc public init?(name: String) {
+    @objc public init?(name: String, baseURL: URL) {
         let allowedCharSet = NSMutableCharacterSet()
         allowedCharSet.formUnion(with: CharacterSet.alphanumerics)
         allowedCharSet.addCharacters(in: "_-")
@@ -68,21 +68,16 @@ open class KBSQLHandler: NSObject {
             return nil
         }
         
-        guard let directory = KBSQLBackingStore.directory else {
-            log.fault("FATAL - No directory K for KnowledgeBase DBs")
-            return nil
-        }
-        
         do {
-            try KBSQLHandler.createDirectory(at: directory.path)
-            log.debug("using directory at path \(directory.path, privacy: .public)")
+            try KBSQLHandler.createDirectory(at: baseURL.path)
+            log.debug("using directory at path \(baseURL.path, privacy: .public)")
         }
         catch {
             log.fault("could not create database directory: \(error.localizedDescription, privacy: .public)")
             return nil
         }
         
-        let dbURL = directory
+        let dbURL = baseURL
             .appendingPathComponent(safeName)
             .appendingPathExtension(DatabaseExtension)
         

@@ -10,7 +10,7 @@ import KnowledgeBase
 import Photos
 
 struct EncryptedPhotoUploaderDelegate: KBPhotoAssetChangeDelegate {
-    func wasAdded(asset: PHAsset) {
+    func wasAddedToCameraRoll(asset: PHAsset) {
         
         if asset.mediaType == .image {
             self.getPictureAsData(from: asset) { result in
@@ -31,7 +31,7 @@ struct EncryptedPhotoUploaderDelegate: KBPhotoAssetChangeDelegate {
         }
     }
     
-    func wasRemoved(asset: PHAsset) {
+    func wasRemovedFromCameraRoll(asset: PHAsset) {
         // Remove data from the cloud?
     }
     

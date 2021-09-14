@@ -57,10 +57,6 @@ class KBSQLXPCBackingStore : KBBackingStore {
             } as? KBStorageXPCProtocol
     }
     
-    @objc static var directory: URL? = {
-        return KBSQLBackingStore.directory
-    }()
-    
     
     //MARK: SELECT
     
