@@ -109,5 +109,13 @@ class KBSQLBackingStoreTests: KVStoreTestCase {
         do { try FileManager.default.removeItem(at: customStore.fullURL!) }
         catch { XCTFail() }
     }
+    
+    func testInitWithExistingDB() throws {
+        let url = URL(fileURLWithPath: "~/Library/com.gf.framework.knowledgebase/test.db")
+        let assetStore = KBKVStore(existingDB: url)
+        
+        XCTAssert(assetStore.baseURL?.lastPathComponent == "com.gf.framework.knowledgebase")
+        XCTAssert(assetStore.fullURL?.lastPathComponent == "test.db")
+    }
 }
 

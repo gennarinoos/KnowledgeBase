@@ -195,7 +195,7 @@ open class KBKVStore : NSObject {
     /// Only used for debugging
     /// - Parameter existingDB: URL to the existing DB
     internal init(existingDB: URL) {
-        let name = existingDB.lastPathComponent
+        let name = existingDB.deletingPathExtension().lastPathComponent
         self.location = .sql(name)
         self.backingStore = KBSQLBackingStore(name: name,
                                               baseURL: existingDB.deletingLastPathComponent())
