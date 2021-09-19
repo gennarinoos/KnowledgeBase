@@ -235,7 +235,7 @@ class KBSQLBackingStore : KBSQLBackingStoreProtocol {
         return self.init(name: KnowledgeBaseSQLDefaultIdentifier)
     }
     
-    static func baseURL() -> URL? {
+    @objc static func baseURL() -> URL? {
         let directory: URL, path: URL
         
         do {
@@ -247,16 +247,8 @@ class KBSQLBackingStore : KBSQLBackingStoreProtocol {
             log.fault("Could not find library directory")
             return nil
         }
-            
-#if os(macOS)
+        
         directory = path
-#else
-        if let mobileUser = getpwnam("mobile") {
-            directory = URL(fileURLWithPath: String(cString: mobileUser.pointee.pw_dir)).appendingPathComponent("Library")
-        } else {
-            directory = path
-        }
-#endif
         
         return directory.appendingPathComponent(KnowledgeBaseBundleIdentifier)
     }

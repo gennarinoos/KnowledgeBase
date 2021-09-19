@@ -74,7 +74,12 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
     }
     
     private static func cameraRollPredicate() -> NSPredicate {
-        return NSPredicate(format: "(mediaType = %d || mediaType = %d) && NOT (mediaSubtype & %d) != 0", PHAssetMediaType.image.rawValue, PHAssetMediaType.video.rawValue, PHAssetMediaSubtype.photoScreenshot.rawValue)
+        return NSPredicate(format: "(mediaType = %d || mediaType = %d) && NOT (mediaSubtype & %d) != 0",
+                           PHAssetMediaType.image.rawValue,
+                           PHAssetMediaType.image.rawValue,
+//                           PHAssetMediaType.video.rawValue,
+                           PHAssetMediaSubtype.photoScreenshot.rawValue
+        )
     }
     
     // TODO: Support parameter `since: Date`

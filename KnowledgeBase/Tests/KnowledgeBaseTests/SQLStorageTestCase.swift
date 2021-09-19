@@ -110,7 +110,7 @@ class KBSQLBackingStoreTests: KVStoreTestCase {
         catch { XCTFail() }
     }
     
-    func testInitWithExistingDB() throws {
+    func testInitWithExistingDB() {
         let url = URL(fileURLWithPath: "~/Library/com.gf.framework.knowledgebase/test.db")
         let assetStore = KBKVStore(existingDB: url)
         
