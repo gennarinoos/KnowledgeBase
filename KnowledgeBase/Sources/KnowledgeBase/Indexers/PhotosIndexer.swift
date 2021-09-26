@@ -17,6 +17,10 @@ public protocol KBPhotoAssetChangeDelegate {
     func wasRemovedFromCameraRoll(asset: PHAsset)
 }
 
+public enum KBPhotosFilter {
+    case withLocalIdentifiers([String]), after(Date), before(Date), afterOrOn(Date), beforeOrOn(Date)
+}
+
 public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
     
     // TODO: Maybe hashing can be handled better by overriding Hashable/Equatable? That would also make it unnecessarily complex though :(
@@ -82,32 +86,13 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
         )
     }
     
-    // TODO: Support parameter `since: Date`
     /// Fetches the latest assets in the Camera Roll using the Photos Framework in the background and returns a `PHFetchResult`.
     /// If an `index` is available, it also stores the`KBPhotoAsset`s corresponding to the assets in the fetch result.
     /// The first operation is executed on the`ingestionQueue`, while the latter on the `processingQueue`.
     /// - Parameters:
+    ///   - filters: filters to apply to the search
     ///   - completionHandler: the completion handler
-    public func fetchCameraRoll(completionHandler: @escaping (Swift.Result<PHFetchResult<PHAsset>?, Error>) -> ()) {
-        self.fetchCameraRollAssets(withLocalIdentifiers: nil) { result in
-            switch result {
-            case .success(let fetchResult):
-                self.cameraRollFetchResult = fetchResult
-                completionHandler(.success(fetchResult))
-            case .failure(let error):
-                completionHandler(.failure(error))
-            }
-        }
-    }
-    
-    // TODO: Support parameter `since: Date`
-    /// Fetches the latest assets in the Camera Roll using the Photos Framework in the background and returns a `PHFetchResult`.
-    /// If an `index` is available, it also stores the`KBPhotoAsset`s corresponding to the assets in the fetch result.
-    /// The first operation is executed on the`ingestionQueue`, while the latter on the `processingQueue`.
-    /// - Parameters:
-    ///   - localIdentifiers: limit the search to a subset of PHAsset localIdentifier
-    ///   - completionHandler: the completion handler
-    public func fetchCameraRollAssets(withLocalIdentifiers localIdentifiers: [String]?,
+    public func fetchCameraRollAssets(withFilters filters: [KBPhotosFilter],
                                       completionHandler: @escaping (Swift.Result<PHFetchResult<PHAsset>?, Error>) -> ()) {
         self.ingestionQueue.async { [weak self] in
             guard let self = self else {
@@ -121,10 +106,29 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
                 assetsFetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
                 
                 var predicate = KBPhotosIndexer.cameraRollPredicate()
-                if let localIdentifiers = localIdentifiers, localIdentifiers.count > 0 {
-                    let onlyIdsPredicate = NSPredicate(format: "(localIdentifier IN %@)", localIdentifiers)
-                    predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, onlyIdsPredicate])
+                
+                for filter in filters {
+                    switch filter {
+                    case .withLocalIdentifiers(let localIdentifiers):
+                        if localIdentifiers.count > 0 {
+                            let onlyIdsPredicate = NSPredicate(format: "(localIdentifier IN %@)", localIdentifiers)
+                            predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, onlyIdsPredicate])
+                        }
+                    case .before(let date):
+                        let beforePredicate = NSPredicate(format: "creationDate < %@", date as NSDate)
+                        predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, beforePredicate])
+                    case .beforeOrOn(let date):
+                        let beforePredicate = NSPredicate(format: "creationDate <= %@", date as NSDate)
+                        predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, beforePredicate])
+                    case .after(let date):
+                        let afterPredicate = NSPredicate(format: "creationDate > %@", date as NSDate)
+                        predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, afterPredicate])
+                    case .afterOrOn(let date):
+                        let afterPredicate = NSPredicate(format: "creationDate => %@", date as NSDate)
+                        predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, afterPredicate])
+                    }
                 }
+                
                 assetsFetchOptions.predicate = predicate
                 
                 let cameraRollFetchResult = PHAsset.fetchAssets(in: collection, options: assetsFetchOptions)
