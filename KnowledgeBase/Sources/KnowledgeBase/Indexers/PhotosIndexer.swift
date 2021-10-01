@@ -44,7 +44,7 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
     public init(withIndex index: KBKVStore? = nil) {
         self.index = index
         self.imageManager = PHCachingImageManager()
-        self.imageManager.allowsCachingHighQualityImages = true
+        self.imageManager.allowsCachingHighQualityImages = false
         super.init()
         self.requestAuthorization()
         PHPhotoLibrary.shared().register(self)
