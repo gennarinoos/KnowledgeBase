@@ -39,7 +39,7 @@ extension KBQueueStore {
             switch result {
             case .success(let itemsKeyedByDate):
                 do {
-                    let items = try toQueueItems(itemsKeyedByDate: itemsKeyedByDate)
+                    let items = try toQueueItems(itemsKeyedByDate: itemsKeyedByDate).sorted { $0.createdAt > $1.createdAt }
                     completionHandler(.success(items))
                 } catch {
                     completionHandler(.failure(error))
