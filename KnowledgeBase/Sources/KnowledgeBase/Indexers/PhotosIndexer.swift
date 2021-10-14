@@ -37,7 +37,13 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
     
     private var cameraRollFetchResult: PHFetchResult<PHAsset>? = nil
     
-    private var authorizationStatus: PHAuthorizationStatus = .notDetermined
+    private var authorizationStatus: PHAuthorizationStatus = .notDetermined {
+        willSet {
+            if newValue == .authorized {
+                PHPhotoLibrary.shared().register(self)
+            }
+        }
+    }
     private let ingestionQueue = DispatchQueue(label: "com.gf.knowledgebase.indexer.photos.ingestion", qos: .userInitiated)
     private let processingQueue = DispatchQueue(label: "com.gf.knowledgebase.indexer.photos.processing", qos: .background)
     
@@ -47,7 +53,6 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
         self.imageManager.allowsCachingHighQualityImages = false
         super.init()
         self.requestAuthorization()
-        PHPhotoLibrary.shared().register(self)
     }
     
     public func requestAuthorization() {
@@ -131,19 +136,19 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
                 
                 assetsFetchOptions.predicate = predicate
                 
-                let cameraRollFetchResult = PHAsset.fetchAssets(in: collection, options: assetsFetchOptions)
+                self.cameraRollFetchResult = PHAsset.fetchAssets(in: collection, options: assetsFetchOptions)
                 
                 if let _ = self.index {
-                    self.updateIndex(with: cameraRollFetchResult) { result in
+                    self.updateIndex(with: self.cameraRollFetchResult!) { result in
                         switch result {
                         case .success():
-                            completionHandler(.success(cameraRollFetchResult))
+                            completionHandler(.success(self.cameraRollFetchResult!))
                         case .failure(let error):
                             completionHandler(.failure(error))
                         }
                     }
                 } else {
-                    completionHandler(.success(cameraRollFetchResult))
+                    completionHandler(.success(self.cameraRollFetchResult!))
                 }
             }
             
