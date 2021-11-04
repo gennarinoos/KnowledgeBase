@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension KBKVStoreWriteBatch {
+public extension KBKVStoreWriteBatch {
     func write() throws {
         try KBSyncMethodReturningVoid(execute: self.write(completionHandler:))
     }

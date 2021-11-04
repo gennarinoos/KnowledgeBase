@@ -13,8 +13,9 @@ let kKBPhotosAuthorizationStatusKey = "com.gf.knowledgebase.indexer.photos.autho
 
 
 public protocol KBPhotoAssetChangeDelegate {
-    func wasAddedToCameraRoll(asset: PHAsset)
-    func wasRemovedFromCameraRoll(asset: PHAsset)
+    func authorizationChanged()
+    func didAddToCameraRoll(assets: [PHAsset])
+    func didRemoveFromCameraRoll(assets: [PHAsset])
 }
 
 public enum KBPhotosFilter {
@@ -36,6 +37,17 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
     public let imageManager: PHCachingImageManager
     
     private var cameraRollFetchResult: PHFetchResult<PHAsset>? = nil
+    
+    public var indexedAssets: [PHAsset] {
+        var indexedAssets = [PHAsset]()
+        guard let cameraRollFetchResult = cameraRollFetchResult else {
+            return indexedAssets
+        }
+        cameraRollFetchResult.enumerateObjects { phAsset, _, _ in
+            indexedAssets.append(phAsset)
+        }
+        return indexedAssets
+    }
     
     private var authorizationStatus: PHAuthorizationStatus = .notDetermined {
         willSet {
@@ -153,6 +165,7 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
             }
             
             if albumFetchResult.count == 0 {
+                self.cameraRollFetchResult = PHFetchResult<PHAsset>()
                 completionHandler(.success(nil))
             }
         }
@@ -211,14 +224,12 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
                 
                 for asset in changeDetails.insertedObjects {
                     writeBatch?.set(value: KBPhotoAsset(for: asset), for: asset.localIdentifier)
-                    for delegate in self.delegates.values {
-                        delegate.wasAddedToCameraRoll(asset: asset)
-                    }
                 }
-                for asset in changeDetails.removedObjects {
-                    for delegate in self.delegates.values {
-                        delegate.wasRemovedFromCameraRoll(asset: asset)
-                    }
+                for delegate in self.delegates.values {
+                    delegate.didAddToCameraRoll(assets: changeDetails.insertedObjects)
+                }
+                for delegate in self.delegates.values {
+                    delegate.didRemoveFromCameraRoll(assets: changeDetails.removedObjects)
                 }
                 
                 if let index = self.index {
@@ -230,6 +241,7 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
                     }
                 }
             } else {
+                let _ = self.delegates.map { $0.value.authorizationChanged() }
                 log.warning("No changes in camera roll")
             }
         }

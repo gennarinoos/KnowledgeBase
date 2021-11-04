@@ -9,32 +9,7 @@ import Foundation
 import KnowledgeBase
 import Photos
 
-struct EncryptedPhotoUploaderDelegate: KBPhotoAssetChangeDelegate {
-    func wasAddedToCameraRoll(asset: PHAsset) {
-        
-        if asset.mediaType == .image {
-            self.getPictureAsData(from: asset) { result in
-                switch result {
-                case .success(let data):
-                    let encryptedData = self.encrypt(data: data)
-                    self.upload(data: encryptedData) { uploadResult in
-                        if case .failure(let error) = uploadResult {
-                            log.error("Failed to upload picture: \(error.localizedDescription)")
-                        }
-                    }
-                case .failure(let error):
-                    log.error("Failed to retrieve picture from asset \(asset): \(error.localizedDescription)")
-                }
-            }
-        } else {
-            
-        }
-    }
-    
-    func wasRemovedFromCameraRoll(asset: PHAsset) {
-        // Remove data from the cloud?
-    }
-    
+struct EncryptedPhotoUploaderDelegate {
     
     func encrypt(data: Data) -> Data {
         return data
