@@ -239,7 +239,7 @@ class KBSQLBackingStore : KBSQLBackingStoreProtocol {
         let directory: URL, path: URL
         
         do {
-            path = try FileManager.default.url(for: .applicationDirectory,
+            path = try FileManager.default.url(for: .libraryDirectory,
                                                in: .userDomainMask,
                                                appropriateFor: nil,
                                                create: true)

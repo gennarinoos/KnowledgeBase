@@ -7,7 +7,7 @@
 
 import os
 
-internal let log = Logger(subsystem: "com.gf.knowledgebase", category: "Framework")
+internal let log = Logger(subsystem: "com.gf.knowledgebase", category: "KnowledgeBase")
 
 let KnowledgeBaseBundleIdentifier = "com.gf.framework.knowledgebase"
 
