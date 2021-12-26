@@ -57,6 +57,11 @@ public class KBTimedDispatch {
         self.semaphore = DispatchSemaphore(value: kKBDispatchSemaphoreDefaultValue)
     }
     
+    public convenience init(timeoutInMilliseconds: Int) {
+        let timeout = DispatchTime.now() + .milliseconds(timeoutInMilliseconds)
+        self.init(timeout: timeout)
+    }
+    
     public convenience init() {
         self.init(timeout: KBDispatchSemaphoreDefaultTimeout)
     }
