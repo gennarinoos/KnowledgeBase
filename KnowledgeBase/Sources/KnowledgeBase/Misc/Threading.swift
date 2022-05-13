@@ -77,12 +77,24 @@ public class KBTimedDispatch {
                 self.semaphore.signal()
             }
         }
+        
         let dispatchResult = self.semaphore.wait(timeout: self._timeout)
         if case .timedOut = dispatchResult {
             throw KBError.timeout
         }
         if let e = self._interruptError {
             throw e
+        }
+    }
+    
+    public func notify(_ execute: @escaping () -> Void) throws {
+        if self._group != nil {
+            self._group!.notify(queue: queue) {
+                execute()
+                self.semaphore.signal()
+            }
+        } else {
+            throw KBError.notSupported
         }
     }
 }
