@@ -19,7 +19,7 @@ public protocol KBPhotoAssetChangeDelegate {
 }
 
 public enum KBPhotosFilter {
-    case withLocalIdentifiers([String]), after(Date), before(Date), afterOrOn(Date), beforeOrOn(Date)
+    case withLocalIdentifiers([String]), after(Date), before(Date), afterOrOn(Date), beforeOrOn(Date), limit(Int)
 }
 
 public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
@@ -143,6 +143,8 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
                     case .afterOrOn(let date):
                         let afterPredicate = NSPredicate(format: "creationDate => %@", date as NSDate)
                         predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, afterPredicate])
+                    case .limit(let limit):
+                        assetsFetchOptions.fetchLimit = limit
                     }
                 }
                 
