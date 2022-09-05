@@ -165,6 +165,23 @@ class KBSQLXPCBackingStore : KBBackingStore {
         }
     }
     
+    func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<[KBKVPairWithTimestamp], Error>) -> ()) {
+        guard let service = self.xpcService() else {
+            completionHandler(.failure(KBError.fatalError("Could not connect to XPC service")))
+            return
+        }
+        
+        service.keyValuesAndTimestamps(forKeysMatching: condition, inStoreWithIdentifier: self.name) {
+            error, keysAndValuesAndTimestamps in
+            let _ = self // Retain self in the block to keep XPC connection alive
+            if let error = error {
+                completionHandler(.failure(error))
+            } else {
+                completionHandler(.success(keysAndValuesAndTimestamps))
+            }
+        }
+    }
+    
     func dictionaryRepresentation(completionHandler: @escaping (Swift.Result<KBKVPairs, Error>) -> ()) {
         guard let service = self.xpcService() else {
             completionHandler(.failure(KBError.fatalError("Could not connect to XPC service")))

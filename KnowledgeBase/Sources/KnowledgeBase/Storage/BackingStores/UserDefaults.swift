@@ -98,6 +98,19 @@ class KBUserDefaultsBackingStore : KBBackingStore {
         }
     }
     
+    func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<[KBKVPairWithTimestamp], Error>) -> ()) {
+        self.keys() { result in
+            switch result {
+            case .success(let allKeys):
+                let filteredKeys = allKeys.filter { condition.evaluate(on: $0) }
+                let kvt = filteredKeys.map { key in KBKVPairWithTimestamp(key: key, value: self.value(for: key), timestamp: Date()) }
+                completionHandler(.success(kvt))
+            case .failure(let error):
+                completionHandler(.failure(error))
+            }
+        }
+    }
+    
     func dictionaryRepresentation(completionHandler: @escaping (Swift.Result<KBKVPairs, Error>) -> ()) {
         KBAsyncMethodReturningInitiable(completionHandler) {
             return self.kv.dictionaryRepresentation()

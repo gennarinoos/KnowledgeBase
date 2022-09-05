@@ -16,6 +16,7 @@ protocol KBAsynchronousBackingStore {
     func values(completionHandler: @escaping (Swift.Result<[Any], Error>) -> ())
     func values(for keys: [String], completionHandler: @escaping (Swift.Result<[Any?], Error>) -> ())
     func values(forKeysMatching: KBGenericCondition, completionHandler: @escaping (Swift.Result<[Any?], Error>) -> ())
+    func keyValuesAndTimestamps(forKeysMatching: KBGenericCondition, completionHandler: @escaping (Swift.Result<[KBKVPairWithTimestamp], Error>) -> ())
     func dictionaryRepresentation(completionHandler: @escaping (Swift.Result<KBKVPairs, Error>) -> ())
     func dictionaryRepresentation(forKeysMatching: KBGenericCondition,
                                   completionHandler: @escaping (Swift.Result<KBKVPairs, Error>) -> ())
@@ -70,6 +71,7 @@ protocol KBBackingStoreProtocol : KBAsynchronousBackingStore {
     func values() async throws -> [Any]
     func values(for keys: [String]) async throws -> [Any?]
     func values(forKeysMatching condition: KBGenericCondition) async throws -> [Any?]
+    func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition) async throws -> [KBKVPairWithTimestamp]
     func dictionaryRepresentation() async throws -> KBKVPairs
     func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition) async throws -> KBKVPairs
     func dictionaryRepresentation(createdWithin interval: DateInterval, limit: Int?, order: ComparisonResult) async throws -> [Date: KBKVPairs]
@@ -187,6 +189,12 @@ extension KBBackingStoreProtocol {
     func values(forKeysMatching condition: KBGenericCondition) async throws -> [Any?] {
         return try await KBModernAsyncMethodReturningInitiable { c in
             self.values(forKeysMatching: condition, completionHandler: c)
+        }
+    }
+    
+    func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition) async throws -> [KBKVPairWithTimestamp] {
+        return try await KBModernAsyncMethodReturningInitiable { c in
+            self.keyValuesAndTimestamps(forKeysMatching: condition, completionHandler: c)
         }
     }
     

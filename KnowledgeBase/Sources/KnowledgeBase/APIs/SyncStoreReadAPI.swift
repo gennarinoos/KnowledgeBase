@@ -105,6 +105,19 @@ extension KBKVStore {
     open func values(forKeysMatching condition: KBGenericCondition) throws -> [Any?] {
         return try self.backingStore.values(forKeysMatching: condition)
     }
+    
+    /**
+     Retrieves the values in the KVS whose keys pass the condition.
+     Blocking version.
+     
+     - parameter condition: condition the keys need to satisfy
+     
+     - returns: the values
+     
+     */
+    open func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition) throws -> [KBKVPairWithTimestamp] {
+        return try self.backingStore.keyValuesAndTimestamps(forKeysMatching: condition)
+    }
 }
 
 extension KBKnowledgeStore {

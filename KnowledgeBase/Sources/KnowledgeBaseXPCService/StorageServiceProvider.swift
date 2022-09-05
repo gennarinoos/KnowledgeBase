@@ -97,6 +97,14 @@ class KBStorageServiceProviderXPC: KBStorageXPCProtocol {
         }
     }
     
+    func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition, inStoreWithIdentifier identifier: String, completionHandler: @escaping (Error?, [KBKVObjcPairWithTimestamp]?) -> ()) {
+        serializeReadMethodCall(storeIdentifier: identifier,
+                                completionHandler: completionHandler) { handler in
+            log.trace("Getting all keys and values matching condition \(condition) in store with identifier \(identifier)")
+            return try handler.keyValuesAndTimestamps(forKeysMatching: condition)
+        }
+    }
+    
     func keysAndValues(createdWithin interval: DateInterval, limit: Int, order: ComparisonResult, inStoreWithIdentifier identifier: String, completionHandler: @escaping (Error?, [Date: KBKVPairs]?) -> ()) {
         serializeReadMethodCall(storeIdentifier: identifier,
                                 completionHandler: completionHandler) { handler in

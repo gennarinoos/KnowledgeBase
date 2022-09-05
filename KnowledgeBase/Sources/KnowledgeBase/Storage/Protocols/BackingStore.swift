@@ -19,6 +19,7 @@ protocol KBAsynchronousBackingStore {
     func values(completionHandler: @escaping (Swift.Result<[Any], Error>) -> ())
     func values(for keys: [String], completionHandler: @escaping (Swift.Result<[Any?], Error>) -> ())
     func values(forKeysMatching: KBGenericCondition, completionHandler: @escaping (Swift.Result<[Any?], Error>) -> ())
+    func keyValuesAndTimestamps(forKeysMatching: KBGenericCondition, completionHandler: @escaping (Swift.Result<[KBKVPairWithTimestamp], Error>) -> ())
     func dictionaryRepresentation(completionHandler: @escaping (Swift.Result<KBKVPairs, Error>) -> ())
     func dictionaryRepresentation(forKeysMatching: KBGenericCondition,
                                   completionHandler: @escaping (Swift.Result<KBKVPairs, Error>) -> ())
@@ -77,6 +78,7 @@ protocol KBSynchronousBackingStore : KBAsynchronousBackingStore {
     func values() throws -> [Any]
     func values(for keys: [String]) throws -> [Any?]
     func values(forKeysMatching: KBGenericCondition) throws -> [Any?]
+    func keyValuesAndTimestamps(forKeysMatching: KBGenericCondition) throws -> [KBKVPairWithTimestamp]
     func dictionaryRepresentation() throws -> KBKVPairs
     func dictionaryRepresentation(forKeysMatching: KBGenericCondition) throws -> KBKVPairs
     func dictionaryRepresentation(createdWithin: DateInterval, limit: Int?, order: ComparisonResult) throws -> [Date: KBKVPairs]
@@ -154,6 +156,13 @@ extension KBSynchronousBackingStore {
         return try KBSyncMethodReturningInitiable {
             (completionHandler) in
             self.values(forKeysMatching: condition, completionHandler: completionHandler)
+        }
+    }
+    
+    func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition) throws -> [KBKVPairWithTimestamp] {
+        return try KBSyncMethodReturningInitiable {
+            (completionHandler) in
+            self.keyValuesAndTimestamps(forKeysMatching: condition, completionHandler: completionHandler)
         }
     }
     

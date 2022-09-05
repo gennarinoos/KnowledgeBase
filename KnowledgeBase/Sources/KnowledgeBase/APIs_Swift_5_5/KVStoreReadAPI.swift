@@ -104,4 +104,15 @@ extension KBKVStore {
     open func values(forKeysMatching condition: KBGenericCondition) async throws -> [Any?] {
         return try await self.backingStore.values(forKeysMatching: condition)
     }
+    
+    /**
+     Retrieves the values in the KVS whose keys pass the condition, asynchronously.
+     
+     - parameter condition: condition the keys need to satisfy
+     - returns the list of values for the keys matching the condition
+     
+     */
+    open func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition) async throws -> [KBKVPairWithTimestamp] {
+        return try await self.backingStore.keyValuesAndTimestamps(forKeysMatching: condition)
+    }
 }

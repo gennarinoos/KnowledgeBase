@@ -162,4 +162,15 @@ extension KBKVStore {
             }
         }
     }
+    
+    /**
+     Retrieves tuples of (key, value, timestamp) in the KVS whose keys pass the condition.
+     
+     - parameter condition: condition the keys need to satisfy
+     - parameter completionHandler: the callback method
+     
+     */
+    open func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<[KBKVPairWithTimestamp], Error>) -> ()) {
+        return self.backingStore.keyValuesAndTimestamps(forKeysMatching: condition, completionHandler: completionHandler)
+    }
 }

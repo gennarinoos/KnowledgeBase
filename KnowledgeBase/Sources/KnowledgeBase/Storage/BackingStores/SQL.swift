@@ -66,6 +66,12 @@ extension KBSQLBackingStoreProtocol {
         }
     }
     
+    func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<[KBKVPairWithTimestamp], Error>) -> ()) {
+        genericMethodReturningInitiable(completionHandler) {
+            return try self.sqlHandler.keyValuesAndTimestamps(forKeysMatching: condition).map({ KBKVPairWithTimestamp(key: $0.key, value: NSNullToNil($0.value), timestamp: $0.timestamp) })
+        }
+    }
+    
     func values(completionHandler: @escaping (Swift.Result<[Any], Error>) -> ()) {
         genericMethodReturningInitiable(completionHandler) {
             return try self.sqlHandler.values()

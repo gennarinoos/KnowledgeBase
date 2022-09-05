@@ -194,6 +194,29 @@ open class KBSQLHandler: NSObject {
         return values
     }
     
+    open func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition) throws -> [KBKVObjcPairWithTimestamp] {
+        guard let connection = self.connection else {
+            throw KBError.databaseNotReady
+        }
+        
+        var keyValuesAndTimestamp = [KBKVObjcPairWithTimestamp]()
+        
+        let query = SQLTableType.allValues.map { "select k, v, t from \($0.rawValue) where \(condition.sql)" }.joined(separator: " union all ")
+        let stmt = try connection.prepare(query)
+        for row in stmt {
+            assert(row.count == 3, "retrieved the right number of columns")
+            if let key = try self.deserializeValue(row[0]) as? String,
+               let value = try self.deserializeValue(row[1]),
+               let timestamp = row[2] as? TimeInterval
+            {
+                let tuple = KBKVObjcPairWithTimestamp(key: key, value: value, timestamp: Date(timeIntervalSince1970: timestamp))
+                keyValuesAndTimestamp.append(tuple)
+            }
+        }
+        
+        return keyValuesAndTimestamp
+    }
+    
     @objc open func keysAndValues() throws -> KBKVPairs {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady

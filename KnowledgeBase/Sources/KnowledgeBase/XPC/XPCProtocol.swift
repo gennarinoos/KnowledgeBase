@@ -22,6 +22,8 @@ public protocol KBStorageXPCProtocol {
     
     func keysAndValues(forKeysMatching: KBGenericCondition, inStoreWithIdentifier identifier: String, completionHandler: @escaping (Error?, KBKVPairs?) -> ())
     
+    func keyValuesAndTimestamps(forKeysMatching: KBGenericCondition, inStoreWithIdentifier identifier: String, completionHandler: @escaping (Error?, [KBKVObjcPairWithTimestamp]?) -> ())
+    
     func keysAndValues(createdWithin interval: DateInterval,
                        limit: Int,
                        order: ComparisonResult,
