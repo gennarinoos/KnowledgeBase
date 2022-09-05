@@ -202,7 +202,7 @@ open class KBSQLHandler: NSObject {
         var keyValuesAndTimestamp = [KBKVObjcPairWithTimestamp]()
         
         let query = SQLTableType.allValues.map { "select k, v, t from \($0.rawValue) where \(condition.sql)" }.joined(separator: " union all ")
-        let stmt = try connection.prepare(query)
+        let stmt = try connection.prepare(query + " order by t asc")
         for row in stmt {
             assert(row.count == 3, "retrieved the right number of columns")
             if let key = try self.deserializeValue(row[0]) as? String,
