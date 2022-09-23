@@ -177,7 +177,9 @@ class KBSQLXPCBackingStore : KBBackingStore {
             if let error = error {
                 completionHandler(.failure(error))
             } else {
-                completionHandler(.success(keysAndValuesAndTimestamps))
+                completionHandler(.success(keysAndValuesAndTimestamps!.map({
+                    KBKVPairWithTimestamp(key: $0.key, value: NSNullToNil($0.value), timestamp: $0.timestamp)
+                })))
             }
         }
     }
