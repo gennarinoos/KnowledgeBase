@@ -103,6 +103,50 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
         )
     }
     
+    public static func fetchResult(using filters: [KBPhotosFilter],
+                                   completionHandler: @escaping (Swift.Result<PHFetchResult<PHAsset>, Error>) -> ()) {
+        // Get all the camera roll photos and videos
+        let albumFetchResult = PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumUserLibrary, options: nil)
+        albumFetchResult.enumerateObjects { collection, count, stop in
+            let assetsFetchOptions = PHFetchOptions()
+            assetsFetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
+            
+            var predicate = KBPhotosIndexer.cameraRollPredicate()
+            
+            for filter in filters {
+                switch filter {
+                case .withLocalIdentifiers(let localIdentifiers):
+                    if localIdentifiers.count > 0 {
+                        let onlyIdsPredicate = NSPredicate(format: "(localIdentifier IN %@)", localIdentifiers)
+                        predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, onlyIdsPredicate])
+                    }
+                case .before(let date):
+                    let beforePredicate = NSPredicate(format: "creationDate < %@", date as NSDate)
+                    predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, beforePredicate])
+                case .beforeOrOn(let date):
+                    let beforePredicate = NSPredicate(format: "creationDate <= %@", date as NSDate)
+                    predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, beforePredicate])
+                case .after(let date):
+                    let afterPredicate = NSPredicate(format: "creationDate > %@", date as NSDate)
+                    predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, afterPredicate])
+                case .afterOrOn(let date):
+                    let afterPredicate = NSPredicate(format: "creationDate => %@", date as NSDate)
+                    predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, afterPredicate])
+                case .limit(let limit):
+                    assetsFetchOptions.fetchLimit = limit
+                }
+            }
+            
+            assetsFetchOptions.predicate = predicate
+            completionHandler(.success(PHAsset.fetchAssets(in: collection, options: assetsFetchOptions)))
+            return
+        }
+        
+        if albumFetchResult.count == 0 {
+            completionHandler(.success(PHFetchResult<PHAsset>()))
+        }
+    }
+    
     /// Fetches the latest assets in the Camera Roll using the Photos Framework in the background and returns a `PHFetchResult`.
     /// If an `index` is available, it also stores the`KBPhotoAsset`s corresponding to the assets in the fetch result.
     /// The first operation is executed on the`ingestionQueue`, while the latter on the `processingQueue`.
@@ -116,60 +160,27 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
                 return completionHandler(.failure(KBError.fatalError("self not available after executing block on the serial queue")))
             }
             
-            // Get all the camera roll photos and videos
-            let albumFetchResult = PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumUserLibrary, options: nil)
-            albumFetchResult.enumerateObjects { collection, count, stop in
-                let assetsFetchOptions = PHFetchOptions()
-                assetsFetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
-                
-                var predicate = KBPhotosIndexer.cameraRollPredicate()
-                
-                for filter in filters {
-                    switch filter {
-                    case .withLocalIdentifiers(let localIdentifiers):
-                        if localIdentifiers.count > 0 {
-                            let onlyIdsPredicate = NSPredicate(format: "(localIdentifier IN %@)", localIdentifiers)
-                            predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, onlyIdsPredicate])
+            KBPhotosIndexer.fetchResult(using: filters, completionHandler: { result in
+                switch result {
+                case .success(let fetchResult):
+                    self.cameraRollFetchResult = fetchResult
+                    
+                    if let _ = self.index {
+                        self.updateIndex(with: self.cameraRollFetchResult!) { result in
+                            switch result {
+                            case .success():
+                                completionHandler(.success(self.cameraRollFetchResult!))
+                            case .failure(let error):
+                                completionHandler(.failure(error))
+                            }
                         }
-                    case .before(let date):
-                        let beforePredicate = NSPredicate(format: "creationDate < %@", date as NSDate)
-                        predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, beforePredicate])
-                    case .beforeOrOn(let date):
-                        let beforePredicate = NSPredicate(format: "creationDate <= %@", date as NSDate)
-                        predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, beforePredicate])
-                    case .after(let date):
-                        let afterPredicate = NSPredicate(format: "creationDate > %@", date as NSDate)
-                        predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, afterPredicate])
-                    case .afterOrOn(let date):
-                        let afterPredicate = NSPredicate(format: "creationDate => %@", date as NSDate)
-                        predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, afterPredicate])
-                    case .limit(let limit):
-                        assetsFetchOptions.fetchLimit = limit
+                    } else {
+                        completionHandler(.success(self.cameraRollFetchResult!))
                     }
+                case .failure(let error):
+                    completionHandler(.failure(error))
                 }
-                
-                assetsFetchOptions.predicate = predicate
-                
-                self.cameraRollFetchResult = PHAsset.fetchAssets(in: collection, options: assetsFetchOptions)
-                
-                if let _ = self.index {
-                    self.updateIndex(with: self.cameraRollFetchResult!) { result in
-                        switch result {
-                        case .success():
-                            completionHandler(.success(self.cameraRollFetchResult!))
-                        case .failure(let error):
-                            completionHandler(.failure(error))
-                        }
-                    }
-                } else {
-                    completionHandler(.success(self.cameraRollFetchResult!))
-                }
-            }
-            
-            if albumFetchResult.count == 0 {
-                self.cameraRollFetchResult = PHFetchResult<PHAsset>()
-                completionHandler(.success(nil))
-            }
+            })
         }
     }
     
@@ -218,7 +229,7 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
             return
         }
         
-        self.ingestionQueue.async {
+        self.processingQueue.async {
             let changeDetails = changeInstance.changeDetails(for: cameraRoll)
             if let changeDetails = changeDetails {
                 self.cameraRollFetchResult = changeDetails.fetchResultAfterChanges
