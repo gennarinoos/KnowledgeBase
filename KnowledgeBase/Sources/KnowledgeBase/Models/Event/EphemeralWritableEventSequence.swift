@@ -22,7 +22,7 @@ public protocol KBEphemeralWritableEventSequence : AnyObject {
 
 extension KBEphemeralEventSequence : KBEphemeralWritableEventSequence {
     
-    open func append(event: KBEvent) async throws {
+    public func append(event: KBEvent) async throws {
         let eventEntity = KBEntity(event: event, knowledgeStore: KBKnowledgeStore.inMemoryGraph)
         
         let condition = KBTripleCondition(subject: eventEntity.identifier, predicate: nil, object: nil)

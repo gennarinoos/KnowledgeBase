@@ -8,7 +8,7 @@
 import Foundation
 
 @objc(KBKnowledgeStore)
-open class KBKnowledgeStore : KBKVStore {
+public class KBKnowledgeStore : KBKVStore {
     internal let sparqlQueue: DispatchQueue
     
     public static let inMemoryGraph = KBKnowledgeStore.inMemoryStore()
@@ -19,23 +19,23 @@ open class KBKnowledgeStore : KBKVStore {
         super.init(location)
     }
     
-    @objc open override class func defaultStore() -> KBKnowledgeStore {
+    @objc public override class func defaultStore() -> KBKnowledgeStore {
         return KBKnowledgeStore.store(withName: "")
     }
     
-    @objc open override class func defaultSynchedStore() -> KBKnowledgeStore {
+    @objc public override class func defaultSynchedStore() -> KBKnowledgeStore {
         return KBKnowledgeStore.synchedStore(withName: "")
     }
 
-    @objc open override class func inMemoryStore() -> KBKnowledgeStore {
+    @objc public override class func inMemoryStore() -> KBKnowledgeStore {
         return KBKnowledgeStore.store(Location.inMemory)
     }
 
-    @objc open override class func userDefaultsStore() -> KBKnowledgeStore {
+    @objc public override class func userDefaultsStore() -> KBKnowledgeStore {
         return KBKnowledgeStore.store(Location.userDefaults)
     }
     
-    open override class func store(withName name: String) -> KBKnowledgeStore {
+    public override class func store(withName name: String) -> KBKnowledgeStore {
         if name == KnowledgeBaseInMemoryIdentifier {
             return KBKnowledgeStore.store(.inMemory)
         } else if name == KnowledgeBaseUserDefaultsIdentifier {
@@ -44,11 +44,11 @@ open class KBKnowledgeStore : KBKVStore {
         return KBKnowledgeStore.store(Location.sql(name))
     }
     
-    open override class func store(_ location: Location) -> KBKnowledgeStore {
+    public override class func store(_ location: Location) -> KBKnowledgeStore {
         return KBKnowledgeStore(location)
     }
     
-    @objc open override class func synchedStore(withName name: String) -> KBKnowledgeStore {
+    @objc public override class func synchedStore(withName name: String) -> KBKnowledgeStore {
         return KBKnowledgeStore(Location.sqlSynched(name))
     }
 }

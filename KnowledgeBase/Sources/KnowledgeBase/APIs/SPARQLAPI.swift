@@ -9,7 +9,7 @@ import RDFStorage
 
 extension KBKnowledgeStore {
     
-    open func importContentsOf(turtleFileAt path: String, completionHandler: @escaping KBActionCompletion) {
+    public func importContentsOf(turtleFileAt path: String, completionHandler: @escaping KBActionCompletion) {
         let solver = KBSPARQLEndpoint(with: self)
         solver.importTurtle(fromFileAt: path, completionHandler: completionHandler)
     }
@@ -20,7 +20,7 @@ extension KBKnowledgeStore {
      - parameter query: the SPARQL SELECT query to execute
      - parameter completionHandler: the callback method
      */
-    open func execute(SPARQLQuery query: String, completionHandler: @escaping (Swift.Result<[Any], Error>) -> ()) {
+    public func execute(SPARQLQuery query: String, completionHandler: @escaping (Swift.Result<[Any], Error>) -> ()) {
         self.sparqlQueue.async {
             let solver = KBSPARQLEndpoint(with: self)
             

@@ -11,12 +11,12 @@ extension KBEntity {
     
     // MARK: KBEntity attributes
     
-    @objc open func value(forAttribute key: String) async throws -> Any? {
+    @objc public func value(forAttribute key: String) async throws -> Any? {
         let key = KBHexastore.JOINER.combine(self.identifier, key)
         return try await self.store.value(for: key)
     }
     
-    @objc open func set(value: Any,
+    @objc public func set(value: Any,
                         forAttribute key: String) async throws {
         let writeBatch = self.store.backingStore.writeBatch()
         let entityKey = KBHexastore.JOINER.combine(self.identifier, key)
@@ -24,7 +24,7 @@ extension KBEntity {
         try await writeBatch.write()
     }
     
-    @objc open func setAttributes(_ keysAndValues: [String: Any]) async throws {
+    @objc public func setAttributes(_ keysAndValues: [String: Any]) async throws {
         let writeBatch = self.store.backingStore.writeBatch()
         for (key, value) in keysAndValues {
             let entityKey = KBHexastore.JOINER.combine(self.identifier, key)
@@ -34,7 +34,7 @@ extension KBEntity {
         try await writeBatch.write()
     }
 
-    @objc open func removeAttribute(named key: String) async throws {
+    @objc public func removeAttribute(named key: String) async throws {
         let entityKey = KBHexastore.JOINER.combine(self.identifier, key)
         try await self.store.removeValue(for: entityKey)
     }
@@ -52,7 +52,7 @@ extension KBEntity {
      - parameter completionHandler: the callback method
      
      */
-    @objc open func link(to target: KBEntity,
+    @objc public func link(to target: KBEntity,
                          withPredicate predicate: Label) async throws {
         // TODO: IMPLEMENT
     }
@@ -66,7 +66,7 @@ extension KBEntity {
      - parameter completionHandler: the callback method
 
      */
-    open func unlink(to target: KBEntity,
+    public func unlink(to target: KBEntity,
                      withPredicate label: Label,
                      ignoreWeights: Bool = false) async throws {
         // TODO: IMPLEMENT
@@ -75,7 +75,7 @@ extension KBEntity {
     /**
      Remove the entity from the graph
      */
-    open func remove() async throws {
+    public func remove() async throws {
         try await self.store.backingStore.dropLinks(withLabel: nil, from: self.identifier)
     }
 
@@ -96,7 +96,7 @@ extension KBEntity {
      - returns: The path (a series of triples) connecting the two enties
      if such path exists, nil otherwise
      */
-    open func path(to target: KBEntity,
+    public func path(to target: KBEntity,
                    withRadius radius: Int) async throws -> [(Label, Label)] {
         var radius = radius
         return try await self.path(to: target, radius: &radius)
@@ -166,7 +166,7 @@ extension KBEntity {
      - parameter complement: (defaults false) if true returns the complementary set
      
      */
-    open func linkedEntities(withPredicate predicate: Label,
+    public func linkedEntities(withPredicate predicate: Label,
                              matchType: KBMatchType = .equal,
                              complement wantsComplementarySet: Bool = false) async throws -> [(predicate: Label, object: KBEntity)] {
         let negatedFlag = wantsComplementarySet  == true ? "NOT " : ""
@@ -209,7 +209,7 @@ extension KBEntity {
      - returns: An array of tuples (predicate: P, object: O)
      
      */
-    open func linkedEntities() async throws -> [(predicate: Label, object: KBEntity)] {
+    public func linkedEntities() async throws -> [(predicate: Label, object: KBEntity)] {
         log.trace("[<\(self)> $? $?]")
 
         let partial = KBHexastore.JOINER.combine(
@@ -241,7 +241,7 @@ extension KBEntity {
      - returns: The array of KBEntity objects matching the condition
      
      */
-    open func linkingEntities(withPredicate predicate: Label,
+    public func linkingEntities(withPredicate predicate: Label,
                               matchType: KBMatchType = .equal,
                               complement wantsComplementarySet: Bool = false) async throws -> [(subject: KBEntity, predicate: Label)] {
         let negatedFlag = wantsComplementarySet ? "NOT " : ""
@@ -312,7 +312,7 @@ extension KBEntity {
      - returns: An array of tuples (predicate: P, object: O)
      
      */
-    open func linkingEntities() async throws -> [(subject: KBEntity, predicate: Label)] {
+    public func linkingEntities() async throws -> [(subject: KBEntity, predicate: Label)] {
         log.debug("[$? $? <\(self)>]")
 
         let partial = KBHexastore.JOINER.combine(
@@ -339,7 +339,7 @@ extension KBEntity {
      
      - returns: The array of predicate labels
      */
-    @objc open func links(to target: KBEntity,
+    @objc public func links(to target: KBEntity,
                           matchType: KBMatchType = .equal) async throws -> [Label] {
         log.debug("[<\(self)> $? <\(target):\(matchType.description)>]")
 

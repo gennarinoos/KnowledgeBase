@@ -28,7 +28,7 @@ public protocol KBStoreDelegate {
 
 
 @objc(KBKVStore)
-open class KBKVStore : NSObject {
+public class KBKVStore : NSObject {
 
     /// The physical location of the KVS.
     public enum Location : Serializable, CustomStringConvertible {
@@ -77,12 +77,12 @@ open class KBKVStore : NSObject {
         }
     }
 
-    @objc open var delegate: KBStoreDelegate?
+    @objc public var delegate: KBStoreDelegate?
     
     internal let backingStore: KBBackingStore
     public let location: Location
 
-    @objc open var name: String {
+    @objc public var name: String {
         return self.backingStore.name
     }
     
@@ -90,14 +90,14 @@ open class KBKVStore : NSObject {
         KBSQLBackingStore.baseURL()
     }
  
-    @objc open var baseURL: URL? {
+    @objc public var baseURL: URL? {
         if let backingStore = self.backingStore as? KBSQLBackingStore {
             return backingStore.baseURL
         }
         return nil
     }
     
-    @objc open var fullURL: URL? {
+    @objc public var fullURL: URL? {
         return self.baseURL?
             .appendingPathComponent(self.name)
             .appendingPathExtension(DatabaseExtension)
@@ -105,10 +105,10 @@ open class KBKVStore : NSObject {
     
     // MARK: NSObjectProtocol, Hashable, Equatable
 
-    @objc open override var hash: Int {
+    @objc public override var hash: Int {
         return self.name.hashValue
     }
-    @objc open override func isEqual(_ object: Any?) -> Bool {
+    @objc public override func isEqual(_ object: Any?) -> Bool {
         if let object = object as? KBKVStore {
             return self.name == object.name
         }
@@ -117,23 +117,23 @@ open class KBKVStore : NSObject {
 
     // MARK: Constructors / Destructors
 
-    @objc open class func defaultStore() -> KBKVStore {
+    @objc public class func defaultStore() -> KBKVStore {
         return KBKVStore.store(withName: "")
     }
     
-    @objc open class func defaultSynchedStore() -> KBKVStore {
+    @objc public class func defaultSynchedStore() -> KBKVStore {
         return KBKVStore.synchedStore(withName: "")
     }
 
-    @objc open class func inMemoryStore() -> KBKVStore {
+    @objc public class func inMemoryStore() -> KBKVStore {
         return KBKVStore.store(Location.inMemory)
     }
 
-    @objc open class func userDefaultsStore() -> KBKVStore {
+    @objc public class func userDefaultsStore() -> KBKVStore {
         return KBKVStore.store(Location.userDefaults)
     }
     
-    @objc open class func store(withName name: String) -> KBKVStore {
+    @objc public class func store(withName name: String) -> KBKVStore {
         if name == KnowledgeBaseInMemoryIdentifier {
             return KBKVStore.store(.inMemory)
         } else if name == KnowledgeBaseUserDefaultsIdentifier {
@@ -142,11 +142,11 @@ open class KBKVStore : NSObject {
         return KBKVStore.store(Location.sql(name))
     }
     
-    @objc open class func synchedStore(withName name: String) -> KBKVStore {
+    @objc public class func synchedStore(withName name: String) -> KBKVStore {
         return KBKVStore(Location.sqlSynched(name))
     }
 
-    open class func store(_ location: Location) -> KBKVStore {
+    public class func store(_ location: Location) -> KBKVStore {
         return KBKVStore(location)
     }
 
@@ -215,7 +215,7 @@ open class KBKVStore : NSObject {
         return true
     }
     
-    open func writeBatch() -> KBKVStoreWriteBatch {
+    public func writeBatch() -> KBKVStoreWriteBatch {
         return self.backingStore.writeBatch()
     }
 }

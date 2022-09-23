@@ -14,7 +14,7 @@ enum JSONLDParseError: Error {
 }
 
 @objc(KBJSONLDGraph)
-open class KBJSONLDGraph : NSObject {
+public class KBJSONLDGraph : NSObject {
 
     fileprivate let _entities: [KBEntity]
 
@@ -22,11 +22,11 @@ open class KBJSONLDGraph : NSObject {
         self._entities = entities ?? []
     }
 
-    @objc open var entities: [String] {
+    @objc public var entities: [String] {
         return self._entities.map { $0.identifier }
     }
 
-    @objc open func linkedData() async throws -> [KBKVPairs] {
+    @objc public func linkedData() async throws -> [KBKVPairs] {
         var linkedDataDictionary = [KBKVPairs]()
         let entities = Array(Set(self._entities))
         
@@ -59,7 +59,7 @@ open class KBJSONLDGraph : NSObject {
 
 extension KBKnowledgeStore {
     
-    @objc open func subgraph(withEntities identifiers: [Label]) -> KBJSONLDGraph {
+    @objc public func subgraph(withEntities identifiers: [Label]) -> KBJSONLDGraph {
         return KBJSONLDGraph(withEntities: identifiers.map {
             self.entity(withIdentifier: $0)
         })

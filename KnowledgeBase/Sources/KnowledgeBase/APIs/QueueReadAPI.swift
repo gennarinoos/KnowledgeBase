@@ -31,9 +31,9 @@ extension KBQueueStore {
      - parameter completionHandler: the callback method
      
      */
-    open func peekItems(createdWithin interval: DateInterval,
-                        limit: Int? = nil,
-                        completionHandler: @escaping (Swift.Result<[KBQueueItem], Error>) -> ()) {
+    public func peekItems(createdWithin interval: DateInterval,
+                          limit: Int? = nil,
+                          completionHandler: @escaping (Swift.Result<[KBQueueItem], Error>) -> ()) {
         let order = self.queueType == .fifo ? ComparisonResult.orderedAscending : ComparisonResult.orderedDescending
         return self.backingStore.dictionaryRepresentation(createdWithin: interval, limit: limit, order: order) { result in
             switch result {
@@ -50,7 +50,7 @@ extension KBQueueStore {
             }
         }
     }
-    @objc open func peekItems(createdWithin interval: DateInterval,
+    @objc public func peekItems(createdWithin interval: DateInterval,
                               limit: Int = -1,
                               completionHandler: @escaping (Error?, [KBQueueItem]) -> ()) {
         KBObjectiveCAPIResultReturningInitiable(completionHandler: completionHandler) {
@@ -69,7 +69,7 @@ extension KBQueueStore {
      - returns: the list of items
      
      */
-    open func peekItems(createdWithin interval: DateInterval, limit: Int? = nil) throws -> [KBQueueItem] {
+    public func peekItems(createdWithin interval: DateInterval, limit: Int? = nil) throws -> [KBQueueItem] {
         let order = self.queueType == .fifo ? ComparisonResult.orderedAscending : ComparisonResult.orderedDescending
         let itemsKeyedByDate = try self.backingStore.dictionaryRepresentation(createdWithin: interval, limit: limit, order: order)
         return try toQueueItems(itemsKeyedByDate: itemsKeyedByDate)
@@ -81,7 +81,7 @@ extension KBQueueStore {
      - parameter completionHandler: the callback method
 
      */
-    open func peek(completionHandler: @escaping (Swift.Result<KBQueueItem?, Error>) -> ()) {
+    public func peek(completionHandler: @escaping (Swift.Result<KBQueueItem?, Error>) -> ()) {
         self.peekItems(createdWithin: DateInterval(start: Date.distantPast, end: Date()),
                    limit: 1) { result in
             switch result {
@@ -92,7 +92,7 @@ extension KBQueueStore {
             }
         }
     }
-    @objc open func peek(completionHandler: @escaping (Error?, KBQueueItem?) -> ()) {
+    @objc public func peek(completionHandler: @escaping (Error?, KBQueueItem?) -> ()) {
         KBObjectiveCAPIResultReturningInitiable(completionHandler: completionHandler) {
             c in
             self.peek(completionHandler: c)
@@ -106,7 +106,7 @@ extension KBQueueStore {
      - returns: the next item in the queue
      
      */
-    open func peek() throws -> KBQueueItem? {
+    public func peek() throws -> KBQueueItem? {
         return try self.peekItems(createdWithin: DateInterval(start: Date.distantPast, end: Date()), limit: 1).first
     }
 }

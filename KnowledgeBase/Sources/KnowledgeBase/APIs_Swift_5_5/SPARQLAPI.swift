@@ -9,7 +9,7 @@ import RDFStorage
 
 extension KBKnowledgeStore {
     
-    @objc open func importContentsOf(turtleFileAt path: String) async throws {
+    @objc public func importContentsOf(turtleFileAt path: String) async throws {
         return try await withUnsafeThrowingContinuation { continuation in
             let solver = KBSPARQLEndpoint(with: self)
             solver.importTurtle(fromFileAt: path) { result in
@@ -39,7 +39,7 @@ extension KBKnowledgeStore {
         }
     }
     
-    @objc open func importContentsOf(turtleFileAt path: String) async throws {
+    @objc public func importContentsOf(turtleFileAt path: String) async throws {
         return try await withUnsafeThrowingContinuation { continuation in
             let solver = KBSPARQLEndpoint(with: self)
             solver.importTurtle(fromFileAt: path) { result in
@@ -74,7 +74,7 @@ extension KBKnowledgeStore {
      
      - parameter query: the SPARQL SELECT query to execute
      */
-    @objc open func execute(SPARQLQuery query: String) async throws -> [Any] {
+    @objc public func execute(SPARQLQuery query: String) async throws -> [Any] {
         return try await KBModernAsyncMethodReturningInitiable { c in
             self.execute(SPARQLQuery: query, completionHandler: c)
         }

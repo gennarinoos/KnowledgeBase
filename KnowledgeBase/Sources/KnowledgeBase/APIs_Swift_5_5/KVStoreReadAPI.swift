@@ -15,7 +15,7 @@ extension KBKVStore {
      - returns the dictionary containing all keys and values
      
      */
-    @objc open func dictionaryRepresentation() async throws -> KBKVPairs {
+    @objc public func dictionaryRepresentation() async throws -> KBKVPairs {
         return try await self.backingStore.dictionaryRepresentation()
     }
     
@@ -26,7 +26,7 @@ extension KBKVStore {
      - returns the dictionary containing all keys and values matching the condition
      
      */
-    @objc open func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition) async throws -> KBKVPairs {
+    @objc public func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition) async throws -> KBKVPairs {
         return try await self.backingStore.dictionaryRepresentation(forKeysMatching: condition)
     }
     
@@ -37,7 +37,7 @@ extension KBKVStore {
      - returns the keys
      
      */
-    @objc open func keys() async throws -> [String] {
+    @objc public func keys() async throws -> [String] {
         return try await self.backingStore.keys()
     }
     
@@ -48,7 +48,7 @@ extension KBKVStore {
      - returns the keys
      
      */
-    @objc open func keys(matching condition: KBGenericCondition) async throws -> [String] {
+    @objc public func keys(matching condition: KBGenericCondition) async throws -> [String] {
         return try await self.backingStore.keys(matching: condition)
     }
     
@@ -59,7 +59,7 @@ extension KBKVStore {
      - returns the values
      
      */
-    @objc open func values() async throws -> [Any] {
+    @objc public func values() async throws -> [Any] {
         return try await self.backingStore.values()
     }
     
@@ -70,7 +70,7 @@ extension KBKVStore {
      - returns the value for the key. nil if the key doesn't exist, NSNull if set to null
      
      */
-    open func value(for key: String) async throws -> Any? {
+    public func value(for key: String) async throws -> Any? {
         return try await self.backingStore.value(for: key)
     }
     
@@ -82,7 +82,7 @@ extension KBKVStore {
      - returns the list of values for the keys
      
      */
-    open func values(for keys: [String]) async throws -> [Any] {
+    public func values(for keys: [String]) async throws -> [Any] {
         var values = [Any]()
         for nullableValue in try await self.backingStore.values(for: keys) {
             if nullableValue == nil {
@@ -101,7 +101,7 @@ extension KBKVStore {
      - returns the list of values for the keys matching the condition
      
      */
-    open func values(forKeysMatching condition: KBGenericCondition) async throws -> [Any?] {
+    public func values(forKeysMatching condition: KBGenericCondition) async throws -> [Any?] {
         return try await self.backingStore.values(forKeysMatching: condition)
     }
     
@@ -112,7 +112,7 @@ extension KBKVStore {
      - returns the list of values for the keys matching the condition
      
      */
-    open func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition) async throws -> [KBKVPairWithTimestamp] {
+    public func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition) async throws -> [KBKVPairWithTimestamp] {
         return try await self.backingStore.keyValuesAndTimestamps(forKeysMatching: condition)
     }
 }

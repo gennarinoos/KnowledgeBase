@@ -14,7 +14,7 @@ public protocol KBExecutableClosure : NSCoding {
 }
 
 @objc(KBClosure)
-open class KBClosure : NSObject, KBExecutableClosure {
+public class KBClosure : NSObject, KBExecutableClosure {
     let store: KBKnowledgeStore
     let entity: KBEntity
 
@@ -42,7 +42,7 @@ open class KBClosure : NSObject, KBExecutableClosure {
         self.entity = self.store.entity(withIdentifier: entityIdentifier)
     }
 
-    @objc(encodeWithCoder:) open func encode(with aCoder: NSCoder) {
+    @objc(encodeWithCoder:) public func encode(with aCoder: NSCoder) {
         aCoder.encode(self.store.location.encoded, forKey: "location")
         aCoder.encode(self.entity.identifier, forKey: "entityIdentifier")
     }
@@ -50,7 +50,7 @@ open class KBClosure : NSObject, KBExecutableClosure {
     /**
      Executes the behavior stored with *Self* identifier when the KBRuleBasedLogic applies
      */
-    open func execute() {
+    public func execute() {
         /* TODO: What happens if a closure is linked to a closure? Chained behavior? */
     }
 }

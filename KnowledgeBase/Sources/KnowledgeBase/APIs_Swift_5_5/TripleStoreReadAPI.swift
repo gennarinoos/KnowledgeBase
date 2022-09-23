@@ -14,7 +14,7 @@ extension KBKnowledgeStore {
      - parameter completionHandler: the callback method
      
      */
-    @objc open func entities() async throws -> [KBEntity] {
+    @objc public func entities() async throws -> [KBEntity] {
         var uniqueIDs = Set<Label>()
         
         let results = try await self.backingStore.values()
@@ -39,7 +39,7 @@ extension KBKnowledgeStore {
      
      - returns: The array of triples in a dictionary with keys: subject, predicate, object
      */
-    @objc open func triples(matching condition: KBTripleCondition?) async throws -> [KBTriple] {
+    @objc public func triples(matching condition: KBTripleCondition?) async throws -> [KBTriple] {
         return try await self.backingStore.triplesComponents(matching: condition)
     }
 }

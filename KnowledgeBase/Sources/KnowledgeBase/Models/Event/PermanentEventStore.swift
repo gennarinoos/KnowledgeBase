@@ -8,7 +8,7 @@
 import Foundation
 
 @objc(KBPermanentEventStore)
-open class KBPermanentEventStore : NSObject {
+public class KBPermanentEventStore : NSObject {
     
     internal let knowledgeStore: KBKnowledgeStore
     
@@ -33,7 +33,7 @@ public protocol KBPermanentReadableEventStore {
 
 extension KBPermanentEventStore : KBPermanentReadableEventStore {
 
-    open func historicEvent(withIdentifier identifier: String) async throws -> KBHistoricEvent? {
+    public func historicEvent(withIdentifier identifier: String) async throws -> KBHistoricEvent? {
         let rawEvent = try await self.knowledgeStore.value(forKey: identifier)
         if rawEvent == nil {
             return nil

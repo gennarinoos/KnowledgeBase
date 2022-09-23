@@ -16,7 +16,7 @@ extension KBKVStore {
      - returns: the Dictionary representation of all values in the KVS.
      
      */
-    @objc open func dictionaryRepresentation() throws -> KBKVPairs {
+    @objc public func dictionaryRepresentation() throws -> KBKVPairs {
         return try self.backingStore.dictionaryRepresentation()
     }
     
@@ -28,7 +28,7 @@ extension KBKVStore {
      - returns: the Dictionary representation of all values in the KVS.
      
      */
-    @objc open func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition) throws -> KBKVPairs {
+    @objc public func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition) throws -> KBKVPairs {
         return try self.backingStore.dictionaryRepresentation(forKeysMatching: condition)
     }
     
@@ -39,7 +39,7 @@ extension KBKVStore {
      - returns the keys
      
      */
-    @objc open func keys() throws -> [String] {
+    @objc public func keys() throws -> [String] {
         return try self.backingStore.keys()
     }
     
@@ -51,7 +51,7 @@ extension KBKVStore {
      - returns the keys
      
      */
-    @objc open func keys(matching condition: KBGenericCondition) throws -> [String] {
+    @objc public func keys(matching condition: KBGenericCondition) throws -> [String] {
         return try self.backingStore.keys(matching: condition)
     }
     
@@ -62,7 +62,7 @@ extension KBKVStore {
      - returns the keys
      
      */
-    @objc open func values() throws -> [Any] {
+    @objc public func values() throws -> [Any] {
         return try self.backingStore.values()
     }
     
@@ -75,7 +75,7 @@ extension KBKVStore {
      - returns: the value
      
      */
-    open func value(for key: String) throws -> Any? {
+    public func value(for key: String) throws -> Any? {
         return try self.backingStore.value(for: key)
     }
     
@@ -89,7 +89,7 @@ extension KBKVStore {
      - returns: the values
      
      */
-    open func values(for keys: [String]) throws -> [Any?] {
+    public func values(for keys: [String]) throws -> [Any?] {
         return try self.backingStore.values(for: keys)
     }
     
@@ -102,7 +102,7 @@ extension KBKVStore {
      - returns: the values
      
      */
-    open func values(forKeysMatching condition: KBGenericCondition) throws -> [Any?] {
+    public func values(forKeysMatching condition: KBGenericCondition) throws -> [Any?] {
         return try self.backingStore.values(forKeysMatching: condition)
     }
     
@@ -115,14 +115,14 @@ extension KBKVStore {
      - returns: the values
      
      */
-    open func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition) throws -> [KBKVPairWithTimestamp] {
+    public func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition) throws -> [KBKVPairWithTimestamp] {
         return try self.backingStore.keyValuesAndTimestamps(forKeysMatching: condition)
     }
 }
 
 extension KBKnowledgeStore {
     
-    @objc open func entities() throws -> [KBEntity] {
+    @objc public func entities() throws -> [KBEntity] {
         return try KBSyncMethodReturningInitiable(execute: self.entities)
     }
     
@@ -134,7 +134,7 @@ extension KBKnowledgeStore {
      
      - returns: The array of triples in a dictionary with keys: subject, predicate, object
      */
-    @objc open func triples(matching condition: KBTripleCondition?) throws -> [KBTriple] {
+    @objc public func triples(matching condition: KBTripleCondition?) throws -> [KBTriple] {
         return try self.backingStore.triplesComponents(matching: condition)
     }
 }

@@ -11,22 +11,22 @@ extension KBEntity {
     
     // MARK: KBEntity attributes
     
-    open func value(forAttribute key: String,
-                    completionHandler: @escaping (Swift.Result<Any?, Error>) -> ()) {
+    public func value(forAttribute key: String,
+                      completionHandler: @escaping (Swift.Result<Any?, Error>) -> ()) {
         let key = KBHexastore.JOINER.combine(self.identifier, key)
         self.store.value(for: key, completionHandler: completionHandler)
     }
     
-    open func set(value: Any,
-                  forAttribute key: String,
-                  completionHandler: @escaping KBActionCompletion) {
+    public func set(value: Any,
+                    forAttribute key: String,
+                    completionHandler: @escaping KBActionCompletion) {
         let writeBatch = self.store.backingStore.writeBatch()
         let entityKey = KBHexastore.JOINER.combine(self.identifier, key)
         writeBatch.set(value: value, for: entityKey)
         writeBatch.write(completionHandler: completionHandler)
     }
     
-    open func setAttributes(_ keysAndValues: [String: Any], completionHandler: @escaping KBActionCompletion) {
+    public func setAttributes(_ keysAndValues: [String: Any], completionHandler: @escaping KBActionCompletion) {
         let writeBatch = self.store.backingStore.writeBatch()
         for (key, value) in keysAndValues {
             let entityKey = KBHexastore.JOINER.combine(self.identifier, key)
@@ -36,7 +36,7 @@ extension KBEntity {
         writeBatch.write(completionHandler: completionHandler)
     }
 
-    open func removeAttribute(named key: String, completionHandler: @escaping KBActionCompletion) {
+    public func removeAttribute(named key: String, completionHandler: @escaping KBActionCompletion) {
         let entityKey = KBHexastore.JOINER.combine(self.identifier, key)
         self.store.removeValue(for: entityKey, completionHandler: completionHandler)
     }
@@ -54,9 +54,9 @@ extension KBEntity {
      - parameter completionHandler: the callback method
      
      */
-    open func link(to target: KBEntity,
-                   withPredicate predicate: Label,
-                   completionHandler: @escaping KBActionCompletion) {
+    public func link(to target: KBEntity,
+                     withPredicate predicate: Label,
+                     completionHandler: @escaping KBActionCompletion) {
         log.trace("Linking [<\(self)> <\(predicate)> <\(target)>]")
 
         let subject = self.identifier
@@ -100,10 +100,10 @@ extension KBEntity {
      - parameter completionHandler: the callback method
 
      */
-    open func unlink(to target: KBEntity,
-                     withPredicate label: Label,
-                     ignoreWeights: Bool = false,
-                     completionHandler: @escaping KBActionCompletion) {
+    public func unlink(to target: KBEntity,
+                       withPredicate label: Label,
+                       ignoreWeights: Bool = false,
+                       completionHandler: @escaping KBActionCompletion) {
         if ignoreWeights {
             self.store.backingStore.dropLink(withLabel: label,
                                              between: self.identifier,
@@ -146,7 +146,7 @@ extension KBEntity {
     /**
      Remove the entity from the graph
      */
-    open func remove(completionHandler: @escaping KBActionCompletion) {
+    public func remove(completionHandler: @escaping KBActionCompletion) {
         self.store.backingStore.dropLinks(withLabel: nil, from: self.identifier, completionHandler: completionHandler)
         self.store.delegate?.linkedDataDidChange()
     }
@@ -166,10 +166,10 @@ extension KBEntity {
      - parameter complement: (defaults false) if true returns the complementary set
      - parameter completionHandler: the callback method
      */
-    open func linkedEntities(withPredicate predicate: Label,
-                             matchType: KBMatchType = .equal,
-                             complement wantsComplementarySet: Bool = false,
-                             completionHandler:@escaping (Swift.Result<[(predicate: Label, object: KBEntity)], Error>) -> ()) {
+    public func linkedEntities(withPredicate predicate: Label,
+                               matchType: KBMatchType = .equal,
+                               complement wantsComplementarySet: Bool = false,
+                               completionHandler:@escaping (Swift.Result<[(predicate: Label, object: KBEntity)], Error>) -> ()) {
         let negatedFlag = wantsComplementarySet  == true ? "NOT " : ""
         log.trace("\(negatedFlag, privacy: .public)[<\(self)> <\(predicate):\(matchType.description, privacy: .public)> $?]")
 
@@ -218,7 +218,7 @@ extension KBEntity {
 
      - parameter completionHandler: the callback method
      */
-    open func linkedEntities(completionHandler: @escaping (Swift.Result<[(predicate: Label, object: KBEntity)], Error>) -> ()) {
+    public func linkedEntities(completionHandler: @escaping (Swift.Result<[(predicate: Label, object: KBEntity)], Error>) -> ()) {
         log.trace("[<\(self)> $? $?]")
 
         let partial = KBHexastore.JOINER.combine(
@@ -253,10 +253,10 @@ extension KBEntity {
      - parameter complement: (defaults false) if true returns the complementary set
      - parameter completionHandler: the callback method
      */
-    open func linkingEntities(withPredicate predicate: Label,
-                              matchType: KBMatchType = .equal,
-                              complement wantsComplementarySet: Bool = false,
-                              completionHandler: @escaping (Swift.Result<[(subject: KBEntity, predicate: Label)], Error>) -> ()) {
+    public func linkingEntities(withPredicate predicate: Label,
+                                matchType: KBMatchType = .equal,
+                                complement wantsComplementarySet: Bool = false,
+                                completionHandler: @escaping (Swift.Result<[(subject: KBEntity, predicate: Label)], Error>) -> ()) {
         let negatedFlag = wantsComplementarySet ? "NOT " : ""
         log.trace("\(negatedFlag, privacy: .public)[$? <\(predicate):\(matchType.description, privacy: .public)> \(self)]")
 
@@ -333,7 +333,7 @@ extension KBEntity {
      
      - parameter completionHandler: the callback method
      */
-    open func linkingEntities(completionHandler: @escaping (Swift.Result<[(subject: KBEntity, predicate: Label)], Error>) -> ()) {
+    public func linkingEntities(completionHandler: @escaping (Swift.Result<[(subject: KBEntity, predicate: Label)], Error>) -> ()) {
         log.trace("[$? $? <\(self)>]")
 
         let partial = KBHexastore.JOINER.combine(
@@ -368,9 +368,9 @@ extension KBEntity {
      on the identifier of the linked KBEntity (target)
      - parameter completionHandler: the callback method
      */
-    open func links(to target: KBEntity,
-                    matchType: KBMatchType = .equal,
-                    completionHandler: @escaping (Swift.Result<[Label], Error>) -> ()) {
+    public func links(to target: KBEntity,
+                      matchType: KBMatchType = .equal,
+                      completionHandler: @escaping (Swift.Result<[Label], Error>) -> ()) {
         log.trace("[<\(self)> $? <\(target):\(matchType.description, privacy: .public)>]")
 
         let partial: String

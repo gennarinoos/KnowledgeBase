@@ -14,7 +14,7 @@ extension KBKnowledgeStore {
      - parameter completionHandler: the callback method
      
      */
-    open func entities(completionHandler: @escaping (Swift.Result<[KBEntity], Error>) -> ()) {
+    public func entities(completionHandler: @escaping (Swift.Result<[KBEntity], Error>) -> ()) {
         var uniqueIDs = Set<Label>()
         
         self.backingStore.values() { result in
@@ -42,7 +42,7 @@ extension KBKnowledgeStore {
      If nil, matches all triples
      - parameter completionHandler: the callback method
      */
-    open func triples(matching condition: KBTripleCondition?,
+    public func triples(matching condition: KBTripleCondition?,
                       completionHandler: @escaping (Swift.Result<[KBTriple], Error>) -> ())
     {
         self.backingStore.triplesComponents(matching: condition, completionHandler: completionHandler)

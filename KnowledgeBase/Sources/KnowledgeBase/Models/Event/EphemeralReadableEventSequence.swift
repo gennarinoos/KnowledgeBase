@@ -90,7 +90,7 @@ extension KBEphemeralEventSequence : KBEphemeralReadableEventSequence {
         return result
     }
     
-    open func events(between startDate: Date, and endDate: Date) async throws -> [KBEvent] {
+    public func events(between startDate: Date, and endDate: Date) async throws -> [KBEvent] {
         return try await self.findEvents { (entity: KBEntity) -> Bool in
             guard let eventStartDate: Date = entity.value(forKey: "startDate") as? Date else {
                 log.error("missing startDate for entity identifier \(entity.identifier, privacy: .private(mask: .hash))")
@@ -106,7 +106,7 @@ extension KBEphemeralEventSequence : KBEphemeralReadableEventSequence {
         }
     }
     
-    open func events(withIdentifier identifier: String) async throws -> [KBEvent] {
+    public func events(withIdentifier identifier: String) async throws -> [KBEvent] {
         return try await self.findEvents { (entity: KBEntity) -> Bool in
             guard let eventIdentifier: String = entity.value(forKey: "identifier") as? String else {
                 log.error("missing identifier for entity  identifier \(entity.identifier, privacy: .private(mask: .hash))")
@@ -117,7 +117,7 @@ extension KBEphemeralEventSequence : KBEphemeralReadableEventSequence {
         }
     }
     
-    open func first() async throws -> KBEvent? {
+    public func first() async throws -> KBEvent? {
         let event = try await self.historyStartEvent.linkedEntities(withPredicate: kKBEphemeralEventSequencePredicateLabel)
             .map { $0.object }
             .sorted {
@@ -135,7 +135,7 @@ extension KBEphemeralEventSequence : KBEphemeralReadableEventSequence {
         return nil
     }
     
-    open func last() async throws -> KBEvent? {
+    public func last() async throws -> KBEvent? {
         let value = try await KBKnowledgeStore.inMemoryGraph.value(forKey: kKBEphemeralEventSequenceLastIdentifier)
         if let v = value as? String, v != kKBEphemeralEventSequenceStartEntityIdentifier {
             return try KBEvent(entity: KBKnowledgeStore.inMemoryGraph.entity(withIdentifier: v))

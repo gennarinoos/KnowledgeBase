@@ -16,10 +16,10 @@ extension KBQueueStore {
     ///   - content: the queue item
     ///   - identifier: the queue item unique identifier
     ///   - completionHandler: the callback method, called when the operation completes
-    open func enqueue(_ content: Any, withIdentifier identifier: String, completionHandler: @escaping KBActionCompletion) {
+    public func enqueue(_ content: Any, withIdentifier identifier: String, completionHandler: @escaping KBActionCompletion) {
         self.set(value: content, for: identifier, completionHandler: completionHandler)
     }
-    @objc open func enqueue(_ content: Any, for key: String, completionHandler: @escaping KBObjCActionCompletion) {
+    @objc public func enqueue(_ content: Any, for key: String, completionHandler: @escaping KBObjCActionCompletion) {
         KBObjectiveCAPIResultReturningVoid(completionHandler: completionHandler) { c in
             self.enqueue(content, withIdentifier: key, completionHandler: c)
         }
@@ -30,7 +30,7 @@ extension KBQueueStore {
     /// - Parameters:
     ///   - content: the queue item
     ///   - identifier: the queue item unique identifier
-    open func enqueue(_ content: Any, withIdentifier identifier: String) throws {
+    public func enqueue(_ content: Any, withIdentifier identifier: String) throws {
         try self.set(value: content, for: identifier)
     }
     
@@ -38,12 +38,12 @@ extension KBQueueStore {
     /// - Parameters:
     ///   - contentsByIdentifier: the queue items keyed by identifier
     ///   - completionHandler: the callback method, called when the operation completes
-    open func enqueue(_ contentsByIdentifier: KBKVPairs, completionHandler: @escaping KBActionCompletion) {
+    public func enqueue(_ contentsByIdentifier: KBKVPairs, completionHandler: @escaping KBActionCompletion) {
         let writeBatch = self.writeBatch()
         writeBatch.set(keysAndValues: contentsByIdentifier)
         writeBatch.write(completionHandler: completionHandler)
     }
-    @objc open func enqueue(_ contentsByIdentifier: KBKVPairs, completionHandler: @escaping KBObjCActionCompletion) {
+    @objc public func enqueue(_ contentsByIdentifier: KBKVPairs, completionHandler: @escaping KBObjCActionCompletion) {
         KBObjectiveCAPIResultReturningVoid(completionHandler: completionHandler) { c in
             self.enqueue(contentsByIdentifier, completionHandler: c)
         }
@@ -53,7 +53,7 @@ extension KBQueueStore {
     /// Enqueue multiple items. Blocking version
     /// - Parameters:
     ///   - contentsByIdentifier: the queue item
-    open func enqueue(_ contentsByIdentifier: KBKVPairs) throws {
+    public func enqueue(_ contentsByIdentifier: KBKVPairs) throws {
         let writeBatch = self.writeBatch()
         writeBatch.set(keysAndValues: contentsByIdentifier)
         try writeBatch.write()
@@ -62,7 +62,7 @@ extension KBQueueStore {
     
     /// Dequeue the next item, based on the queue type
     /// - Parameter completionHandler: the callback method
-    open func dequeue(completionHandler: @escaping (Swift.Result<KBQueueItem?, Error>) -> ()) {
+    public func dequeue(completionHandler: @escaping (Swift.Result<KBQueueItem?, Error>) -> ()) {
         self.peek() { result in
             switch result {
             case .success(let item):
@@ -83,7 +83,7 @@ extension KBQueueStore {
             }
         }
     }
-    @objc open func dequeue(completionHandler: @escaping (Error?, KBQueueItem?) -> ()) {
+    @objc public func dequeue(completionHandler: @escaping (Error?, KBQueueItem?) -> ()) {
         KBObjectiveCAPIResultReturningInitiable(completionHandler: completionHandler) { c in
             self.dequeue(completionHandler: c)
         }
@@ -91,7 +91,7 @@ extension KBQueueStore {
     
     /// Dequeue the next item, based on the queue type. Blocking version
     /// - Returns: the dequeued item
-    open func dequeue() throws -> KBQueueItem? {
+    public func dequeue() throws -> KBQueueItem? {
         if let item = try self.peek() {
             try self.removeValue(for: item.identifier)
             return item

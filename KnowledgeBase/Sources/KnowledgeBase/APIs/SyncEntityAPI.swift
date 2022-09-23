@@ -21,9 +21,9 @@ extension KBEntity {
      
      - returns: the array of KBEntity objects `self` is connected to
      */
-    open func linkedEntities(withPredicate predicate: Label,
-                             matchType: KBMatchType = .equal,
-                             complement wantsComplementarySet: Bool = false) throws -> [(predicate: Label, object: KBEntity)] {
+    public func linkedEntities(withPredicate predicate: Label,
+                               matchType: KBMatchType = .equal,
+                               complement wantsComplementarySet: Bool = false) throws -> [(predicate: Label, object: KBEntity)] {
         return try KBSyncMethodReturningInitiable { c in
             self.linkedEntities(withPredicate: predicate,
                                 matchType: matchType,
@@ -41,7 +41,7 @@ extension KBEntity {
      
      - returns: An array of tuples (predicate: P, object: O)
      */
-    open func linkedEntities() throws -> [(predicate: Label, object: KBEntity)] {
+    public func linkedEntities() throws -> [(predicate: Label, object: KBEntity)] {
         return try KBSyncMethodReturningInitiable(execute: self.linkedEntities)
     }
     
@@ -57,9 +57,9 @@ extension KBEntity {
      
      - returns: The array of CKEntity objects matching the condition
      */
-    open func linkingEntities(withPredicate predicate: Label,
-                              matchType: KBMatchType = .equal,
-                              complement wantsComplementarySet: Bool = false) throws -> [(subject: KBEntity, predicate: Label)] {
+    public func linkingEntities(withPredicate predicate: Label,
+                                matchType: KBMatchType = .equal,
+                                complement wantsComplementarySet: Bool = false) throws -> [(subject: KBEntity, predicate: Label)] {
         return try KBSyncMethodReturningInitiable { c in
             self.linkingEntities(withPredicate: predicate,
                                  matchType: matchType,
@@ -77,7 +77,7 @@ extension KBEntity {
      
      - returns: An array of tuples (predicate: P, object: O)
      */
-    open func linkingEntities() throws -> [(subject: KBEntity, predicate: Label)] {
+    public func linkingEntities() throws -> [(subject: KBEntity, predicate: Label)] {
         return try KBSyncMethodReturningInitiable(execute: self.linkingEntities)
     }
 
@@ -91,7 +91,7 @@ extension KBEntity {
      
      - returns: The array of predicate labels
      */
-    @objc open func links(to target: KBEntity,
+    @objc public func links(to target: KBEntity,
                           matchType: KBMatchType = .equal) throws -> [Label] {
         return try KBSyncMethodReturningInitiable { c in
             self.links(to: target,
@@ -110,10 +110,10 @@ extension KBEntity {
      - parameter target: the KBEntity to connect to
      - parameter predicate: the label on the link
      */
-    @objc open func link(to target: KBEntity,
+    @objc public func link(to target: KBEntity,
                          withPredicate predicate: Label) throws {
         try KBSyncMethodReturningVoid { c in
-                self.link(to: target, withPredicate: predicate, completionHandler: c)
+            self.link(to: target, withPredicate: predicate, completionHandler: c)
         }
     }
     
@@ -124,9 +124,9 @@ extension KBEntity {
      - parameter label: the matching predicate
      - parameter ignoreWeights: if true, removes the links regardless of their weight, otherwise decrements the weight value. Links with weight 0 will be removed
      */
-    open func unlink(to target: KBEntity,
-                     withPredicate label: Label,
-                     ignoreWeights: Bool = false) throws {
+    public func unlink(to target: KBEntity,
+                       withPredicate label: Label,
+                       ignoreWeights: Bool = false) throws {
         try KBSyncMethodReturningVoid { c in
             self.unlink(to: target,
                         withPredicate: label,
@@ -138,7 +138,7 @@ extension KBEntity {
     /**
      Remove the entity from the graph
      */
-    open func remove() throws {
+    public func remove() throws {
         try KBSyncMethodReturningVoid { c in
             self.remove(completionHandler: c)
         }

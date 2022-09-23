@@ -27,7 +27,7 @@ extension KBKVStore {
      - parameter completionHandler: the callback method
      
      */
-    open func set(value: Any?, for key: String, completionHandler: @escaping KBActionCompletion) {
+    public func set(value: Any?, for key: String, completionHandler: @escaping KBActionCompletion) {
         guard self.supportsSecureCoding(value) else {
             log.error("Won't save a non NSSecureCoding compliant value (\(String(describing: value)) for key (\(key))")
             completionHandler(.failure(KBError.unexpectedData(value)))
@@ -41,7 +41,7 @@ extension KBKVStore {
             self.delegate?.kvDataDidChange(addedKeys: [key], removedKeys: [])
         }
     }
-    @objc open func set(value: Any?, for key: String, completionHandler: @escaping KBObjCActionCompletion) {
+    @objc public func set(value: Any?, for key: String, completionHandler: @escaping KBObjCActionCompletion) {
         KBObjectiveCAPIResultReturningVoid(completionHandler: completionHandler) { c in
             self.set(value: value, for: key, completionHandler: c)
         }
@@ -54,13 +54,13 @@ extension KBKVStore {
      - parameter completionHandler: the callback method
      
      */
-    open func removeValue(for key: String, completionHandler: @escaping KBActionCompletion) {
+    public func removeValue(for key: String, completionHandler: @escaping KBActionCompletion) {
         self.backingStore.removeValue(for: key) { result in
             completionHandler(result)
             self.delegate?.kvDataDidChange(addedKeys: [], removedKeys: [key])
         }
     }
-    @objc open func removeValue(for key: String, completionHandler: @escaping KBObjCActionCompletion) {
+    @objc public func removeValue(for key: String, completionHandler: @escaping KBObjCActionCompletion) {
         KBObjectiveCAPIResultReturningVoid(completionHandler: completionHandler) { c in
             self.removeValue(for: key, completionHandler: c)
         }
@@ -74,10 +74,10 @@ extension KBKVStore {
      - parameter completionHandler: the callback method
      
      */
-    open func removeValues(for keys: [String], completionHandler: @escaping KBActionCompletion) {
+    public func removeValues(for keys: [String], completionHandler: @escaping KBActionCompletion) {
         self.backingStore.removeValues(for: keys, completionHandler: completionHandler)
     }
-    @objc open func removeValues(for keys: [String], completionHandler: @escaping KBObjCActionCompletion) {
+    @objc public func removeValues(for keys: [String], completionHandler: @escaping KBObjCActionCompletion) {
         KBObjectiveCAPIResultReturningVoid(completionHandler: completionHandler) { c in
             self.removeValues(for: keys, completionHandler: c)
         }
@@ -89,7 +89,7 @@ extension KBKVStore {
      - parameter condition: the condition
      - parameter completionHandler: the callback method. Returns the keys removed
      */
-    open func removeValues(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<[String], Error>) -> ()) {
+    public func removeValues(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<[String], Error>) -> ()) {
         self.backingStore.removeValues(forKeysMatching: condition, completionHandler: completionHandler)
     }
     @objc func removeValues(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Error?, [String]) -> ()) {
@@ -104,7 +104,7 @@ extension KBKVStore {
      - parameter completionHandler: the callback method. Returns the keys removed
      
      */
-    open func removeAll(completionHandler: @escaping (Swift.Result<[String], Error>) -> ()) {
+    public func removeAll(completionHandler: @escaping (Swift.Result<[String], Error>) -> ()) {
         self.backingStore.removeAll { result in
             completionHandler(result)
             self.delegate?.kvWasDestroyed()
@@ -117,10 +117,10 @@ extension KBKVStore {
     /**
      Disable CloudKit syncing and remove all the data in the cloud
      */
-    open func disableSyncAndDeleteCloudData(completionHandler: @escaping KBActionCompletion) {
+    public func disableSyncAndDeleteCloudData(completionHandler: @escaping KBActionCompletion) {
         self.backingStore.disableSyncAndDeleteCloudData(completionHandler: completionHandler)
     }
-    @objc open func disableSyncAndDeleteCloudData(completionHandler: @escaping KBObjCActionCompletion) {
+    @objc public func disableSyncAndDeleteCloudData(completionHandler: @escaping KBObjCActionCompletion) {
         KBObjectiveCAPIResultReturningVoid(completionHandler: completionHandler, self.disableSyncAndDeleteCloudData(completionHandler:))
     }
     

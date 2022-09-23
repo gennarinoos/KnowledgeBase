@@ -21,7 +21,7 @@ extension KBKVStore {
      - parameter value: the value
      - parameter key: the key
      */
-    open func set(value: Any?, for key: String) throws {
+    public func set(value: Any?, for key: String) throws {
         guard self.supportsSecureCoding(value) else {
             log.error("Won't save a non NSSecureCoding compliant value (\(String(describing: value)) for key (\(key))")
             return
@@ -40,7 +40,7 @@ extension KBKVStore {
      
      - parameter key: the key
      */
-    @objc open func removeValue(for key: String) throws {
+    @objc public func removeValue(for key: String) throws {
         try KBSyncMethodReturningVoid { c in
             self.removeValue(for: key, completionHandler: c)
         }
@@ -52,7 +52,7 @@ extension KBKVStore {
      
      - parameter keys: the keys
      */
-    @objc open func removeValues(for keys: [String]) throws {
+    @objc public func removeValues(for keys: [String]) throws {
         try KBSyncMethodReturningVoid { c in
             self.removeValues(for: keys, completionHandler: c)
         }
@@ -64,7 +64,7 @@ extension KBKVStore {
      
      - parameter condition: the condition
      */
-    @objc open func removeValues(forKeysMatching condition: KBGenericCondition) throws -> [String] {
+    @objc public func removeValues(forKeysMatching condition: KBGenericCondition) throws -> [String] {
         try KBSyncMethodReturningInitiable { c in
             self.removeValues(forKeysMatching: condition, completionHandler: c)
         }
@@ -73,7 +73,7 @@ extension KBKVStore {
     /**
      Remove all values in the KVS
      */
-    @objc open func removeAll() throws -> [String] {
+    @objc public func removeAll() throws -> [String] {
         try KBSyncMethodReturningInitiable(execute: self.removeAll)
     }
 }
@@ -87,7 +87,7 @@ extension KBKnowledgeStore {
      
      - parameter identifier: the identifier
      */
-    @objc open func removeEntity(_ identifier: Label) throws {
+    @objc public func removeEntity(_ identifier: Label) throws {
         try KBSyncMethodReturningVoid { c in
             self.removeEntity(identifier, completionHandler: c)
         }

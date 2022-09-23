@@ -16,7 +16,7 @@ let TotalDurationKey = "totalDuration"
 let MetadataKey = "metadata"
 
 @objc(KBHistoricEvent)
-open class KBHistoricEvent : NSObject, NSCopying, NSSecureCoding {
+public class KBHistoricEvent : NSObject, NSCopying, NSSecureCoding {
     
     @objc public let identifier: String
     internal var _firstSeen: Date
@@ -26,22 +26,22 @@ open class KBHistoricEvent : NSObject, NSCopying, NSSecureCoding {
     internal var _totalDuration: TimeInterval
     internal var _metadata: KBJSONObject
     
-    @objc open var firstSeen: Date {
+    @objc public var firstSeen: Date {
         return self._firstSeen
     }
-    @objc open var lastSeen: Date {
+    @objc public var lastSeen: Date {
         return self._lastSeen
     }
-    @objc open var frequency: Int {
+    @objc public var frequency: Int {
         return self._frequency
     }
-    @objc open var lastDuration: TimeInterval {
+    @objc public var lastDuration: TimeInterval {
         return self._lastDuration
     }
-    @objc open var totalDuration: TimeInterval {
+    @objc public var totalDuration: TimeInterval {
         return self._totalDuration
     }
-    @objc open var metadata: KBJSONObject {
+    @objc public var metadata: KBJSONObject {
         return self._metadata
     }
     

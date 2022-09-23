@@ -15,7 +15,7 @@ extension KBKnowledgeStore {
      
      - parameter identifier: the identifier
      */
-    @objc open func removeEntity(_ identifier: Label) async throws {
+    @objc public func removeEntity(_ identifier: Label) async throws {
         log.debug("[$? <\(identifier)> $?]")
         
         let subjectMatches = KBTripleCondition(
@@ -34,7 +34,7 @@ extension KBKnowledgeStore {
         self?.delegate?.linkedDataDidChange()
     }
     
-    open func verify(path: KBPath) async throws -> Bool {
+    public func verify(path: KBPath) async throws -> Bool {
         return try await self.backingStore.verify(path: path)
     }
 }

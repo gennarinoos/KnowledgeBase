@@ -8,7 +8,7 @@
 import Foundation
 
 @objc(KBQueueStore)
-open class KBQueueStore : KBKVStore {
+public class KBQueueStore : KBKVStore {
     
     public enum QueueType {
         /// First in - first out
@@ -25,37 +25,37 @@ open class KBQueueStore : KBKVStore {
     }
     
     @available(*, unavailable)
-    @objc open override class func defaultStore() -> KBQueueStore {
+    @objc public override class func defaultStore() -> KBQueueStore {
         fatalError("\(#function) is not supported for objects of type KBQueueStore")
     }
     
     @available(*, unavailable)
-    @objc open override class func defaultSynchedStore() -> KBQueueStore {
+    @objc public override class func defaultSynchedStore() -> KBQueueStore {
         fatalError("\(#function) is not supported for objects of type KBQueueStore")
     }
 
     @available(*, unavailable)
-    @objc open override class func inMemoryStore() -> KBQueueStore {
+    @objc public override class func inMemoryStore() -> KBQueueStore {
         fatalError("\(#function) is not supported for objects of type KBQueueStore")
     }
 
     @available(*, unavailable)
-    @objc open override class func userDefaultsStore() -> KBQueueStore {
+    @objc public override class func userDefaultsStore() -> KBQueueStore {
         fatalError("\(#function) is not supported for objects of type KBQueueStore")
     }
     
     @available(*, unavailable)
-    open override class func store(withName name: String) -> KBQueueStore {
+    public override class func store(withName name: String) -> KBQueueStore {
         fatalError("\(#function) is not supported for objects of type KBQueueStore")
     }
     
     @available(*, unavailable)
-    open override class func store(_ location: Location) -> KBQueueStore {
+    public override class func store(_ location: Location) -> KBQueueStore {
         fatalError("\(#function) is not supported for objects of type KBQueueStore")
     }
     
     @available(*, unavailable)
-    @objc open override class func synchedStore(withName name: String) -> KBQueueStore {
+    @objc public override class func synchedStore(withName name: String) -> KBQueueStore {
         fatalError("\(#function) is not supported for objects of type KBQueueStore")
     }
     
@@ -64,23 +64,23 @@ open class KBQueueStore : KBKVStore {
         super.init(location)
     }
     
-    open class func defaultStore(type: QueueType) -> KBQueueStore {
+    public class func defaultStore(type: QueueType) -> KBQueueStore {
         return KBQueueStore.store(withName: "", type: type)
     }
     
-    open class func defaultSynchedStore(type: QueueType) -> KBQueueStore {
+    public class func defaultSynchedStore(type: QueueType) -> KBQueueStore {
         return KBQueueStore.synchedStore(withName: "", type: type)
     }
 
-    open class func inMemoryStore(type: QueueType) -> KBQueueStore {
+    public class func inMemoryStore(type: QueueType) -> KBQueueStore {
         return KBQueueStore.store(Location.inMemory, type: type)
     }
 
-    open class func userDefaultsStore(type: QueueType) -> KBQueueStore {
+    public class func userDefaultsStore(type: QueueType) -> KBQueueStore {
         return KBQueueStore.store(Location.userDefaults, type: type)
     }
     
-    open class func store(withName name: String, type: QueueType) -> KBQueueStore {
+    public class func store(withName name: String, type: QueueType) -> KBQueueStore {
         if name == KnowledgeBaseInMemoryIdentifier {
             return KBQueueStore.store(.inMemory, type: type)
         } else if name == KnowledgeBaseUserDefaultsIdentifier {
@@ -89,11 +89,11 @@ open class KBQueueStore : KBKVStore {
         return KBQueueStore.store(Location.sql(name), type: type)
     }
     
-    open class func store(_ location: Location, type: QueueType) -> KBQueueStore {
+    public class func store(_ location: Location, type: QueueType) -> KBQueueStore {
         return KBQueueStore(location, type: type)
     }
     
-    open class func synchedStore(withName name: String, type: QueueType) -> KBQueueStore {
+    public class func synchedStore(withName name: String, type: QueueType) -> KBQueueStore {
         return KBQueueStore.store(Location.sqlSynched(name), type: type)
     }
 }

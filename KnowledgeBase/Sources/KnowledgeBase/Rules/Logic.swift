@@ -16,18 +16,18 @@ enum KBRuleBasedLogicError: Error {
 typealias RuleLiteral = (predicate: Label?, object: KBEntity)
 
 @objc(KBRuleBasedLogic)
-open class KBRuleBasedLogic : NSObject {
+public class KBRuleBasedLogic : NSObject {
     internal var body: [RuleLiteral]
     internal var negatedBody: [RuleLiteral]
 
-    @objc open override var hash: Int {
+    @objc public override var hash: Int {
         get {
             return (body.reduce("") { "\($0)-\($1.object).\($1.predicate ?? "")" }
                 + negatedBody.reduce("") { "\($0)-\($1.object).\($1.predicate ?? "")" }).hashValue
         }
     }
 
-    @objc open var identifier: String {
+    @objc public var identifier: String {
         return "\(RULE_PREFIX)\(String(self.hash))"
     }
 
@@ -36,11 +36,11 @@ open class KBRuleBasedLogic : NSObject {
         self.negatedBody = negatedBody
     }
 
-    @objc open class func ifExistsLink(_ predicate: Label?, to: KBEntity) -> KBRuleBasedLogic {
+    @objc public class func ifExistsLink(_ predicate: Label?, to: KBEntity) -> KBRuleBasedLogic {
         return KBRuleBasedLogic(body: [(predicate: predicate, object: to)])
     }
 
-    @objc open func andExistsLink(_ predicate: Label?, to: KBEntity) throws -> KBRuleBasedLogic {
+    @objc public func andExistsLink(_ predicate: Label?, to: KBEntity) throws -> KBRuleBasedLogic {
         let inNegatedBody = self.negatedBody.filter { predicate == $0.predicate && to == $0.object }
         if inNegatedBody.count > 0 {
             throw KBRuleBasedLogicError.unsatisfiableRule
@@ -49,11 +49,11 @@ open class KBRuleBasedLogic : NSObject {
         return self
     }
 
-    @objc open class func ifNotExistsLink(_ predicate: Label?, to: KBEntity) -> KBRuleBasedLogic {
+    @objc public class func ifNotExistsLink(_ predicate: Label?, to: KBEntity) -> KBRuleBasedLogic {
         return KBRuleBasedLogic(negatedBody: [(predicate: predicate, object: to)])
     }
 
-    @objc open func andNotExistsLink(_ predicate: Label?, to: KBEntity) throws -> KBRuleBasedLogic {
+    @objc public func andNotExistsLink(_ predicate: Label?, to: KBEntity) throws -> KBRuleBasedLogic {
         let inPositiveBody = self.body.filter { predicate == $0.predicate && to == $0.object }
         if inPositiveBody.count > 0 {
             throw KBRuleBasedLogicError.unsatisfiableRule
@@ -62,7 +62,7 @@ open class KBRuleBasedLogic : NSObject {
         return self
     }
 
-    @objc open func and(_ rule: KBRuleBasedLogic) -> KBRuleBasedLogic {
+    @objc public func and(_ rule: KBRuleBasedLogic) -> KBRuleBasedLogic {
         return KBRuleBasedLogic(
             body: self.body + rule.body,
             negatedBody: self.negatedBody + rule.negatedBody

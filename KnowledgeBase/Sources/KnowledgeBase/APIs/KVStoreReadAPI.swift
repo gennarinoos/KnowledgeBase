@@ -27,10 +27,10 @@ extension KBKVStore {
      - parameter completionHandler: the callback method
      
      */
-    open func dictionaryRepresentation(completionHandler: @escaping (Swift.Result<KBKVPairs, Error>) -> ()) {
+    public func dictionaryRepresentation(completionHandler: @escaping (Swift.Result<KBKVPairs, Error>) -> ()) {
         return self.backingStore.dictionaryRepresentation(completionHandler: completionHandler)
     }
-    @objc open func dictionaryRepresentation(completionHandler: @escaping (Error?, KBKVPairs) -> ()) {
+    @objc public func dictionaryRepresentation(completionHandler: @escaping (Error?, KBKVPairs) -> ()) {
         KBObjectiveCAPIResultReturningInitiable(completionHandler: completionHandler, self.dictionaryRepresentation)
     }
     
@@ -41,11 +41,11 @@ extension KBKVStore {
      - parameter completionHandler: the callback method
      
      */
-    open func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<KBKVPairs, Error>) -> ()) {
+    public func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<KBKVPairs, Error>) -> ()) {
         
         return self.backingStore.dictionaryRepresentation(forKeysMatching: condition, completionHandler: completionHandler)
     }
-    @objc open func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Error?, KBKVPairs) -> ()) {
+    @objc public func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Error?, KBKVPairs) -> ()) {
         KBObjectiveCAPIResultReturningInitiable(completionHandler: completionHandler, self.dictionaryRepresentation)
     }
     
@@ -56,10 +56,10 @@ extension KBKVStore {
      - parameter completionHandler: the callback method
      
      */
-    open func keys(completionHandler: @escaping (Swift.Result<[String], Error>) -> ()) {
+    public func keys(completionHandler: @escaping (Swift.Result<[String], Error>) -> ()) {
         return self.backingStore.keys(completionHandler: completionHandler)
     }
-    @objc open func keys(completionHandler: @escaping (Error?, [String]) -> ()) {
+    @objc public func keys(completionHandler: @escaping (Error?, [String]) -> ()) {
         KBObjectiveCAPIResultReturningInitiable(completionHandler: completionHandler, self.keys)
     }
     
@@ -70,10 +70,10 @@ extension KBKVStore {
      - parameter completionHandler: the callback method
      
      */
-    open func keys(matching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<[String], Error>) -> ()) {
+    public func keys(matching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<[String], Error>) -> ()) {
         return self.backingStore.keys(matching: condition, completionHandler: completionHandler)
     }
-    @objc open func keys(matching condition: KBGenericCondition, completionHandler: @escaping (Error?, [String]) -> ()) {
+    @objc public func keys(matching condition: KBGenericCondition, completionHandler: @escaping (Error?, [String]) -> ()) {
         KBObjectiveCAPIResultReturningInitiable(completionHandler: completionHandler) {
             c in
             self.keys(matching: condition, completionHandler: c)
@@ -86,10 +86,10 @@ extension KBKVStore {
      - parameter completionHandler: the callback method
      
      */
-    open func values(completionHandler: @escaping (Swift.Result<[Any], Error>) -> ()) {
+    public func values(completionHandler: @escaping (Swift.Result<[Any], Error>) -> ()) {
         return self.backingStore.values(completionHandler: completionHandler)
     }
-    @objc open func values(completionHandler: @escaping (Error?, [Any]) -> ()) {
+    @objc public func values(completionHandler: @escaping (Error?, [Any]) -> ()) {
         KBObjectiveCAPIResultReturningInitiable(completionHandler: completionHandler, self.values)
     }
     
@@ -100,10 +100,10 @@ extension KBKVStore {
      - parameter completionHandler: the callback method
      
      */
-    open func value(for key: String, completionHandler: @escaping (Swift.Result<Any?, Error>) -> ()) {
+    public func value(for key: String, completionHandler: @escaping (Swift.Result<Any?, Error>) -> ()) {
         return self.backingStore.value(for: key, completionHandler: completionHandler)
     }
-    @objc open func valueForKey(_ key: String, completionHandler: @escaping (Error?, Any?) -> ()) {
+    @objc public func valueForKey(_ key: String, completionHandler: @escaping (Error?, Any?) -> ()) {
         self.value(for: key) { result in
             switch result {
             case .success(let res): completionHandler(nil, res)
@@ -120,10 +120,10 @@ extension KBKVStore {
      - parameter completionHandler: the callback method
      
      */
-    open func values(for keys: [String], completionHandler: @escaping (Swift.Result<[Any?], Error>) -> ()) {
+    public func values(for keys: [String], completionHandler: @escaping (Swift.Result<[Any?], Error>) -> ()) {
         return self.backingStore.values(for: keys, completionHandler: completionHandler)
     }
-    @objc open func values(for keys: [String], completionHandler: @escaping (Error?, [Any]) -> ()) {
+    @objc public func values(for keys: [String], completionHandler: @escaping (Error?, [Any]) -> ()) {
         self.values(for: keys) { result in
             switch result {
             case .success(let v):
@@ -149,10 +149,10 @@ extension KBKVStore {
      - parameter completionHandler: the callback method
      
      */
-    open func values(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<[Any?], Error>) -> ()) {
+    public func values(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<[Any?], Error>) -> ()) {
         return self.backingStore.values(forKeysMatching: condition, completionHandler: completionHandler)
     }
-    @objc open func values(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Error?, [Any]) -> ()) {
+    @objc public func values(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Error?, [Any]) -> ()) {
         self.values(forKeysMatching: condition) { result in
             switch result {
             case .success(let v):
@@ -170,7 +170,7 @@ extension KBKVStore {
      - parameter completionHandler: the callback method
      
      */
-    open func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<[KBKVPairWithTimestamp], Error>) -> ()) {
+    public func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<[KBKVPairWithTimestamp], Error>) -> ()) {
         return self.backingStore.keyValuesAndTimestamps(forKeysMatching: condition, completionHandler: completionHandler)
     }
 }

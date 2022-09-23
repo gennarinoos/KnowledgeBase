@@ -16,7 +16,7 @@ extension KBKVStore {
      - parameter key: the key
      
      */
-    @objc open func set(value: Any?, for key: String) async throws {
+    @objc public func set(value: Any?, for key: String) async throws {
         guard self.supportsSecureCoding(value) else {
             log.error("Trying to save a non NSSecureCoding compliant value (\(String(describing: value))) for key (\(key)")
             throw KBError.unexpectedData(value)
@@ -35,7 +35,7 @@ extension KBKVStore {
      - parameter key: the key
      
      */
-    @objc open func removeValue(for key: String) async throws {
+    @objc public func removeValue(for key: String) async throws {
         try await self.backingStore.removeValue(for: key)
         self.store.delegate?.kvDataDidChange(addedKeys: [], removedKeys: [key])
     }
@@ -47,7 +47,7 @@ extension KBKVStore {
      - parameter keys: the keys
      
      */
-    @objc open func removeValues(for keys: [String]) async throws {
+    @objc public func removeValues(for keys: [String]) async throws {
         try await self.backingStore.removeValues(for: keys)
         self.store.delegate?.kvDataDidChange(addedKeys: [], removedKeys: keys)
     }
@@ -57,7 +57,7 @@ extension KBKVStore {
      
      - parameter condition: the condition
      */
-    @objc open func removeValues(forKeysMatching condition: KBGenericCondition) async throws -> [String] {
+    @objc public func removeValues(forKeysMatching condition: KBGenericCondition) async throws -> [String] {
         let keys = try await self.backingStore.removeValues(forKeysMatching: condition)
         self.store.delegate?.kvDataDidChange(addedKeys: [], removedKeys: keys)
         return keys
@@ -66,7 +66,7 @@ extension KBKVStore {
     /**
      Remove all values in the KVS, asynchronously.
      */
-    @objc open func removeAll() async throws -> [String] {
+    @objc public func removeAll() async throws -> [String] {
         let removedKeys = try await self.backingStore.removeAll()
         if let s = self as? KBKnowledgeStore {
             s.delegate?.linkedDataDidChange()
@@ -78,7 +78,7 @@ extension KBKVStore {
     /**
      Disable CloudKit syncing and remove all the data in the cloud, asynchronously.
      */
-    @objc open func disableSyncAndDeleteCloudData() async throws {
+    @objc public func disableSyncAndDeleteCloudData() async throws {
         try await self.backingStore.disableSyncAndDeleteCloudData()
     }
 }

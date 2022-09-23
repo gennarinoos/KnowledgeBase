@@ -19,25 +19,25 @@ let _KBTriple_object = "object"
 let _KBTriple_weight = "weight"
 
 @objc(KBTriple)
-open class KBTriple : NSObject, NSSecureCoding {
+public class KBTriple : NSObject, NSSecureCoding {
     fileprivate let value: Tuple
     
-    @objc open var subject: Label { return self.value.0 }
-    @objc open var predicate: Label { return self.value.1 }
-    @objc open var object: Label { return self.value.2 }
-    @objc open var weight: Int { return self.value.3 }
+    @objc public var subject: Label { return self.value.0 }
+    @objc public var predicate: Label { return self.value.1 }
+    @objc public var object: Label { return self.value.2 }
+    @objc public var weight: Int { return self.value.3 }
     
-    @objc open override var description: String {
+    @objc public override var description: String {
         return "{\(self.subject), \(self.predicate), \(self.object)}[\(self.weight)]"
     }
 
-    @objc open override var hash: Int {
+    @objc public override var hash: Int {
         return self.subject.hashValue ^
             self.predicate.hashValue ^
             self.object.hashValue
     }
     
-    @objc open override func isEqual(_ object: Any?) -> Bool {
+    @objc public override func isEqual(_ object: Any?) -> Bool {
         if let rhs = object as? KBTriple {
             return self == rhs
         }
@@ -52,7 +52,7 @@ open class KBTriple : NSObject, NSSecureCoding {
         self.value = (subject, predicate, object, weight)
     }
     
-    open func encode(with aCoder: NSCoder) {
+    public func encode(with aCoder: NSCoder) {
         aCoder.encode(self.subject, forKey: _KBTriple_subject)
         aCoder.encode(self.predicate, forKey: _KBTriple_predicate)
         aCoder.encode(self.object, forKey: _KBTriple_object)

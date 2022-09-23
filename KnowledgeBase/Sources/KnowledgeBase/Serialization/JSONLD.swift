@@ -33,7 +33,7 @@ enum JSONLDParseError: Error {
 
 // MARK: - KBJSONLDGraph
 @objc(KBJSONLDGraph)
-open class KBJSONLDGraph : NSObject {
+public class KBJSONLDGraph : NSObject {
 
     fileprivate let _entities: [KBEntity]
     private let queue: DispatchQueue
@@ -43,11 +43,11 @@ open class KBJSONLDGraph : NSObject {
         self.queue = DispatchQueue(label: "\(KnowledgeBaseBundleIdentifier).KBJSONLDGraph", attributes: .concurrent)
     }
 
-    @objc open var entities: [String] {
+    @objc public var entities: [String] {
         return self._entities.map { $0.identifier }
     }
 
-    open func linkedData(completionHandler: @escaping (Swift.Result<[KBKVPairs], Error>) -> ()) {
+    public func linkedData(completionHandler: @escaping (Swift.Result<[KBKVPairs], Error>) -> ()) {
         var linkedDataDictionary = [KBKVPairs]()
         let entities = Array(Set(self._entities))
         
@@ -98,7 +98,7 @@ open class KBJSONLDGraph : NSObject {
 
 extension KBKnowledgeStore {
     
-    @objc open func subgraph(withEntities identifiers: [Label]) -> KBJSONLDGraph {
+    @objc public func subgraph(withEntities identifiers: [Label]) -> KBJSONLDGraph {
         return KBJSONLDGraph(withEntities: identifiers.map {
             self.entity(withIdentifier: $0)
         })

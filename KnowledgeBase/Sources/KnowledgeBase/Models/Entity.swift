@@ -13,7 +13,7 @@ let CLOSURE_PREFIX = "closure-"
 
 
 @objc(KBEntity)
-open class KBEntity : NSObject {
+public class KBEntity : NSObject {
     public let identifier: Label
     let store: KBKnowledgeStore
 
@@ -24,7 +24,7 @@ open class KBEntity : NSObject {
 
     // MARK: Hashable, Equatable protocol
 
-    @objc open override func isEqual(_ object: Any?) -> Bool {
+    @objc public override func isEqual(_ object: Any?) -> Bool {
         if let object = object as? KBEntity {
             return self.store.isEqual(object.store)
                 && self.identifier == object.identifier
@@ -32,14 +32,14 @@ open class KBEntity : NSObject {
         return false
     }
     
-    @objc open override var hash: Int {
+    @objc public override var hash: Int {
         return (self.store.name.hashValue
             ^ self.identifier.hashValue);
     }
 
     // MARK: CustomStringConvertible protocol
 
-    @objc open override var description: String {
+    @objc public override var description: String {
         return self.identifier
     }
 }

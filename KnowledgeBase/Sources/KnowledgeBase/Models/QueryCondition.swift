@@ -92,7 +92,7 @@ internal class Matcher {
 }
 
 @objc(KBGenericCondition)
-open class KBGenericCondition : NSObject, NSCopying, NSSecureCoding {
+public class KBGenericCondition : NSObject, NSCopying, NSSecureCoding {
     fileprivate let type : ConditionType
     fileprivate var negated : Bool
     
@@ -102,7 +102,7 @@ open class KBGenericCondition : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    @objc open override var description: String {
+    @objc public override var description: String {
         return "\(negated ? "!" : "")\(type)"
     }
     
@@ -127,7 +127,7 @@ open class KBGenericCondition : NSObject, NSCopying, NSSecureCoding {
         self.negated = negated
     }
     
-    @objc open func and(_ condition: KBGenericCondition) -> KBGenericCondition {
+    @objc public func and(_ condition: KBGenericCondition) -> KBGenericCondition {
         switch self.type {
         case .none: return condition
         case .simple, .composite:
@@ -138,7 +138,7 @@ open class KBGenericCondition : NSObject, NSCopying, NSSecureCoding {
         }
     }
     
-    @objc open func or(_ condition: KBGenericCondition) -> KBGenericCondition {
+    @objc public func or(_ condition: KBGenericCondition) -> KBGenericCondition {
         switch self.type {
         case .none: return condition
         case .simple, .composite:
@@ -169,7 +169,7 @@ open class KBGenericCondition : NSObject, NSCopying, NSSecureCoding {
         return sql
     }()
     
-    @objc open func evaluate(on key: Any?) -> Bool {
+    @objc public func evaluate(on key: Any?) -> Bool {
         switch self.type {
         case .none: return !self.negated
         case let .simple(matcher): return matcher.evaluate(on: key) == !self.negated
@@ -250,11 +250,11 @@ open class KBGenericCondition : NSObject, NSCopying, NSSecureCoding {
  Wrapper around KBGenericCondition to build "triple matchers".
  */
 @objc(KBTripleCondition)
-open class KBTripleCondition : NSObject, NSCopying, NSSecureCoding {
+public class KBTripleCondition : NSObject, NSCopying, NSSecureCoding {
     
     public var rawCondition: KBGenericCondition
     
-    @objc open override var description: String {
+    @objc public override var description: String {
         return rawCondition.description
     }
     
@@ -442,7 +442,7 @@ extension KBTripleCondition {
      
      - returns: The condition
      */
-    @objc open class func havingPredicate(_ label: Label,
+    @objc public class func havingPredicate(_ label: Label,
                                           matchType: KBMatchType = .equal) throws -> KBTripleCondition {
         let partial: String
         
@@ -475,7 +475,7 @@ extension KBTripleCondition {
      - returns: The condition
      */
     
-    @objc open class func havingSubject(_ subject: KBEntity,
+    @objc public class func havingSubject(_ subject: KBEntity,
                                         andAbject object: KBEntity) -> KBTripleCondition {
         let partial = KBHexastore.JOINER.combine(
             KBHexastore.SOP.rawValue,

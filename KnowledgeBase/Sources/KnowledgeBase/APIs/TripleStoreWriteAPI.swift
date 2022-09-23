@@ -15,8 +15,8 @@ extension KBKnowledgeStore {
      
      - parameter identifier: the identifier
      */
-    open func removeEntity(_ identifier: Label, completionHandler: @escaping KBActionCompletion) {
-        log.trace("[$? <\(identifier)> $?]")
+    public func removeEntity(_ identifier: Label, completionHandler: @escaping KBActionCompletion) {
+        log.trace("[<\(identifier)> $? $?] or [<\(identifier)> $? $?]")
         
         let subjectMatches = KBTripleCondition(
             subject: identifier,
@@ -42,7 +42,7 @@ extension KBKnowledgeStore {
         }
     }
     
-    open func verify(path: KBPath, completionHandler: @escaping (Swift.Result<Bool, Error>) -> ()) {
+    public func verify(path: KBPath, completionHandler: @escaping (Swift.Result<Bool, Error>) -> ()) {
         self.backingStore.verify(path: path, completionHandler: completionHandler)
     }
 }

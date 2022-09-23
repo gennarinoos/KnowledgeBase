@@ -36,11 +36,11 @@ public let BlobValueAllowedClasses = [
 ]
 
 @objc(KBSQLHandler)
-open class KBSQLHandler: NSObject {
+public class KBSQLHandler: NSObject {
 
     var connection: Connection?
     
-    @objc open class func inMemoryHandler() -> KBSQLHandler? {
+    @objc public class func inMemoryHandler() -> KBSQLHandler? {
         let handler = KBSQLHandler()
         
         guard let connection = KBSQLHandler.createConnection(location: .inMemory) else {
@@ -121,7 +121,7 @@ open class KBSQLHandler: NSObject {
 
     //MARK: - KVS
     
-    @objc open func keys() throws -> [String] {
+    @objc public func keys() throws -> [String] {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
@@ -138,7 +138,7 @@ open class KBSQLHandler: NSObject {
         return keys
     }
     
-    @objc open func keys(matching condition: KBGenericCondition) throws -> [String] {
+    @objc public func keys(matching condition: KBGenericCondition) throws -> [String] {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
@@ -156,7 +156,7 @@ open class KBSQLHandler: NSObject {
         return keys
     }
     
-    @objc open func values() throws -> [Any] {
+    @objc public func values() throws -> [Any] {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
@@ -175,7 +175,7 @@ open class KBSQLHandler: NSObject {
         return values
     }
     
-    @objc open func values(forKeysMatching condition: KBGenericCondition) throws -> [Any] {
+    @objc public func values(forKeysMatching condition: KBGenericCondition) throws -> [Any] {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
@@ -194,7 +194,7 @@ open class KBSQLHandler: NSObject {
         return values
     }
     
-    open func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition) throws -> [KBKVObjcPairWithTimestamp] {
+    public func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition) throws -> [KBKVObjcPairWithTimestamp] {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
@@ -217,7 +217,7 @@ open class KBSQLHandler: NSObject {
         return keyValuesAndTimestamp
     }
     
-    @objc open func keysAndValues() throws -> KBKVPairs {
+    @objc public func keysAndValues() throws -> KBKVPairs {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
@@ -237,7 +237,7 @@ open class KBSQLHandler: NSObject {
         return dict
     }
     
-    @objc open func keysAndValues(within interval: DateInterval, limit: Int, order: ComparisonResult) throws -> [Date: KBKVPairs] {
+    @objc public func keysAndValues(within interval: DateInterval, limit: Int, order: ComparisonResult) throws -> [Date: KBKVPairs] {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
@@ -267,7 +267,7 @@ open class KBSQLHandler: NSObject {
         return pairsByDate
     }
     
-    @objc open func keysAndvalues(forKeysMatching condition: KBGenericCondition) throws -> KBKVPairs {
+    @objc public func keysAndvalues(forKeysMatching condition: KBGenericCondition) throws -> KBKVPairs {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
@@ -300,7 +300,7 @@ open class KBSQLHandler: NSObject {
         return (query, bindings)
     }
     
-    @objc open func values(for keys: [String]) throws -> [Any] {
+    @objc public func values(for keys: [String]) throws -> [Any] {
         let (query, bindings) = self.selectQuery(project: ["k", "v"],
                                                  whereField: "k",
                                                  isIn: keys.map { $0 as Binding? })
@@ -335,7 +335,7 @@ open class KBSQLHandler: NSObject {
     }
     
     @objc(saveKeysAndValues:error:)
-    open func save(keysAndValues: KBKVPairs) throws {
+    public func save(keysAndValues: KBKVPairs) throws {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
@@ -400,7 +400,7 @@ open class KBSQLHandler: NSObject {
         }
     }
     
-    @objc open func removeValue(for key: String) throws {
+    @objc public func removeValue(for key: String) throws {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
@@ -425,7 +425,7 @@ open class KBSQLHandler: NSObject {
         }
     }
     
-    @objc open func removeValues(for keys: [String]) throws {
+    @objc public func removeValues(for keys: [String]) throws {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
@@ -446,7 +446,7 @@ open class KBSQLHandler: NSObject {
         }
     }
     
-    @objc open func removeValues(forKeysMatching condition: KBGenericCondition) throws {
+    @objc public func removeValues(forKeysMatching condition: KBGenericCondition) throws {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
@@ -458,7 +458,7 @@ open class KBSQLHandler: NSObject {
     
     //MARK: - Triple retrieval
     
-    @objc open func tripleComponents(matching condition: KBTripleCondition?) throws -> [KBTriple] {
+    @objc public func tripleComponents(matching condition: KBTripleCondition?) throws -> [KBTriple] {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
@@ -497,7 +497,7 @@ open class KBSQLHandler: NSObject {
     
     //MARK: - Graph Links
     
-    @objc open func setWeight(forLinkWithLabel predicate: Label,
+    @objc public func setWeight(forLinkWithLabel predicate: Label,
                               between subjectIdentifier: Label,
                               and objectIdentifier: Label,
                               toValue value: Int) throws {
@@ -532,7 +532,7 @@ open class KBSQLHandler: NSObject {
     }
     
     // Objective-C counterpart of Swift method below
-    @objc open func increaseLinkWeight(forLinkWithLabel predicate: Label,
+    @objc public func increaseLinkWeight(forLinkWithLabel predicate: Label,
                                        between subjectIdentifier: Label,
                                        and objectIdentifier: Label) -> Int {
         do {
@@ -545,7 +545,7 @@ open class KBSQLHandler: NSObject {
         }
     }
     
-    open func increaseWeight(forLinkWithLabel predicate: Label,
+    public func increaseWeight(forLinkWithLabel predicate: Label,
                             between subjectIdentifier: Label,
                             and objectIdentifier: Label) throws -> Int {
         guard let connection = self.connection else {
@@ -597,7 +597,7 @@ open class KBSQLHandler: NSObject {
     }
     
     // Objective-C counterpart of Swift method below
-    @objc open func decreaseLinkWeight(forLinkWithLabel predicate: Label,
+    @objc public func decreaseLinkWeight(forLinkWithLabel predicate: Label,
                                        between subjectIdentifier: Label,
                                        and objectIdentifier: Label) -> Int {
         do {
@@ -610,7 +610,7 @@ open class KBSQLHandler: NSObject {
         }
     }
     
-    open func decreaseWeight(forLinkWithLabel predicate: Label,
+    public func decreaseWeight(forLinkWithLabel predicate: Label,
                             between subjectIdentifier: Label,
                             and objectIdentifier: Label) throws -> Int {
         guard let connection = self.connection else {
@@ -696,7 +696,7 @@ open class KBSQLHandler: NSObject {
         }
     }
     
-    @objc open func dropLink(withLabel predicate: Label,
+    @objc public func dropLink(withLabel predicate: Label,
                              between subjectIdentifier: Label,
                              and objectIdentifier: Label) throws {
         guard let connection = self.connection else {
@@ -720,7 +720,7 @@ open class KBSQLHandler: NSObject {
         try self.removeValues(forKeysMatching: condition.rawCondition)
     }
 
-    @objc open func dropLinks(withLabel predicate: String?,
+    @objc public func dropLinks(withLabel predicate: String?,
                               from subjectIdentifier: String) throws {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
@@ -756,7 +756,7 @@ open class KBSQLHandler: NSObject {
     }
     
     @objc(dropLinksBetween:and:error:)
-    open func dropLinks(between subjectIdentifier: String,
+    public func dropLinks(between subjectIdentifier: String,
                         and objectIdentifier: String) throws {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady

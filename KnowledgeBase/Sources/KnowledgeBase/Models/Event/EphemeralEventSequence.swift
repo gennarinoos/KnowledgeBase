@@ -89,7 +89,7 @@ public extension KBEvent {
 }
 
 @objc(KBEphemeralEventSequence)
-open class KBEphemeralEventSequence: NSObject {
+public class KBEphemeralEventSequence: NSObject {
     static let JOINER = "_"
     
     public override init() {

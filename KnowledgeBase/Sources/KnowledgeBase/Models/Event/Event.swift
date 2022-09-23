@@ -7,7 +7,7 @@
 
 import Foundation
 
-@objc open class KBEvent: NSObject {
+@objc public class KBEvent: NSObject {
     
     let identifier: String
     let startDate: Date
@@ -25,7 +25,7 @@ import Foundation
         }
     }
     
-    open override var hash: Int {
+    public override var hash: Int {
         var hasher = Hasher()
         hasher.combine(identifier)
         hasher.combine(startDate)
@@ -33,7 +33,7 @@ import Foundation
         return hasher.finalize()
     }
     
-    open override func isEqual(_ object: Any?) -> Bool {
+    public override func isEqual(_ object: Any?) -> Bool {
         if let other = object as? KBEvent {
             return
                 self.identifier == other.identifier &&
@@ -44,11 +44,11 @@ import Foundation
         }
     }
     
-    open override var description: String {
+    public override var description: String {
         return "\(identifier)[start=\(startDate),end=\(endDate)]"
     }
     
-    open override var debugDescription: String {
+    public override var debugDescription: String {
         return "\(identifier)[start=\(startDate),end=\(endDate),metadata\(metadata)]"
     }
 }
