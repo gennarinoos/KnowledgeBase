@@ -49,9 +49,24 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
         return indexedAssets
     }
     
-    private var authorizationStatus: PHAuthorizationStatus = .notDetermined {
-        willSet {
-            if newValue == .authorized {
+    public var authorizationStatus: PHAuthorizationStatus {
+        get {
+            do {
+                let savedAuthStatus = try self.photosIndexerDefaults.value(for: kKBPhotosAuthorizationStatusKey)
+                if let savedAuthStatus = savedAuthStatus as? Int {
+                    return PHAuthorizationStatus(rawValue: savedAuthStatus) ?? .notDetermined
+                }
+            } catch {}
+            return .notDetermined
+        }
+        set {
+            do {
+                try self.photosIndexerDefaults.set(value: newValue.rawValue,
+                                                   for: kKBPhotosAuthorizationStatusKey)
+            } catch {
+                log.warning("Unable to record kKBPhotosAuthorizationStatusKey status in UserDefaults KBKVStore")
+            }
+            if [.authorized, .limited].contains(newValue) {
                 PHPhotoLibrary.shared().register(self)
             }
         }
@@ -64,26 +79,13 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
         self.imageManager = PHCachingImageManager()
         self.imageManager.allowsCachingHighQualityImages = false
         super.init()
-        self.requestAuthorization()
+        self.requestAuthorization { _ in }
     }
     
-    public func requestAuthorization() {
-        do {
-            let savedAuthStatus = try self.photosIndexerDefaults.value(for: kKBPhotosAuthorizationStatusKey)
-            if let savedAuthStatus = savedAuthStatus as? Int {
-                self.authorizationStatus = PHAuthorizationStatus(rawValue: savedAuthStatus) ?? .notDetermined
-            }
-        } catch {}
-        
-        if [.notDetermined, .denied].contains(self.authorizationStatus) {
-            PHPhotoLibrary.requestAuthorization(for: .readWrite) { status in
-                self.authorizationStatus = status
-                do {
-                    try self.photosIndexerDefaults.set(value: status.rawValue, for: kKBPhotosAuthorizationStatusKey)
-                } catch {
-                    log.warning("Unable to record authorization status in UserDefaults KBKVStore")
-                }
-            }
+    public func requestAuthorization(completionHandler: @escaping (PHAuthorizationStatus) -> Void) {
+        PHPhotoLibrary.requestAuthorization(for: .readWrite) { status in
+            self.authorizationStatus = status
+            completionHandler(status)
         }
     }
     
@@ -231,15 +233,21 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
         
         self.processingQueue.async {
             let changeDetails = changeInstance.changeDetails(for: cameraRoll)
-            if let changeDetails = changeDetails {
+            let totalCount = (changeDetails?.insertedObjects.count ?? 0) + (changeDetails?.removedObjects.count ?? 0) + (changeDetails?.changedObjects.count ?? 0)
+            if let changeDetails = changeDetails, totalCount > 0 {
                 self.cameraRollFetchResult = changeDetails.fetchResultAfterChanges
                 let writeBatch = self.index?.writeBatch()
                 
+                // Inserted
                 for asset in changeDetails.insertedObjects {
                     writeBatch?.set(value: KBPhotoAsset(for: asset), for: asset.localIdentifier)
                 }
                 for delegate in self.delegates.values {
                     delegate.didAddToCameraRoll(assets: changeDetails.insertedObjects)
+                }
+                // Removed
+                for asset in changeDetails.removedObjects {
+                    writeBatch?.set(value: nil, for: asset.localIdentifier)
                 }
                 for delegate in self.delegates.values {
                     delegate.didRemoveFromCameraRoll(assets: changeDetails.removedObjects)
@@ -254,8 +262,8 @@ public class KBPhotosIndexer : NSObject, PHPhotoLibraryChangeObserver {
                     }
                 }
             } else {
+                log.warning("No changes in camera roll. Assuming authorization changed")
                 let _ = self.delegates.map { $0.value.authorizationChanged() }
-                log.warning("No changes in camera roll")
             }
         }
     }
