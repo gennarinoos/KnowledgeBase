@@ -51,8 +51,8 @@ extension KBQueueStore {
         }
     }
     @objc public func peekItems(createdWithin interval: DateInterval,
-                              limit: Int = -1,
-                              completionHandler: @escaping (Error?, [KBQueueItem]) -> ()) {
+                                limit: Int = -1,
+                                completionHandler: @escaping (Error?, [KBQueueItem]) -> ()) {
         KBObjectiveCAPIResultReturningInitiable(completionHandler: completionHandler) {
             c in
             self.peekItems(createdWithin: interval, limit: limit, completionHandler: c)
@@ -108,6 +108,49 @@ extension KBQueueStore {
      */
     public func peek() throws -> KBQueueItem? {
         return try self.peekItems(createdWithin: DateInterval(start: Date.distantPast, end: Date()), limit: 1).first
+    }
+    
+    /**
+     Retrieves a specific item in the queue if exists, given an identifier
+     
+     - parameter identifier: the item identifier in the queue
+     - parameter completionHandler: the callback method
+     
+     */
+    public func retrieveItem(withIdentifier identifier: String, completionHandler: @escaping (Swift.Result<KBQueueItem?, Error>) -> ()) {
+        let condition = KBGenericCondition(.equal, value: identifier)
+        self.keyValuesAndTimestamps(forKeysMatching: condition) { result in
+            switch result {
+            case .success(let kvPairsWithTimestamps):
+                guard kvPairsWithTimestamps.count > 0 else {
+                    completionHandler(.success(nil))
+                    return
+                }
+                guard kvPairsWithTimestamps.count == 1,
+                      let kvPairWithTimestamp = kvPairsWithTimestamps.first else {
+                    completionHandler(.failure(KBError.unexpectedData(kvPairsWithTimestamps)))
+                    return
+                }
+                guard let value = kvPairWithTimestamp.value else {
+                    completionHandler(.failure(KBError.unexpectedData(kvPairsWithTimestamps)))
+                    return
+                }
+                let item = KBQueueItem(
+                    identifier: kvPairWithTimestamp.key,
+                    content: value,
+                    createdAt: kvPairWithTimestamp.timestamp
+                )
+                completionHandler(.success(item))
+            case .failure(let error):
+                completionHandler(.failure(error))
+            }
+        }
+    }
+    @objc public func retrieveItem(withIdentifier identifier: String, completionHandler: @escaping (Error?, KBQueueItem?) -> ()) {
+        KBObjectiveCAPIResultReturningInitiable(completionHandler: completionHandler) {
+            c in
+            self.retrieveItem(withIdentifier: identifier, completionHandler: c)
+        }
     }
 }
 
