@@ -33,8 +33,9 @@ extension KBQueueStore {
      */
     public func peekItems(createdWithin interval: DateInterval,
                           limit: Int? = nil,
+                          overrideOrder: ComparisonResult? = nil,
                           completionHandler: @escaping (Swift.Result<[KBQueueItem], Error>) -> ()) {
-        let order = self.queueType == .fifo ? ComparisonResult.orderedAscending : ComparisonResult.orderedDescending
+        let order = overrideOrder ?? (self.queueType == .fifo ? ComparisonResult.orderedAscending : ComparisonResult.orderedDescending)
         return self.backingStore.dictionaryRepresentation(createdWithin: interval, limit: limit, order: order) { result in
             switch result {
             case .success(let itemsKeyedByDate):
