@@ -38,7 +38,7 @@ public enum KBError: CustomNSError, LocalizedError {
         case .notSupported: return "This operation is not supported"
         case .databaseNotReady: return "Could not access database"
         case .databaseException(let s): return "The database threw an exception: \(s)"
-        case .fatalError(let s): return "A fatal error occurred: \(s)"
+        case .fatalError(let s): return "\(s)"
         case .unexpectedData(let data): return "Unexpected data: \(String(describing: data))"
         case .genericError(let code): return "Error with code: \(code)"
         }
