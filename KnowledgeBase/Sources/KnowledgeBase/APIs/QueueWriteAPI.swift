@@ -98,4 +98,45 @@ extension KBQueueStore {
         }
         return nil
     }
+    
+    /// Dequeue a specific item (random access)
+    /// - Parameter completionHandler: the callback method
+    public func dequeue(item: KBQueueItem,
+                        completionHandler: @escaping (Swift.Result<KBQueueItem?, Error>) -> ()) {
+        self.value(for: item.identifier) { result in
+            switch result {
+            case .success(let value):
+                if let _ = value {
+                    self.removeValue(for: item.identifier) {
+                        (result: Swift.Result) in
+                        switch result {
+                        case .success():
+                            completionHandler(.success(item))
+                        case .failure(let error):
+                            completionHandler(.failure(error))
+                        }
+                    }
+                }
+                completionHandler(.success(nil))
+            case .failure(let error):
+                completionHandler(.failure(error))
+            }
+        }
+    }
+    @objc public func dequeue(item: KBQueueItem,
+                              completionHandler: @escaping (Error?, KBQueueItem?) -> ()) {
+        KBObjectiveCAPIResultReturningInitiable(completionHandler: completionHandler) { c in
+            self.dequeue(item: item, completionHandler: c)
+        }
+    }
+    
+    /// Dequeue the next item, based on the queue type. Blocking version
+    /// - Returns: the dequeued item
+    public func dequeue(item: KBQueueItem) throws -> KBQueueItem? {
+        if let _ = try self.value(for: item.identifier) {
+            try self.removeValue(for: item.identifier)
+            return item
+        }
+        return nil
+    }
 }

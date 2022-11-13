@@ -112,6 +112,38 @@ extension KBQueueStore {
     }
     
     /**
+     Retrieves the next `count` items in the queue, according to the policy for the queue type (fifo, lifo)
+     
+     - parameter completionHandler: the callback method
+
+     */
+    public func peekNext(_ count: Int,
+                         completionHandler: @escaping (Swift.Result<[KBQueueItem], Error>) -> ()) {
+        self.peekItems(createdWithin: DateInterval(start: Date.distantPast, end: Date()),
+                       limit: count,
+                       completionHandler: completionHandler)
+    }
+    @objc public func peekNext(_ count: Int,
+                               completionHandler: @escaping (Error?, [KBQueueItem]) -> ()) {
+        KBObjectiveCAPIResultReturningInitiable(completionHandler: completionHandler) {
+            c in
+            self.peekNext(count, completionHandler: c)
+        }
+    }
+    
+    /**
+     Retrieves the next `count` items in the queue, according to the policy for the queue type (fifo, lifo)
+     Blocking version.
+     
+     - Parameter count: the number of queue items to pull
+     - returns: the next item in the queue
+     
+     */
+    public func peekNext(_ count: Int) throws -> [KBQueueItem] {
+        return try self.peekItems(createdWithin: DateInterval(start: Date.distantPast, end: Date()), limit: count)
+    }
+    
+    /**
      Retrieves a specific item in the queue if exists, given an identifier
      
      - parameter identifier: the item identifier in the queue
