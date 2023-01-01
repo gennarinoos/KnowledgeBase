@@ -149,11 +149,10 @@ internal func KBSyncMethodReturningInitiable<T: Initiable>(value: Int,
         switch r {
         case .failure(let err):
             error = err
-            semaphore.signal()
         case .success(let res):
             result = res
-            semaphore.signal()
         }
+        semaphore.signal()
     }
     
     if case .timedOut = semaphore.wait(timeout: timeout) {
