@@ -114,13 +114,10 @@ internal func KBSyncMethodReturningVoid(value: Int,
     let semaphore = DispatchSemaphore(value: value)
     execute {
         result in
-        switch result {
-        case .failure(let err):
+        if case .failure(let err) = result {
             error = err
-            semaphore.signal()
-        case .success():
-            semaphore.signal()
         }
+        semaphore.signal()
     }
     
     if case .timedOut = semaphore.wait(timeout: timeout) {
