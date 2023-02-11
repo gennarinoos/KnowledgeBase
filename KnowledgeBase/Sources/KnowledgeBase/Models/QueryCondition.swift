@@ -283,83 +283,131 @@ public class KBTripleCondition : NSObject, NSCopying, NSSecureCoding {
             let spoValue = KBHexastore.JOINER.combine(KBHexastore.SPO.rawValue, subject, end: true)
             let sopValue = KBHexastore.JOINER.combine(KBHexastore.SOP.rawValue, subject, end: true)
             
-            condition = KBGenericCondition(.beginsWith, value: spoValue)
+            let consecutive = KBGenericCondition(.beginsWith, value: spoValue)
                 .or(KBGenericCondition(.beginsWith, value: sopValue))
+            
+            let psoCondition = KBGenericCondition(.beginsWith, value: KBHexastore.PSO.rawValue + KBHexastore.JOINER)
+                .and(KBGenericCondition(.contains, value: KBHexastore.JOINER + subject + KBHexastore.JOINER))
+            let posCondition = KBGenericCondition(.beginsWith, value: KBHexastore.POS.rawValue + KBHexastore.JOINER)
+                .and(KBGenericCondition(.endsWith, value: KBHexastore.JOINER + subject))
+            
+            let ospCondition = KBGenericCondition(.beginsWith, value: KBHexastore.OSP.rawValue + KBHexastore.JOINER)
+                .and(KBGenericCondition(.contains, value: KBHexastore.JOINER + subject + KBHexastore.JOINER))
+            let opsCondition = KBGenericCondition(.beginsWith, value: KBHexastore.OPS.rawValue + KBHexastore.JOINER)
+                .and(KBGenericCondition(.endsWith, value: KBHexastore.JOINER + subject))
+            
+            let separated = psoCondition.or(posCondition).or(ospCondition).or(opsCondition)
+            
+            condition = consecutive.or(separated)
             
         case (.none, .some(let predicate), .none):
             let psoValue = KBHexastore.JOINER.combine(KBHexastore.PSO.rawValue, predicate, end: true)
             let posValue = KBHexastore.JOINER.combine(KBHexastore.POS.rawValue, predicate, end: true)
             
-            condition = KBGenericCondition(.beginsWith, value: psoValue)
+            let consecutive = KBGenericCondition(.beginsWith, value: psoValue)
                 .or(KBGenericCondition(.beginsWith, value: posValue))
+            
+            let spoCondition = KBGenericCondition(.beginsWith, value: KBHexastore.SPO.rawValue + KBHexastore.JOINER)
+                .and(KBGenericCondition(.contains, value: KBHexastore.JOINER + predicate + KBHexastore.JOINER))
+            let sopCondition = KBGenericCondition(.beginsWith, value: KBHexastore.SOP.rawValue + KBHexastore.JOINER)
+                .and(KBGenericCondition(.endsWith, value: KBHexastore.JOINER + predicate))
+            
+            let opsCondition = KBGenericCondition(.beginsWith, value: KBHexastore.OPS.rawValue + KBHexastore.JOINER)
+                .and(KBGenericCondition(.contains, value: KBHexastore.JOINER + predicate + KBHexastore.JOINER))
+            let ospCondition = KBGenericCondition(.beginsWith, value: KBHexastore.OSP.rawValue + KBHexastore.JOINER)
+                .and(KBGenericCondition(.endsWith, value: KBHexastore.JOINER + predicate))
+            
+            let separated = spoCondition.or(sopCondition).or(ospCondition).or(opsCondition)
+            
+            condition = consecutive.or(separated)
             
         case (.none, .none, .some(let object)):
             let ospValue = KBHexastore.JOINER.combine(KBHexastore.OSP.rawValue, object, end: true)
             let opsValue = KBHexastore.JOINER.combine(KBHexastore.OPS.rawValue, object, end: true)
             
-            condition = KBGenericCondition(.beginsWith, value: ospValue)
+            let consecutive = KBGenericCondition(.beginsWith, value: ospValue)
                 .or(KBGenericCondition(.beginsWith, value: opsValue))
             
-        case (.some(let subject), .some(let predicate), .none):
-            let psValue = KBHexastore.JOINER.combine(predicate, subject, start: true, end: true)
+            let sopCondition = KBGenericCondition(.beginsWith, value: KBHexastore.SOP.rawValue + KBHexastore.JOINER)
+                .and(KBGenericCondition(.contains, value: KBHexastore.JOINER + object + KBHexastore.JOINER))
+            let spoCondition = KBGenericCondition(.beginsWith, value: KBHexastore.SPO.rawValue + KBHexastore.JOINER)
+                .and(KBGenericCondition(.endsWith, value: KBHexastore.JOINER + object))
             
-            let spo = KBGenericCondition(.contains, value: KBHexastore.SPO.hexaValue(subject: subject,
+            let posCondition = KBGenericCondition(.beginsWith, value: KBHexastore.POS.rawValue + KBHexastore.JOINER)
+                .and(KBGenericCondition(.contains, value: KBHexastore.JOINER + object + KBHexastore.JOINER))
+            let psoCondition = KBGenericCondition(.beginsWith, value: KBHexastore.PSO.rawValue + KBHexastore.JOINER)
+                .and(KBGenericCondition(.endsWith, value: KBHexastore.JOINER + object))
+            
+            let separated = sopCondition.or(spoCondition).or(posCondition).or(psoCondition)
+            
+            condition = consecutive.or(separated)
+            
+        case (.some(let subject), .some(let predicate), .none):
+            let spoCondition = KBGenericCondition(.contains, value: KBHexastore.SPO.hexaValue(subject: subject,
                                                                                      predicate: predicate,
                                                                                      object: ""))
-            let psPrefix = KBGenericCondition(.beginsWith, value: KBHexastore.PSO.rawValue)
-                .or(KBGenericCondition(.beginsWith, value: KBHexastore.OPS.rawValue))
-            let ps = KBGenericCondition(.contains, value: psValue)
+            let psoCondition = KBGenericCondition(.contains, value: KBHexastore.PSO.hexaValue(subject: subject,
+                                                                                     predicate: predicate,
+                                                                                     object: ""))
+            let consecutive = spoCondition.or(psoCondition)
             
-            let consecutive = spo.or(psPrefix.and(ps))
+            let sopCondition = KBGenericCondition(.beginsWith, value: KBHexastore.JOINER.combine(KBHexastore.SOP.rawValue, subject, end: true))
+                .and(KBGenericCondition(.endsWith, value: KBHexastore.JOINER + predicate))
+            let posCondition = KBGenericCondition(.beginsWith, value: KBHexastore.JOINER.combine(KBHexastore.POS.rawValue, predicate, end: true))
+                .and(KBGenericCondition(.endsWith, value: KBHexastore.JOINER + subject))
             
-            let soPrefix = KBGenericCondition(.beginsWith, value: KBHexastore.JOINER.combine(KBHexastore.SOP.rawValue, subject, end: true))
-            let so = KBGenericCondition(.endsWith, value: KBHexastore.JOINER + predicate)
-            let poPrefix = KBGenericCondition(.beginsWith, value: KBHexastore.JOINER.combine(KBHexastore.POS.rawValue, predicate, end: true))
-            let po = KBGenericCondition(.endsWith, value: KBHexastore.JOINER + subject)
+            let opsCondition = KBGenericCondition(.beginsWith, value: KBHexastore.OPS.rawValue + KBHexastore.JOINER)
+                .and(KBGenericCondition(.endsWith, value: KBHexastore.JOINER.combine(predicate, subject, start: true)))
+            let ospCondition = KBGenericCondition(.beginsWith, value: KBHexastore.OSP.rawValue + KBHexastore.JOINER)
+                .and(KBGenericCondition(.endsWith, value: KBHexastore.JOINER.combine(subject, predicate, start: true)))
             
-            let separated = soPrefix.and(so).or(poPrefix.and(po))
+            let separated = sopCondition.or(posCondition).or(opsCondition).or(ospCondition)
             
             condition = consecutive.or(separated)
             
         case (.some(let subject), .none, .some(let object)):
-            let pso = KBGenericCondition(.beginsWith, value: KBHexastore.PSO.rawValue)
-                .and(KBGenericCondition(.endsWith, value: KBHexastore.JOINER.combine(subject, object, start: true)))
-            let sop = KBGenericCondition(.beginsWith, value: KBHexastore.SOP.rawValue)
-                .and(KBGenericCondition(.contains, value: KBHexastore.JOINER.combine(subject, object, start: true, end: true)))
-            let pos = KBGenericCondition(.beginsWith, value: KBHexastore.POS.rawValue)
-                .and(KBGenericCondition(.endsWith, value: KBHexastore.JOINER.combine(object, subject, start: true)))
-            let osp = KBGenericCondition(.beginsWith, value: KBHexastore.OSP.rawValue)
-                .and(KBGenericCondition(.contains, value: KBHexastore.JOINER.combine(object, subject, start: true, end: true)))
+            let sopCondition = KBGenericCondition(.contains, value: KBHexastore.SOP.hexaValue(subject: subject,
+                                                                                              predicate: "",
+                                                                                              object: object))
+            let ospCondition = KBGenericCondition(.contains, value: KBHexastore.OSP.hexaValue(subject: subject,
+                                                                                              predicate: "",
+                                                                                              object: object))
+            let consecutive = sopCondition.or(ospCondition)
             
-            let consecutive = pso.or(sop).or(pos).or(osp)
-            
-            let spo = KBGenericCondition(.beginsWith, value: KBHexastore.JOINER.combine(KBHexastore.SPO.rawValue, subject, end: true))
+            let spoCondition = KBGenericCondition(.beginsWith, value: KBHexastore.JOINER.combine(KBHexastore.SPO.rawValue, subject, end: true))
                 .and(KBGenericCondition(.endsWith, value: KBHexastore.JOINER + object))
-            let ops = KBGenericCondition(.beginsWith, value: KBHexastore.JOINER.combine(KBHexastore.OPS.rawValue, object, end: true))
+            let opsCondition = KBGenericCondition(.beginsWith, value: KBHexastore.JOINER.combine(KBHexastore.OPS.rawValue, object, end: true))
                 .and(KBGenericCondition(.endsWith, value: KBHexastore.JOINER + subject))
             
-            let separated = spo.or(ops)
+            let psoCondition = KBGenericCondition(.beginsWith, value: KBHexastore.PSO.rawValue + KBHexastore.JOINER)
+                .and(KBGenericCondition(.endsWith, value: KBHexastore.JOINER.combine(subject, object, start: true)))
+            let posCondition = KBGenericCondition(.beginsWith, value: KBHexastore.POS.rawValue + KBHexastore.JOINER)
+                .and(KBGenericCondition(.endsWith, value: KBHexastore.JOINER.combine(object, subject, start: true)))
+            
+            let separated = spoCondition.or(opsCondition).or(psoCondition).or(posCondition)
             
             condition = consecutive.or(separated)
             
         case (.none, .some(let predicate), .some(let object)):
-            let pos = KBGenericCondition(.beginsWith, value: KBHexastore.POS.rawValue)
-                .and(KBGenericCondition(.contains, value: KBHexastore.JOINER.combine(predicate, object, start: true, end: true)))
-            let spo = KBGenericCondition(.beginsWith, value: KBHexastore.SPO.rawValue)
-                .and(KBGenericCondition(.endsWith, value: KBHexastore.JOINER.combine(predicate, object, start: true)))
-            let ops = KBGenericCondition(.beginsWith, value: KBHexastore.OPS.rawValue)
-                .and(KBGenericCondition(.contains, value: KBHexastore.JOINER.combine(object, predicate, start: true, end: true)))
-            let sop = KBGenericCondition(.beginsWith, value: KBHexastore.SOP.rawValue)
-                .and(KBGenericCondition(.endsWith, value: KBHexastore.JOINER.combine(object, predicate, start: true)))
+            let posCondition = KBGenericCondition(.contains, value: KBHexastore.POS.hexaValue(subject: "",
+                                                                                              predicate: predicate,
+                                                                                              object: object))
+            let opsCondition = KBGenericCondition(.contains, value: KBHexastore.OPS.hexaValue(subject: "",
+                                                                                              predicate: predicate,
+                                                                                              object: object))
+            let consecutive = posCondition.or(opsCondition)
             
-            let consecutive = pos.or(spo).or(ops).or(sop)
-            
-            let pso = KBGenericCondition(.beginsWith, value: KBHexastore.JOINER.combine(KBHexastore.PSO.rawValue, predicate, end: true))
+            let psoCondition = KBGenericCondition(.beginsWith, value: KBHexastore.JOINER.combine(KBHexastore.PSO.rawValue, predicate, end: true))
                 .and(KBGenericCondition(.endsWith, value: KBHexastore.JOINER + object))
-            let osp = KBGenericCondition(.beginsWith, value: KBHexastore.JOINER.combine(KBHexastore.OSP.rawValue, object, end: true))
+            let ospCondition = KBGenericCondition(.beginsWith, value: KBHexastore.JOINER.combine(KBHexastore.OSP.rawValue, object, end: true))
                 .and(KBGenericCondition(.endsWith, value: KBHexastore.JOINER + predicate))
             
-            let separated = pso.or(osp)
+            let spoCondition = KBGenericCondition(.beginsWith, value: KBHexastore.SPO.rawValue + KBHexastore.JOINER)
+                .and(KBGenericCondition(.endsWith, value: KBHexastore.JOINER.combine(predicate, object, start: true)))
+            let sopCondition = KBGenericCondition(.beginsWith, value: KBHexastore.SOP.rawValue + KBHexastore.JOINER)
+                .and(KBGenericCondition(.endsWith, value: KBHexastore.JOINER.combine(object, predicate, start: true)))
+            
+            let separated = psoCondition.or(ospCondition).or(spoCondition).or(sopCondition)
             
             condition = consecutive.or(separated)
             
