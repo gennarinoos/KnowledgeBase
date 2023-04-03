@@ -21,7 +21,7 @@ if #available(iOS 15, macOS 13, tvOS 15, watchOS 8, *) {
         ],
         dependencies: [
 //            // Dependencies declare other packages that this package depends on.
-//            .package(name: "RDFStorage", path: "../RDFStorage")
+//            .package(name: "RDFStorage", path: "deps/RDFStorage")
         ],
         targets: [
             // Targets are the basic building blocks of a package. A target can define a module or a test suite.

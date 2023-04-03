@@ -7,6 +7,9 @@
 
 import Foundation
 import KnowledgeBase
+import os
+
+internal let log = Logger(subsystem: "com.gf.knowledgebase", category: "KnowledgeBase")
 
 
 // Distributed notification posted when keys and values are added/updated
