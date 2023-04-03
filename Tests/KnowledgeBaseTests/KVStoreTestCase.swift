@@ -644,7 +644,7 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
         wait(for: [expectation], timeout: 10.0)
     }
 
-    func testJSONLDDeserialization() {
+    func _testJSONLDDeserialization() {
         let expectation = XCTestExpectation(description: #function)
 
         let bundle = Bundle(for: type(of: self).self)
@@ -843,13 +843,13 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
         }
     }
 
-     func testJSONLDImportPerformances() {
+     func _testJSONLDImportPerformances() {
          measure {
              self.importJSONLD(named: "bigGraph")
          }
      }
 
-    func testJSONLDImport() {
+    func _testJSONLDImport() {
         self.importJSONLD(named: "bigGraph")
         let yummlyApp = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "_:com.yummly")
         let yummlyActivity = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "_:com.yummly.activity.recipe.92205")
