@@ -212,7 +212,7 @@ extension KBBackingStoreProtocol {
     
     func dictionaryRepresentation(createdWithin interval: DateInterval, limit: Int?, order: ComparisonResult) async throws -> [Date: KBKVPairs] {
         return try await KBModernAsyncMethodReturningInitiable { c in
-            self.dictionaryRepresentation(createdWithin: interval, limit: limit, order: order)
+            self.dictionaryRepresentation(createdWithin: interval, limit: limit, order: order, completionHandler: c)
         }
     }
     

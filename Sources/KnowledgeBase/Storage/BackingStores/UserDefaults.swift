@@ -122,7 +122,7 @@ class KBUserDefaultsBackingStore : KBBackingStore {
         self.keys() { result in
             switch result {
             case .success(let allKeys):
-                let dictionary = allKeys.reduce([:], {
+                let dictionary = allKeys.reduce(KBKVPairs(), {
                     (dict, k) in
                     if condition.evaluate(on: k) {
                         var newDict = dict
@@ -131,7 +131,7 @@ class KBUserDefaultsBackingStore : KBBackingStore {
                     }
                     return dict
                 })
-                completionHandler(.success(dictionary as! KBKVPairs))
+                completionHandler(.success(dictionary))
             case .failure(let error):
                 completionHandler(.failure(error))
             }
