@@ -130,4 +130,53 @@ class KBQueueTestCase: KVStoreTestCase {
         allItems = try self.sharedStore().peekItems(createdWithin: DateInterval.init(start: .distantPast, end: Date()), limit: 10)
         XCTAssertEqual(allItems.count, 0)
     }
+    
+    func testQueueReplacement() throws {
+        let store = KBQueueStore(.inMemory, type: .fifo)
+        
+        let previousDate = Date().addingTimeInterval(-5 * 60)
+        
+        try store.enqueue("Hello", withIdentifier: "first")
+        try store.enqueue("world", withIdentifier: "second")
+        var allItems = try store.peekItems(createdWithin: DateInterval.init(start: .distantPast, end: Date()), limit: 10)
+        XCTAssertEqual(allItems.count, 2)
+        
+        try store.enqueue("myself", withIdentifier: "second")
+        allItems = try store.peekItems(createdWithin: DateInterval.init(start: .distantPast, end: Date()), limit: 10)
+        XCTAssertEqual(allItems.count, 2)
+        
+        guard let firstItem = try store.dequeue() else {
+            XCTFail("'Hello' was not inserted at queue 0")
+            return
+        }
+        XCTAssertEqual(firstItem.identifier, "first")
+        XCTAssertEqual(firstItem.content as! String, "Hello")
+        
+        guard let secondItem = try store.dequeue() else {
+            XCTFail("'world' was not inserted at queue 1")
+            return
+        }
+        XCTAssertEqual(secondItem.identifier, "second")
+        XCTAssertEqual(secondItem.content as! String, "myself")
+        
+        try store.enqueue("Hello", withIdentifier: "first")
+        try store.enqueue("world", withIdentifier: "second")
+        try store.insert("other world", withIdentifier: "second", timestamp: previousDate)
+        allItems = try store.peekItems(createdWithin: DateInterval.init(start: .distantPast, end: Date()), limit: 10)
+        XCTAssertEqual(allItems.count, 2)
+        
+        guard let firstItem = try store.dequeue() else {
+            XCTFail("'other world' was not inserted at queue 0")
+            return
+        }
+        XCTAssertEqual(firstItem.identifier, "second")
+        XCTAssertEqual(firstItem.content as! String, "other world")
+        
+        guard let secondItem = try store.dequeue() else {
+            XCTFail("'Hello' was not shifted queue 1")
+            return
+        }
+        XCTAssertEqual(secondItem.identifier, "first")
+        XCTAssertEqual(secondItem.content as! String, "Hello")
+    }
 }
