@@ -10,9 +10,9 @@ import Foundation
 public typealias KBKVPairs = [String: Any]
 
 public class KBKVObjcPairWithTimestamp: NSObject {
-    let key: String
-    let value: Any
-    let timestamp: Date
+    public let key: String
+    public let value: Any
+    public let timestamp: Date
     
     init(key: String, value: Any, timestamp: Date) {
         self.key = key

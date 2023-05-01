@@ -35,6 +35,26 @@ extension KBKVStore {
     }
     
     /**
+     Assign a value, or nil, to a specific key in the KVS, and set the created/updated time to the timestamp provided.
+     Blocking version.
+     
+     - parameter value: the value
+     - parameter key: the key
+     */
+    public func set(value: Any?, for key: String, timestamp: Date) throws {
+        guard self.supportsSecureCoding(value) else {
+            log.error("Won't save a non NSSecureCoding compliant value (\(String(describing: value)) for key (\(key))")
+            return
+        }
+        
+        let writeBatch = self.writeBatch()
+        writeBatch.set(value: value, for: key, timestamp: timestamp)
+        log.debug("setting value \(String(describing: value)) for key (\(key)) at timestamp \(timestamp)")
+        try KBSyncMethodReturningVoid(execute:writeBatch.write)
+        self.delegate?.kvDataDidChange(addedKeys: [key], removedKeys: [])
+    }
+    
+    /**
      Remove a tuple in the KVS, given its key.
      Blocking version.
      

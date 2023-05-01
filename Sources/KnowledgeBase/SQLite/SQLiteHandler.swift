@@ -335,6 +335,14 @@ public class KBSQLHandler: NSObject {
     
     @objc(saveKeysAndValues:error:)
     public func save(keysAndValues: KBKVPairs) throws {
+        let date = Date()
+        let kvts = keysAndValues.map({
+            KBKVPairWithTimestamp(key: $0.key, value: $0.value, timestamp: date)
+        })
+        try self.save(keysAndValuesAndTimestamp: kvts)
+    }
+    
+    public func save(keysAndValuesAndTimestamp: [KBKVPairWithTimestamp]) throws {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
@@ -342,12 +350,14 @@ public class KBSQLHandler: NSObject {
         var keysToRemove = [String]()
         
         try connection.transaction(Connection.TransactionMode.immediate) {
-            for (key, value) in keysAndValues {
+            for kvPairWithTimestamp in keysAndValuesAndTimestamp {
+                let key = kvPairWithTimestamp.key
+                let value = kvPairWithTimestamp.value ?? NSNull()
+                let timestamp = kvPairWithTimestamp.timestamp.timeIntervalSince1970
                 
                 let format = "insert or replace into %@ (k, v, t) values (?, ?, ?)"
                 let query: String
                 var bindings = Array<Binding?>()
-                let timestamp = Date().timeIntervalSince1970
                 
                 switch(value) {
                 case is NSNull:
@@ -497,9 +507,9 @@ public class KBSQLHandler: NSObject {
     //MARK: - Graph Links
     
     @objc public func setWeight(forLinkWithLabel predicate: Label,
-                              between subjectIdentifier: Label,
-                              and objectIdentifier: Label,
-                              toValue value: Int) throws {
+                                between subjectIdentifier: Label,
+                                and objectIdentifier: Label,
+                                toValue value: Int) throws {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }

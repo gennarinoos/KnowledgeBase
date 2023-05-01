@@ -25,7 +25,6 @@ extension KBQueueStore {
         }
     }
     
-    
     /// Enqueue an item. Blocking version
     /// - Parameters:
     ///   - content: the queue item
@@ -33,6 +32,7 @@ extension KBQueueStore {
     public func enqueue(_ content: Any, withIdentifier identifier: String) throws {
         try self.set(value: content, for: identifier)
     }
+    
     
     /// Enqueue multiple items
     /// - Parameters:
@@ -49,7 +49,6 @@ extension KBQueueStore {
         }
     }
     
-    
     /// Enqueue multiple items. Blocking version
     /// - Parameters:
     ///   - contentsByIdentifier: the queue item
@@ -57,6 +56,36 @@ extension KBQueueStore {
         let writeBatch = self.writeBatch()
         writeBatch.set(keysAndValues: contentsByIdentifier)
         try writeBatch.write()
+    }
+    
+    /// Insert an item in the queue with a specific timestamp
+    /// - Parameters:
+    ///   - content: the queue item
+    ///   - identifier: the queue item unique identifier
+    ///   - completionHandler: the callback method, called when the operation completes
+    public func insert(_ content: Any,
+                       withIdentifier identifier: String,
+                       timestamp: Date,
+                       completionHandler: @escaping KBActionCompletion) {
+        self.set(value: content, for: identifier, timestamp: timestamp, completionHandler: completionHandler)
+    }
+    @objc public func insert(_ content: Any,
+                             for key: String,
+                             timestamp: Date,
+                             completionHandler: @escaping KBObjCActionCompletion) {
+        KBObjectiveCAPIResultReturningVoid(completionHandler: completionHandler) { c in
+            self.insert(content, withIdentifier: key, timestamp: timestamp, completionHandler: c)
+        }
+    }
+    
+    /// Enqueue an item. Blocking version
+    /// - Parameters:
+    ///   - content: the queue item
+    ///   - identifier: the queue item unique identifier
+    public func insert(_ content: Any,
+                       withIdentifier identifier: String,
+                       timestamp: Date) throws {
+        try self.set(value: content, for: identifier, timestamp: timestamp)
     }
     
     
@@ -98,6 +127,7 @@ extension KBQueueStore {
         }
         return nil
     }
+    
     
     /// Dequeue a specific item (random access)
     /// - Parameter completionHandler: the callback method
