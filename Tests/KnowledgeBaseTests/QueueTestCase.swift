@@ -78,4 +78,56 @@ class KBQueueTestCase: KVStoreTestCase {
         allItems = try store.peekItems(createdWithin: DateInterval.init(start: .distantPast, end: Date()), limit: 10)
         XCTAssertEqual(allItems.count, 0)
     }
+    
+    func testQueueInsert() throws {
+        let store = KBQueueStore(.inMemory, type: .fifo)
+        
+        let previousDate = Date().addingTimeInterval(-5 * 60)
+        
+        let items = ["world", "!"]
+        let itemIds = ["second", "fourth"]
+        try store.enqueue(items[0], withIdentifier: itemIds[0])
+        let midDate = Date()
+        try store.enqueue(items[1], withIdentifier: itemIds[1])
+        var allItems = try store.peekItems(createdWithin: DateInterval.init(start: .distantPast, end: Date()), limit: 10)
+        XCTAssertEqual(allItems.count, 2)
+        
+        try store.insert("Hello", withIdentifier: "first", timestamp: previousDate)
+        try store.insert("Now.", withIdentifier: "third", timestamp: midDate)
+        try store.insert("Stop.", withIdentifier: "fifth", timestamp: Date()) // New date is later than date in items[0] and items[1] enqueue
+        
+        guard let firstItem = try store.dequeue() else {
+            XCTFail("'Hello' was not inserted at queue head")
+            return
+        }
+        XCTAssertEqual(firstItem.identifier, "first")
+        XCTAssertEqual(firstItem.content as! String, "Hello")
+        
+        if let item = try store.dequeue() {
+            XCTAssertEqual(item.identifier, itemIds[0])
+            XCTAssertEqual(item.content as! String, items[0])
+        }
+        
+        guard let midItem = try store.dequeue() else {
+            XCTFail("'Now.' was not inserted at queue mid")
+            return
+        }
+        XCTAssertEqual(midItem.identifier, "third")
+        XCTAssertEqual(midItem.content as! String, "Now.")
+        
+        if let item = try store.dequeue() {
+            XCTAssertEqual(item.identifier, itemIds[1])
+            XCTAssertEqual(item.content as! String, items[1])
+        }
+        
+        guard let lastItem = try store.dequeue() else {
+            XCTFail("'Stop.' was not inserted at queue tail")
+            return
+        }
+        XCTAssertEqual(lastItem.identifier, "fifth")
+        XCTAssertEqual(lastItem.content as! String, "Stop.")
+        
+        allItems = try self.sharedStore().peekItems(createdWithin: DateInterval.init(start: .distantPast, end: Date()), limit: 10)
+        XCTAssertEqual(allItems.count, 0)
+    }
 }

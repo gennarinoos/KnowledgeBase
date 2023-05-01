@@ -68,32 +68,40 @@ public class KBQueueStore : KBKVStore {
         return KBQueueStore.store(withName: "", type: type)
     }
     
+    @available(*, unavailable)
     public class func defaultSynchedStore(type: QueueType) -> KBQueueStore {
-        return KBQueueStore.synchedStore(withName: "", type: type)
+        fatalError("A synched store can't be used as a backing storage for a KBQueueStore")
     }
 
     public class func inMemoryStore(type: QueueType) -> KBQueueStore {
         return KBQueueStore.store(Location.inMemory, type: type)
     }
 
+    @available(*, unavailable)
     public class func userDefaultsStore(type: QueueType) -> KBQueueStore {
-        return KBQueueStore.store(Location.userDefaults, type: type)
+        fatalError("A synched store can't be used as a backing storage for a KBQueueStore")
     }
     
     public class func store(withName name: String, type: QueueType) -> KBQueueStore {
         if name == KnowledgeBaseInMemoryIdentifier {
             return KBQueueStore.store(.inMemory, type: type)
         } else if name == KnowledgeBaseUserDefaultsIdentifier {
-            return KBQueueStore.store(.userDefaults, type: type)
+            fatalError("UserDefaults can't be used as a backing storage for a KBQueueStore")
         }
         return KBQueueStore.store(Location.sql(name), type: type)
     }
     
     public class func store(_ location: Location, type: QueueType) -> KBQueueStore {
-        return KBQueueStore(location, type: type)
+        switch location {
+        case .inMemory, .sql(_):
+            return KBQueueStore(location, type: type)
+        default:
+            return KBQueueStore(location, type: type)
+        }
     }
-    
+
+    @available(*, unavailable)
     public class func synchedStore(withName name: String, type: QueueType) -> KBQueueStore {
-        return KBQueueStore.store(Location.sqlSynched(name), type: type)
+        fatalError("A synched store can't be used as a backing storage for a KBQueueStore")
     }
 }

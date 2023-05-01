@@ -27,7 +27,22 @@ extension KBKVStore {
      - parameter completionHandler: the callback method
      
      */
-    public func set(value: Any?, for key: String, completionHandler: @escaping KBActionCompletion) {
+    public func set(value: Any?,
+                    for key: String,
+                    timestamp: Date? = nil,
+                    completionHandler: @escaping KBActionCompletion) {
+        guard timestamp == nil ||
+                (
+                    self.backingStore is KBSQLBackingStore
+                    && !(self.backingStore is KBCloudKitSQLBackingStore)
+                    && !(self.backingStore is KBSQLXPCBackingStore) // TODO: Support timestaps in the XPC interface (KBSQLXPCBackingStore)
+                )
+        else {
+            log.error("Saving KVs with a timestamp is only supported with .sql and .inMemory stores")
+            completionHandler(.failure(KBError.notSupported))
+            return
+        }
+        
         guard self.supportsSecureCoding(value) else {
             log.error("Won't save a non NSSecureCoding compliant value (\(String(describing: value)) for key (\(key))")
             completionHandler(.failure(KBError.unexpectedData(value)))
@@ -35,15 +50,22 @@ extension KBKVStore {
         }
         
         let writeBatch = self.writeBatch()
-        writeBatch.set(value: value, for: key)
+        if let timestamp = timestamp {
+            writeBatch.set(value: value, for: key, timestamp: timestamp)
+        } else {
+            writeBatch.set(value: value, for: key)
+        }
         writeBatch.write { result in
             completionHandler(result)
             self.delegate?.kvDataDidChange(addedKeys: [key], removedKeys: [])
         }
     }
-    @objc public func set(value: Any?, for key: String, completionHandler: @escaping KBObjCActionCompletion) {
+    @objc public func set(value: Any?,
+                          for key: String,
+                          timestamp: Date? = nil,
+                          completionHandler: @escaping KBObjCActionCompletion) {
         KBObjectiveCAPIResultReturningVoid(completionHandler: completionHandler) { c in
-            self.set(value: value, for: key, completionHandler: c)
+            self.set(value: value, for: key, timestamp: timestamp, completionHandler: c)
         }
     }
     
