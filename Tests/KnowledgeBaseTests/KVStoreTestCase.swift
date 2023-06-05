@@ -10,7 +10,7 @@ import XCTest
 
 class KVStoreTestCase : XCTestCase {
 
-    private static let _sharedStore = KBKVStore.store(.inMemory)
+    private static let _sharedStore = KBKVStore.store(.inMemory)!
     
     func sharedStore() -> KBKVStore {
         return KVStoreTestCase._sharedStore
@@ -282,7 +282,7 @@ class KVStoreTestCase : XCTestCase {
 
 class KnowledgeStoreTestCase : KVStoreTestCase {
     
-    private static let _sharedStore = KBKnowledgeStore.store(.inMemory)
+    private static let _sharedStore = KBKnowledgeStore.store(.inMemory)!
     
     override func sharedStore() -> KBKnowledgeStore {
         return KnowledgeStoreTestCase._sharedStore

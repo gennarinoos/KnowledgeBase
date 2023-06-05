@@ -12,7 +12,7 @@ import XCTest
 
 class KBQueueTestCase: KVStoreTestCase {
     
-    private static let _sharedStore = KBQueueStore.store(.inMemory, type: .fifo)
+    private static let _sharedStore = KBQueueStore.store(.inMemory, type: .fifo)!
     
     override func sharedStore() -> KBQueueStore {
         return KBQueueTestCase._sharedStore
@@ -59,7 +59,7 @@ class KBQueueTestCase: KVStoreTestCase {
     }
     
     func testLifoQueue() throws {
-        let store = KBQueueStore(.inMemory, type: .lifo)
+        let store = KBQueueStore(.inMemory, type: .lifo)!
         
         let items = ["Hello", "world"]
         let itemIds = ["first", "second"]
@@ -80,7 +80,7 @@ class KBQueueTestCase: KVStoreTestCase {
     }
     
     func testQueueInsert() throws {
-        let store = KBQueueStore(.inMemory, type: .fifo)
+        let store = KBQueueStore(.inMemory, type: .fifo)!
         
         let previousDate = Date().addingTimeInterval(-5 * 60)
         
@@ -132,7 +132,7 @@ class KBQueueTestCase: KVStoreTestCase {
     }
     
     func testQueueReplacement() throws {
-        let store = KBQueueStore(.inMemory, type: .fifo)
+        let store = KBQueueStore(.inMemory, type: .fifo)!
         
         let previousDate = Date().addingTimeInterval(-5 * 60)
         

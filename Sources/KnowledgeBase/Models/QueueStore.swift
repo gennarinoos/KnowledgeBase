@@ -20,69 +20,79 @@ public class KBQueueStore : KBKVStore {
     public let queueType: QueueType
     
     @available(*, unavailable)
-    override init(_ location: Location) {
-        fatalError("\(#function) is not supported for objects of type KBQueueStore")
+    override init?(_ location: Location) {
+        log.critical("\(#function) is not supported for objects of type KBQueueStore")
+        return nil
     }
     
     @available(*, unavailable)
-    @objc public override class func defaultStore() -> KBQueueStore {
-        fatalError("\(#function) is not supported for objects of type KBQueueStore")
+    @objc public override class func defaultStore() -> KBQueueStore? {
+        log.critical("\(#function) is not supported for objects of type KBQueueStore")
+        return nil
     }
     
     @available(*, unavailable)
-    @objc public override class func defaultSynchedStore() -> KBQueueStore {
-        fatalError("\(#function) is not supported for objects of type KBQueueStore")
+    @objc public override class func defaultSynchedStore() -> KBQueueStore? {
+        log.critical("\(#function) is not supported for objects of type KBQueueStore")
+        return nil
     }
 
     @available(*, unavailable)
-    @objc public override class func inMemoryStore() -> KBQueueStore {
-        fatalError("\(#function) is not supported for objects of type KBQueueStore")
+    @objc public override class func inMemoryStore() -> KBQueueStore? {
+        log.critical("\(#function) is not supported for objects of type KBQueueStore")
+        return nil
     }
 
     @available(*, unavailable)
-    @objc public override class func userDefaultsStore() -> KBQueueStore {
-        fatalError("\(#function) is not supported for objects of type KBQueueStore")
+    @objc public override class func userDefaultsStore() -> KBQueueStore? {
+        log.critical("\(#function) is not supported for objects of type KBQueueStore")
+        return nil
     }
     
     @available(*, unavailable)
-    public override class func store(withName name: String) -> KBQueueStore {
-        fatalError("\(#function) is not supported for objects of type KBQueueStore")
+    public override class func store(withName name: String) -> KBQueueStore? {
+        log.critical("\(#function) is not supported for objects of type KBQueueStore")
+        return nil
     }
     
     @available(*, unavailable)
-    public override class func store(_ location: Location) -> KBQueueStore {
-        fatalError("\(#function) is not supported for objects of type KBQueueStore")
+    public override class func store(_ location: Location) -> KBQueueStore? {
+        log.critical("\(#function) is not supported for objects of type KBQueueStore")
+        return nil
     }
     
     @available(*, unavailable)
-    @objc public override class func synchedStore(withName name: String) -> KBQueueStore {
-        fatalError("\(#function) is not supported for objects of type KBQueueStore")
+    @objc public override class func synchedStore(withName name: String) -> KBQueueStore? {
+        log.critical("\(#function) is not supported for objects of type KBQueueStore")
+        return nil
     }
     
-    init(_ location: Location, type: QueueType) {
+    init?(_ location: Location, type: QueueType) {
         self.queueType = type
         super.init(location)
     }
     
-    public class func defaultStore(type: QueueType) -> KBQueueStore {
+    public class func defaultStore(type: QueueType) -> KBQueueStore? {
         return KBQueueStore.store(withName: "", type: type)
     }
     
     @available(*, unavailable)
-    public class func defaultSynchedStore(type: QueueType) -> KBQueueStore {
-        fatalError("A synched store can't be used as a backing storage for a KBQueueStore")
+    public class func defaultSynchedStore(type: QueueType) -> KBQueueStore? {
+        log.critical("A synched store can't be used as a backing storage for a KBQueueStore")
+        return nil
     }
 
-    public class func inMemoryStore(type: QueueType) -> KBQueueStore {
+    public class func inMemoryStore(type: QueueType) -> KBQueueStore? {
         return KBQueueStore.store(Location.inMemory, type: type)
     }
 
     @available(*, unavailable)
-    public class func userDefaultsStore(type: QueueType) -> KBQueueStore {
-        fatalError("A synched store can't be used as a backing storage for a KBQueueStore")
+    public class func userDefaultsStore(type: QueueType) -> KBQueueStore? {
+        log.critical("A synched store can't be used as a backing storage for a KBQueueStore")
+        return nil
     }
     
-    public class func store(withName name: String, type: QueueType) -> KBQueueStore {
+    public class func store(withName name: String, type: QueueType) -> KBQueueStore? {
         if name == KnowledgeBaseInMemoryIdentifier {
             return KBQueueStore.store(.inMemory, type: type)
         } else if name == KnowledgeBaseUserDefaultsIdentifier {
@@ -91,7 +101,7 @@ public class KBQueueStore : KBKVStore {
         return KBQueueStore.store(Location.sql(name), type: type)
     }
     
-    public class func store(_ location: Location, type: QueueType) -> KBQueueStore {
+    public class func store(_ location: Location, type: QueueType) -> KBQueueStore? {
         switch location {
         case .inMemory, .sql(_):
             return KBQueueStore(location, type: type)
@@ -101,7 +111,8 @@ public class KBQueueStore : KBKVStore {
     }
 
     @available(*, unavailable)
-    public class func synchedStore(withName name: String, type: QueueType) -> KBQueueStore {
-        fatalError("A synched store can't be used as a backing storage for a KBQueueStore")
+    public class func synchedStore(withName name: String, type: QueueType) -> KBQueueStore? {
+        log.critical("A synched store can't be used as a backing storage for a KBQueueStore")
+        return nil
     }
 }

@@ -231,13 +231,13 @@ class KBSQLBackingStore : KBSQLBackingStoreProtocol {
     
     private var _baseURL: URL?
 
-    @objc required init(name: String, baseURL: URL? = nil) {
+    @objc required init?(name: String, baseURL: URL? = nil) {
         self.name = name
         self._baseURL = baseURL
         self.sqlHandler = KBSQLHandler(name: self.name, baseURL: baseURL ?? KBSQLBackingStore.baseURL()!)!
     }
 
-    class func mainInstance() -> Self {
+    class func mainInstance() -> Self? {
         return self.init(name: KnowledgeBaseSQLDefaultIdentifier)
     }
     

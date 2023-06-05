@@ -12,7 +12,7 @@ let dbName = "relational-test"
 
 class KBSQLBackingStoreTests: KVStoreTestCase {
     
-    private static let _sharedStore = KBKVStore.store(.sql(dbName))
+    private static let _sharedStore = KBKVStore.store(.sql(dbName))!
     
     override func sharedStore() -> KBKVStore {
         return KBSQLBackingStoreTests._sharedStore
@@ -30,7 +30,7 @@ class KBSQLBackingStoreTests: KVStoreTestCase {
 
     func testSQLNamedPath() {
         let store = KBSQLBackingStoreTests._sharedStore
-        let sharedKnowledgeBase = KBKnowledgeStore.store(.sql(""))
+        let sharedKnowledgeBase = KBKnowledgeStore.store(.sql(""))!
         
         XCTAssert(store.name == dbName, "KnowledgeBase test instance name")
 
@@ -61,7 +61,7 @@ class KBSQLBackingStoreTests: KVStoreTestCase {
         
         
         let customName = "com.gf.test"
-        let customStore = KBKnowledgeStore.store(.sql(customName))
+        let customStore = KBKnowledgeStore.store(.sql(customName))!
         
         XCTAssertNotNil(customStore)
         XCTAssertNotNil(customStore.name)
@@ -83,7 +83,7 @@ class KBSQLBackingStoreTests: KVStoreTestCase {
     }
     
     func testFileOnDisk() {
-        let newStore = KBKVStore.store(withName: UUID().uuidString)
+        let newStore = KBKVStore.store(withName: UUID().uuidString)!
         XCTAssertNotNil(newStore)
         XCTAssertNotNil(newStore.fullURL)
         
@@ -96,7 +96,7 @@ class KBSQLBackingStoreTests: KVStoreTestCase {
         catch { XCTFail() }
         
         let dottedName = "com.gf.test"
-        let customStore = KBKnowledgeStore.store(.sql(dottedName))
+        let customStore = KBKnowledgeStore.store(.sql(dottedName))!
         
         XCTAssertNotNil(customStore)
         XCTAssertNotNil(customStore.fullURL)
@@ -112,7 +112,7 @@ class KBSQLBackingStoreTests: KVStoreTestCase {
     
     func testInitWithExistingDB() {
         let url = URL(fileURLWithPath: "~/Library/com.gf.framework.knowledgebase/test.db")
-        let assetStore = KBKVStore(existingDB: url)
+        let assetStore = KBKVStore(existingDB: url)!
         
         XCTAssert(assetStore.baseURL?.lastPathComponent == "com.gf.framework.knowledgebase")
         XCTAssert(assetStore.fullURL?.lastPathComponent == "test.db")

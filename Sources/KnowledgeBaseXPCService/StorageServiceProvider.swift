@@ -161,11 +161,13 @@ class KBStorageServiceProviderXPC: KBStorageXPCProtocol {
     // DELETE
     
     internal func notifyAboutDeletion(inStoreWithIdentifier identifier: String, ofKeys keys: [String]) {
+#if os(macOS)
         let notificationName = "\(KBPersistentStorageKeysRemovedPrefix)\(identifier)"
         let userInfo = [KBPersistentStorageKeysRemovedPayloadRemovedKey : keys]
         DistributedNotificationCenter.default().post(name: NSNotification.Name(notificationName),
                                                      object: nil,
                                                      userInfo: userInfo)
+#endif
     }
     
     func removeValues(forKeys keys: [String], fromStoreWithIdentifier identifier: String, completionHandler: @escaping KBObjCActionCompletion) {

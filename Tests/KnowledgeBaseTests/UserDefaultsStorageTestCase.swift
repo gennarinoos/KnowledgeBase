@@ -10,14 +10,14 @@ import XCTest
 
 class KBUserDefaultsKVStoreTests: KVStoreTestCase {
 
-    private static let _sharedStore = KBKVStore.store(.userDefaults)
+    private static let _sharedStore = KBKVStore.store(.userDefaults)!
     
     override func testWriteBatch() throws {
         try super.testWriteBatch()
     }
 
     func testUserDefaultsRestored() {
-        let userDefaultsStore = KBKnowledgeStore.store(.userDefaults)
+        let userDefaultsStore = KBKnowledgeStore.store(.userDefaults)!
         
         let dictionary = ["key": "value"]
         let key = "KeyToPersist"
@@ -33,7 +33,7 @@ class KBUserDefaultsKVStoreTests: KVStoreTestCase {
             XCTAssertEqual(userDefaultsStoreCopy["key"] as? String, dictionary["key"])
             
             try KBUserDefaultsKVStoreTests._sharedStore.removeValue(for: key)
-            let otherUserDefaultsHandler = KBKnowledgeStore.store(.userDefaults)
+            let otherUserDefaultsHandler = KBKnowledgeStore.store(.userDefaults)!
             XCTAssertNotNil(otherUserDefaultsHandler)
             let otherValue = try otherUserDefaultsHandler.value(for: key)
             XCTAssertNil(otherValue)
