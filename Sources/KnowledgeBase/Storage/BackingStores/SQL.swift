@@ -233,9 +233,9 @@ class KBSQLBackingStore : KBSQLBackingStoreProtocol {
 
     @objc required init?(name: String, baseURL: URL? = nil) {
         self.name = name
-        self._baseURL = baseURL
         if let url = baseURL ?? KBSQLBackingStore.baseURL(),
            let handler = KBSQLHandler(name: self.name, baseURL: url) {
+            self._baseURL = url
             self.sqlHandler = handler
         }
         return nil
