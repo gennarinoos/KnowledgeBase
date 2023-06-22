@@ -237,8 +237,9 @@ class KBSQLBackingStore : KBSQLBackingStoreProtocol {
            let handler = KBSQLHandler(name: self.name, baseURL: url) {
             self._baseURL = url
             self.sqlHandler = handler
+        } else {
+            return nil
         }
-        return nil
     }
 
     class func mainInstance() -> Self? {
