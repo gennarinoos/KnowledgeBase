@@ -10,7 +10,7 @@ import XCTest
 
 class KBCloudKitSQLBackingStoreTests: KVStoreTestCase {
     
-    private static let _sharedStore = KBKVStore.defaultSynchedStore()
+    private static let _sharedStore = KBKVStore.defaultSynchedStore()!
     
     override func sharedStore() -> KBKVStore {
         return KBCloudKitSQLBackingStoreTests._sharedStore
@@ -41,7 +41,7 @@ class KBCloudKitSQLBackingStoreTests: KVStoreTestCase {
 
     func testSQLNamedPath() {
         let store = KBCloudKitSQLBackingStoreTests._sharedStore
-        let sharedKnowledgeBase = KBKnowledgeStore.store(.sqlSynched(""))
+        let sharedKnowledgeBase = KBKnowledgeStore.store(.sqlSynched(""))!
         
         XCTAssert(store.name == KnowledgeBaseSQLSynchedIdentifier, "KnowledgeBase test instance name")
 

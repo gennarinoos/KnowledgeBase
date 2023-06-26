@@ -14,7 +14,7 @@ class KBCloudKitSQLBackingStore : KBSQLBackingStore {
         set(v) {}
     }
     
-    class override func mainInstance() -> Self {
+    class override func mainInstance() -> Self? {
         return self.init(name: KnowledgeBaseSQLSynchedIdentifier)
     }
     

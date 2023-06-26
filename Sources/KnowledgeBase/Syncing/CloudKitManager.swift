@@ -68,7 +68,9 @@ public class KBCloudKitManager : NSObject {
     private var hasSetUpRecordZoneSubscription: Bool {
         get {
             do {
-                let store = KBKVStore.userDefaultsStore()
+                guard let store = KBKVStore.userDefaultsStore() else {
+                    throw KBError.databaseNotReady
+                }
                 if let number = try store.value(for: kKBCloudKitHasSetUpRecordZoneSubscription) as? NSNumber {
                     return number.boolValue
                 }
@@ -79,7 +81,9 @@ public class KBCloudKitManager : NSObject {
         }
         set(value) {
             do {
-                let store = KBKVStore.userDefaultsStore()
+                guard let store = KBKVStore.userDefaultsStore() else {
+                    throw KBError.databaseNotReady
+                }
                 try store.set(value: NSNumber(booleanLiteral: value),
                               for: kKBCloudKitHasSetUpRecordZoneSubscription)
                 
@@ -92,7 +96,9 @@ public class KBCloudKitManager : NSObject {
     private var serverChangeToken: CKServerChangeToken? {
         get {
             do {
-                let store = KBKVStore.userDefaultsStore()
+                guard let store = KBKVStore.userDefaultsStore() else {
+                    throw KBError.databaseNotReady
+                }
                 if let data = try store.value(for: kKBCloudKitZoneServerChangeToken) as? Data {
                     let unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
                     
@@ -108,7 +114,9 @@ public class KBCloudKitManager : NSObject {
         }
         set(value) {
             do {
-                let store = KBKVStore.userDefaultsStore()
+                guard let store = KBKVStore.userDefaultsStore() else {
+                    throw KBError.databaseNotReady
+                }
                 if let value = value {
                     let archivedToken = try NSKeyedArchiver.archivedData(withRootObject: value,
                                                                          requiringSecureCoding: true)

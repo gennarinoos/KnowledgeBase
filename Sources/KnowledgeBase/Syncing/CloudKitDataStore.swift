@@ -12,7 +12,10 @@ struct KBCloudKitDataStore {
                                          deletedRecordKeys: [String],
                                          containsAllChanges: Bool) {
         log.debug("")
-        let store = KBKVStore.defaultSynchedStore()
+        guard let store = KBKVStore.defaultSynchedStore() else {
+            return
+        }
+        
         if containsAllChanges {
             // Fetch all the keys in the local SQL database
             store.keys() { result in

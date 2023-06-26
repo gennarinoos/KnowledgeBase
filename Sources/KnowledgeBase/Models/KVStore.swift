@@ -117,23 +117,23 @@ public class KBKVStore : NSObject {
 
     // MARK: Constructors / Destructors
 
-    @objc public class func defaultStore() -> KBKVStore {
+    @objc public class func defaultStore() -> KBKVStore? {
         return KBKVStore.store(withName: "")
     }
     
-    @objc public class func defaultSynchedStore() -> KBKVStore {
+    @objc public class func defaultSynchedStore() -> KBKVStore? {
         return KBKVStore.synchedStore(withName: "")
     }
 
-    @objc public class func inMemoryStore() -> KBKVStore {
+    @objc public class func inMemoryStore() -> KBKVStore? {
         return KBKVStore.store(Location.inMemory)
     }
 
-    @objc public class func userDefaultsStore() -> KBKVStore {
+    @objc public class func userDefaultsStore() -> KBKVStore? {
         return KBKVStore.store(Location.userDefaults)
     }
     
-    @objc public class func store(withName name: String) -> KBKVStore {
+    @objc public class func store(withName name: String) -> KBKVStore? {
         if name == KnowledgeBaseInMemoryIdentifier {
             return KBKVStore.store(.inMemory)
         } else if name == KnowledgeBaseUserDefaultsIdentifier {
@@ -142,15 +142,15 @@ public class KBKVStore : NSObject {
         return KBKVStore.store(Location.sql(name))
     }
     
-    @objc public class func synchedStore(withName name: String) -> KBKVStore {
+    @objc public class func synchedStore(withName name: String) -> KBKVStore? {
         return KBKVStore(Location.sqlSynched(name))
     }
 
-    public class func store(_ location: Location) -> KBKVStore {
+    public class func store(_ location: Location) -> KBKVStore? {
         return KBKVStore(location)
     }
 
-    init(_ location: Location) {
+    init?(_ location: Location) {
         self.location = location
 
         switch (self.location) {
@@ -177,28 +177,47 @@ public class KBKVStore : NSObject {
 #else
         case .sql(""):
             log.debug("using KBSQLBackingStore")
-            self.backingStore = KBSQLBackingStore.mainInstance()
+            if let bs = KBSQLBackingStore.mainInstance() {
+                self.backingStore = bs
+            } else {
+                return nil
+            }
         case .sql(let name):
             log.debug("using KBSQLBackingStore with name \(name)")
-            self.backingStore = KBSQLBackingStore(name: name)
+            if let bs = KBSQLBackingStore(name: name) {
+                self.backingStore = bs
+            } else {
+                return nil
+            }
         case .sqlSynched(""):
             log.debug("using KBCloudKitSQLBackingStore")
-            self.backingStore = KBCloudKitSQLBackingStore.mainInstance()
+            if let bs = KBCloudKitSQLBackingStore.mainInstance() {
+                self.backingStore = bs
+            } else {
+                return nil
+            }
         case .sqlSynched(let name):
             log.error("creating named sqlSynched database is not supported. \(name, privacy: .public)")
             log.debug("using KBCloudKitSQLBackingStore")
-            self.backingStore = KBCloudKitSQLBackingStore.mainInstance()
+            if let bs = KBCloudKitSQLBackingStore.mainInstance() {
+                self.backingStore = bs
+            } else {
+                return nil
+            }
 #endif
         }
     }
     
     /// Only used for debugging
     /// - Parameter existingDB: URL to the existing DB
-    internal init(existingDB: URL) {
+    internal init?(existingDB: URL) {
         let name = existingDB.deletingPathExtension().lastPathComponent
         self.location = .sql(name)
-        self.backingStore = KBSQLBackingStore(name: name,
-                                              baseURL: existingDB.deletingLastPathComponent())
+        if let bs = KBSQLBackingStore(name: name, baseURL: existingDB.deletingLastPathComponent()) {
+            self.backingStore = bs
+        } else {
+            return nil
+        }
     }
     
     /**

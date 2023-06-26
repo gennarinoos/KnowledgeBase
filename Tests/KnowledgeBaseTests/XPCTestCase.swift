@@ -12,7 +12,7 @@ import XCTest
 #if true
 class KBXPCTestCase: KVStoreTestCase {
     
-    private static let _sharedStore = KBKVStore.store(withName: dbName)
+    private static let _sharedStore = KBKVStore.store(withName: dbName)!
     
     override func sharedStore() -> KBKVStore {
         return KBXPCTestCase._sharedStore
