@@ -64,6 +64,8 @@ public protocol KBStorageXPCProtocol {
     
     func dropLinks(withLabel: String?, from: String, inStoreWithIdentifier: String, completionHandler: @escaping KBObjCActionCompletion)
     
+    func dropLinks(withLabel: String?, to: String, inStoreWithIdentifier: String, completionHandler: @escaping KBObjCActionCompletion)
+    
     func dropLinks(between: String, and: String, inStoreWithIdentifier: String, completionHandler: @escaping KBObjCActionCompletion)
 
     // CLOUD SYNC

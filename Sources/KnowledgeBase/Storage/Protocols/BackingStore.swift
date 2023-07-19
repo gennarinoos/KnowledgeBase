@@ -57,6 +57,9 @@ protocol KBAsynchronousBackingStore {
     func dropLinks(withLabel predicate: String?,
                    from subjectIdentifier: String,
                    completionHandler: @escaping KBActionCompletion)
+    func dropLinks(withLabel predicate: String?,
+                   to objectIdentifier: String,
+                   completionHandler: @escaping KBActionCompletion)
     func dropLinks(between subjectIdentifier: String,
                    and objectIdentifier: String,
                    completionHandler: @escaping KBActionCompletion)
@@ -106,6 +109,8 @@ protocol KBSynchronousBackingStore : KBAsynchronousBackingStore {
                   and objectIdentifier: String) throws
     func dropLinks(withLabel predicate: String?,
                    from subjectIdentifier: String) throws
+    func dropLinks(withLabel predicate: String?,
+                   to objectIdentifier: String) throws
     func dropLinks(between subjectIdentifier: String,
                    and objectIdentifier: String) throws
     
@@ -264,6 +269,15 @@ extension KBSynchronousBackingStore {
         try KBSyncMethodReturningVoid { c in
             self.dropLinks(withLabel: predicate,
                            from: subjectIdentifier,
+                           completionHandler: c)
+        }
+    }
+    
+    func dropLinks(withLabel predicate: String?,
+                   to objectIdentifier: String) throws {
+        try KBSyncMethodReturningVoid { c in
+            self.dropLinks(withLabel: predicate,
+                           to: objectIdentifier,
                            completionHandler: c)
         }
     }

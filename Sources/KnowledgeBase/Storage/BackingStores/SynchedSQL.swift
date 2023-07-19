@@ -79,6 +79,13 @@ class KBCloudKitSQLBackingStore : KBSQLBackingStore {
         completionHandler(.failure(KBError.notSupported))
     }
     
+    func dropLinks(withLabel predicate: Label?,
+                   to objectIdentifier: Label,
+                   completionHandler: @escaping KBActionCompletion) {
+        log.fault("\(KnowledgeBaseBundleIdentifier, privacy: .public) store is not meant to store graphs")
+        completionHandler(.failure(KBError.notSupported))
+    }
+    
     func dropLinks(between subjectIdentifier: Label,
                    and objectIdentifier: Label,
                    completionHandler: @escaping KBActionCompletion) {

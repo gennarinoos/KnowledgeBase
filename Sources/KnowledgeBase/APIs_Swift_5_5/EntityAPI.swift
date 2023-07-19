@@ -77,6 +77,7 @@ extension KBEntity {
      */
     public func remove() async throws {
         try await self.store.backingStore.dropLinks(withLabel: nil, from: self.identifier)
+        try await self.store.backingStore.dropLinks(withLabel: nil, to: self.identifier)
     }
 
 }

@@ -193,8 +193,8 @@ extension KBSQLBackingStoreProtocol {
                   completionHandler: @escaping KBActionCompletion) {
         genericMethodReturningVoid(completionHandler) {
             try self.sqlHandler.dropLink(withLabel: predicate,
-                                                          between: subjectIdentifier,
-                                                          and: objectIdentifier)
+                                         between: subjectIdentifier,
+                                         and: objectIdentifier)
         }
     }
     
@@ -203,7 +203,16 @@ extension KBSQLBackingStoreProtocol {
                    completionHandler: @escaping KBActionCompletion) {
         genericMethodReturningVoid(completionHandler) {
             try self.sqlHandler.dropLinks(withLabel: predicate,
-                                                   from: subjectIdentifier)
+                                          from: subjectIdentifier)
+        }
+    }
+    
+    func dropLinks(withLabel predicate: String?,
+                   to objectIdentifier: String,
+                   completionHandler: @escaping KBActionCompletion) {
+        genericMethodReturningVoid(completionHandler) {
+            try self.sqlHandler.dropLinks(withLabel: predicate,
+                                          to: objectIdentifier)
         }
     }
     
@@ -212,7 +221,7 @@ extension KBSQLBackingStoreProtocol {
                    completionHandler: @escaping KBActionCompletion) {
         genericMethodReturningVoid(completionHandler) {
             try self.sqlHandler.dropLinks(between: subjectIdentifier,
-                                                           and: objectIdentifier)
+                                          and: objectIdentifier)
         }
     }
     

@@ -456,6 +456,26 @@ class KBSQLXPCBackingStore : KBBackingStore {
         }
     }
     
+    func dropLinks(withLabel predicate: String?,
+                   to objectIdentifier: String,
+                   completionHandler: @escaping KBActionCompletion) {
+        guard let service = self.xpcService() else {
+            completionHandler(.failure(KBError.fatalError("Could not connect to XPC service")))
+            return
+        }
+        
+        service.dropLinks(withLabel: predicate,
+                          to: objectIdentifier,
+                          inStoreWithIdentifier: self.name) { error in
+            let _ = self // Retain self in the block to keep XPC connection alive
+            if let error = error {
+                completionHandler(.failure(error))
+            } else {
+                completionHandler(.success(()))
+            }
+        }
+    }
+    
     func dropLinks(between subjectIdentifier: String,
                    and objectIdentifier: String,
                    completionHandler: @escaping KBActionCompletion) {

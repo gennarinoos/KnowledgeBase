@@ -256,6 +256,13 @@ class KBUserDefaultsBackingStore : KBBackingStore {
         completionHandler(.failure(KBError.notSupported))
     }
     
+    func dropLinks(withLabel predicate: String?,
+                   to objectIdentifier: String,
+                   completionHandler: @escaping KBActionCompletion) {
+        log.fault(".UserDefaults store is not meant to store graphs")
+        completionHandler(.failure(KBError.notSupported))
+    }
+    
     func dropLinks(between subjectIdentifier: String,
                    and objectIdentifier: String,
                    completionHandler: @escaping KBActionCompletion) {

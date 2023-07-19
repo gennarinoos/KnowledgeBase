@@ -515,8 +515,8 @@ public class KBSQLHandler: NSObject {
         }
         
         let linkID = KBSQLHandler.linkIdentifier(forLinkWithLabel: predicate,
-                                                             between: subjectIdentifier,
-                                                             and: objectIdentifier)
+                                                 between: subjectIdentifier,
+                                                 and: objectIdentifier)
         
         let sql = "insert or replace into link (id, subject, predicate, object, count) values (?, ?, ?, ?, ?)"
         let sqlBindings: [Binding?] = [linkID, subjectIdentifier, predicate, objectIdentifier, value]
@@ -730,43 +730,70 @@ public class KBSQLHandler: NSObject {
     }
 
     @objc public func dropLinks(withLabel predicate: String?,
-                              from subjectIdentifier: String) throws {
+                                from subjectIdentifier: String) throws {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
         
         var sqlBindings = [Binding?]()
         let whereClause: String
-        if let _ = predicate {
-            whereClause = "id like ?"
-            let value = KBHexastore.JOINER.combine(
-                KBHexastore.PSO.rawValue,
-                subjectIdentifier,
-                predicate!
-            )
-            sqlBindings.append(value + "%")
+        if let predicate = predicate {
+            whereClause = "subject = ? and predicate = ?"
+            sqlBindings.append(subjectIdentifier)
+            sqlBindings.append(predicate)
         } else {
-            whereClause = "subject = ?";
+            whereClause = "subject = ?"
             sqlBindings.append(subjectIdentifier)
         }
         let sql = "delete from link where \(whereClause)"
         
         try connection.transaction(Connection.TransactionMode.immediate) {
             _ = try connection.run(sql, sqlBindings)
+            
+            // reflect the change in the Hexastore
+            let condition = KBTripleCondition(
+                subject: subjectIdentifier,
+                predicate: predicate,
+                object: nil
+            )
+            try self._removeValues(forKeysMatching: condition.rawCondition)
+        }
+    }
+    
+    @objc public func dropLinks(withLabel predicate: String?,
+                                to objectIdentifier: String) throws {
+        guard let connection = self.connection else {
+            throw KBError.databaseNotReady
         }
         
-        // reflect the change in the Hexastore
-        let condition = KBTripleCondition(
-            subject: subjectIdentifier,
-            predicate: predicate,
-            object: nil
-        )
-        try self._removeValues(forKeysMatching: condition.rawCondition)
+        var sqlBindings = [Binding?]()
+        let whereClause: String
+        if let predicate = predicate {
+            whereClause = "object = ? and predicate = ?"
+            sqlBindings.append(objectIdentifier)
+            sqlBindings.append(predicate)
+        } else {
+            whereClause = "object = ?"
+            sqlBindings.append(objectIdentifier)
+        }
+        let sql = "delete from link where \(whereClause)"
+        
+        try connection.transaction(Connection.TransactionMode.immediate) {
+            _ = try connection.run(sql, sqlBindings)
+            
+            // reflect the change in the Hexastore
+            let condition = KBTripleCondition(
+                subject: nil,
+                predicate: predicate,
+                object: objectIdentifier
+            )
+            try self._removeValues(forKeysMatching: condition.rawCondition)
+        }
     }
     
     @objc(dropLinksBetween:and:error:)
     public func dropLinks(between subjectIdentifier: String,
-                        and objectIdentifier: String) throws {
+                          and objectIdentifier: String) throws {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }

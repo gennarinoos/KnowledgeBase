@@ -148,6 +148,7 @@ extension KBEntity {
      */
     public func remove(completionHandler: @escaping KBActionCompletion) {
         self.store.backingStore.dropLinks(withLabel: nil, from: self.identifier, completionHandler: completionHandler)
+        self.store.backingStore.dropLinks(withLabel: nil, to: self.identifier, completionHandler: completionHandler)
         self.store.delegate?.linkedDataDidChange()
     }
 }
