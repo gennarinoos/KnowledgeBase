@@ -49,7 +49,14 @@ extension CKError {
 @objc(KBCloudKitManager)
 public class KBCloudKitManager : NSObject {
     
-    public static let shared = KBCloudKitManager()
+    private static var _shared: KBCloudKitManager? = nil
+    
+    public static var shared: KBCloudKitManager {
+        if self._shared == nil {
+            self._shared = KBCloudKitManager()
+        }
+        return self._shared!
+    }
     static let recordZoneID = CKRecordZone.ID(zoneName: kKBCloudKitRecordZoneName, ownerName: CKCurrentUserDefaultName)
     
     public var accountStatus: CKAccountStatus = .couldNotDetermine

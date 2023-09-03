@@ -127,11 +127,11 @@ class KBStorageServiceProviderXPC: KBStorageXPCProtocol {
     // CREATE/UPDATE
     
     internal func notifyAboutUpsert(inStoreWithIdentifier identifier: String, ofKeys keys: [String]) {
-        let notificationName = "\(KBPersistentStorageKeysAndValuesUpdatedPrefix)\(identifier)"
-        let userInfo = [KBPersistentStorageKeysAndValuesUpdatedPayloadKey : keys]
-        DistributedNotificationCenter.default().post(name: NSNotification.Name(notificationName),
-                                                     object: nil,
-                                                     userInfo: userInfo)
+//        let notificationName = "\(KBPersistentStorageKeysAndValuesUpdatedPrefix)\(identifier)"
+//        let userInfo = [KBPersistentStorageKeysAndValuesUpdatedPayloadKey : keys]
+//        DistributedNotificationCenter.default().post(name: NSNotification.Name(notificationName),
+//                                                     object: nil,
+//                                                     userInfo: userInfo)
     }
     
     func save(_ dict: KBKVPairs, toStoreWithIdentifier identifier: String, completionHandler: @escaping KBObjCActionCompletion) {
@@ -334,6 +334,22 @@ class KBStorageServiceProviderXPC: KBStorageXPCProtocol {
                 let handler = try self.handler(forStoreWithIdentifier: identifier)
                 try handler.dropLinks(withLabel: predicate, from: subject)
                 let keys = try handler.keys(matching: KBTripleCondition(subject: subject, predicate: predicate, object: nil).rawCondition)
+                self.notifyAboutDeletion(inStoreWithIdentifier: identifier, ofKeys: keys)
+                completionHandler(nil)
+            } catch {
+                completionHandler(error)
+            }
+        }
+    }
+    
+    func dropLinks(withLabel predicate: String?, to object: String, inStoreWithIdentifier identifier: String, completionHandler: @escaping KBObjCActionCompletion) {
+        
+        self.serialQueue.async {
+            log.trace("Dropping triples matching (*,\(predicate ?? "<nil>"),\(object)) in store with identifier \(identifier)")
+            do {
+                let handler = try self.handler(forStoreWithIdentifier: identifier)
+                try handler.dropLinks(withLabel: predicate, to: object)
+                let keys = try handler.keys(matching: KBTripleCondition(subject: nil, predicate: predicate, object: object).rawCondition)
                 self.notifyAboutDeletion(inStoreWithIdentifier: identifier, ofKeys: keys)
                 completionHandler(nil)
             } catch {

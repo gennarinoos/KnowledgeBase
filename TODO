@@ -13,3 +13,4 @@
 [ ] Rename Event and related API to more generic LinkedList
 [x] Change _setValue(forKey:) to set(value:forKey:)
 [~] CloudKit KnowledgeBase support
+[ ] Support transactions/write-batches in KnowledgeGraph
