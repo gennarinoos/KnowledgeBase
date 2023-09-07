@@ -151,7 +151,22 @@ extension KBQueueStore {
      
      */
     public func retrieveItem(withIdentifier identifier: String, completionHandler: @escaping (Swift.Result<KBQueueItem?, Error>) -> ()) {
-        self.retrieveItems(withIdentifiers: [identifier], completionHandler: completionHandler)
+        self.retrieveItems(withIdentifiers: [identifier]) { result in
+            switch result {
+            case .success(let items):
+                if items.count == 0 {
+                    completionHandler(.success(nil))
+                }
+                else if items.count > 0 {
+                    completionHandler(.failure(KBError.unexpectedData(items)))
+                }
+                else {
+                    completionHandler(.success(items.first))
+                }
+            case .failure(let err):
+                completionHandler(.failure(err))
+            }
+        }
     }
     @objc public func retrieveItem(withIdentifier identifier: String, completionHandler: @escaping (Error?, KBQueueItem?) -> ()) {
         KBObjectiveCAPIResultReturningInitiable(completionHandler: completionHandler) {
@@ -162,18 +177,13 @@ extension KBQueueStore {
     
     public func retrieveItems(withIdentifiers identifiers: [String], completionHandler: @escaping (Swift.Result<[KBQueueItem], Error>) -> ()) {
         var condition = KBGenericCondition(value: false)
-        for queueItemIdentifier in queueItemIdentifiers {
+        for queueItemIdentifier in identifiers {
             condition = condition.or(KBGenericCondition(.equal, value: queueItemIdentifier))
         }
         self.keyValuesAndTimestamps(forKeysMatching: condition) { result in
             switch result {
             case .success(let kvPairsWithTimestamps):
-                guard kvPairsWithTimestamps.count > 0 else {
-                    completionHandler(.success(nil))
-                    return
-                }
-                
-                var items = [KBQueueItem]
+                var items = [KBQueueItem]()
                 for kvPairWithTimestamp in kvPairsWithTimestamps {
                     guard let value = kvPairWithTimestamp.value else {
                         completionHandler(.failure(KBError.unexpectedData(kvPairsWithTimestamps)))
