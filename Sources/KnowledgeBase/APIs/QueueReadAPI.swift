@@ -151,7 +151,20 @@ extension KBQueueStore {
      
      */
     public func retrieveItem(withIdentifier identifier: String, completionHandler: @escaping (Swift.Result<KBQueueItem?, Error>) -> ()) {
-        let condition = KBGenericCondition(.equal, value: identifier)
+        self.retrieveItems(withIdentifiers: [identifier], completionHandler: completionHandler)
+    }
+    @objc public func retrieveItem(withIdentifier identifier: String, completionHandler: @escaping (Error?, KBQueueItem?) -> ()) {
+        KBObjectiveCAPIResultReturningInitiable(completionHandler: completionHandler) {
+            c in
+            self.retrieveItem(withIdentifier: identifier, completionHandler: c)
+        }
+    }
+    
+    public func retrieveItems(withIdentifiers identifiers: [String], completionHandler: @escaping (Swift.Result<[KBQueueItem], Error>) -> ()) {
+        var condition = KBGenericCondition(value: false)
+        for queueItemIdentifier in queueItemIdentifiers {
+            condition = condition.or(KBGenericCondition(.equal, value: queueItemIdentifier))
+        }
         self.keyValuesAndTimestamps(forKeysMatching: condition) { result in
             switch result {
             case .success(let kvPairsWithTimestamps):
@@ -159,30 +172,30 @@ extension KBQueueStore {
                     completionHandler(.success(nil))
                     return
                 }
-                guard kvPairsWithTimestamps.count == 1,
-                      let kvPairWithTimestamp = kvPairsWithTimestamps.first else {
-                    completionHandler(.failure(KBError.unexpectedData(kvPairsWithTimestamps)))
-                    return
+                
+                var items = [KBQueueItem]
+                for kvPairWithTimestamp in kvPairsWithTimestamps {
+                    guard let value = kvPairWithTimestamp.value else {
+                        completionHandler(.failure(KBError.unexpectedData(kvPairsWithTimestamps)))
+                        return
+                    }
+                    let item = KBQueueItem(
+                        identifier: kvPairWithTimestamp.key,
+                        content: value,
+                        createdAt: kvPairWithTimestamp.timestamp
+                    )
+                    items.append(item)
                 }
-                guard let value = kvPairWithTimestamp.value else {
-                    completionHandler(.failure(KBError.unexpectedData(kvPairsWithTimestamps)))
-                    return
-                }
-                let item = KBQueueItem(
-                    identifier: kvPairWithTimestamp.key,
-                    content: value,
-                    createdAt: kvPairWithTimestamp.timestamp
-                )
-                completionHandler(.success(item))
+                completionHandler(.success(items))
             case .failure(let error):
                 completionHandler(.failure(error))
             }
         }
     }
-    @objc public func retrieveItem(withIdentifier identifier: String, completionHandler: @escaping (Error?, KBQueueItem?) -> ()) {
+    @objc public func retrieveItems(withIdentifiers identifiers: [String], completionHandler: @escaping (Error?, [KBQueueItem]) -> ()) {
         KBObjectiveCAPIResultReturningInitiable(completionHandler: completionHandler) {
             c in
-            self.retrieveItem(withIdentifier: identifier, completionHandler: c)
+            self.retrieveItems(withIdentifiers: identifiers, completionHandler: c)
         }
     }
 }
