@@ -157,7 +157,7 @@ extension KBQueueStore {
                 if items.count == 0 {
                     completionHandler(.success(nil))
                 }
-                else if items.count > 0 {
+                else if items.count > 1 {
                     completionHandler(.failure(KBError.unexpectedData(items)))
                 }
                 else {
@@ -175,6 +175,13 @@ extension KBQueueStore {
         }
     }
     
+    /**
+     Retrieves a list of items in the queue if they exists, given their identifires
+     
+     - parameter identifiers: the identifiers of the items in the queue
+     - parameter completionHandler: the callback method
+     
+     */
     public func retrieveItems(withIdentifiers identifiers: [String], completionHandler: @escaping (Swift.Result<[KBQueueItem], Error>) -> ()) {
         var condition = KBGenericCondition(value: false)
         for queueItemIdentifier in identifiers {
