@@ -130,6 +130,7 @@ extension KBQueueStore {
     
     
     /// Dequeue a specific item (random access)
+    /// - Parameter item: the item to dequeue
     /// - Parameter completionHandler: the callback method
     public func dequeue(item: KBQueueItem,
                         completionHandler: @escaping (Swift.Result<KBQueueItem?, Error>) -> ()) {

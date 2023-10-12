@@ -187,6 +187,25 @@ extension KBQueueStore {
         for queueItemIdentifier in identifiers {
             condition = condition.or(KBGenericCondition(.equal, value: queueItemIdentifier))
         }
+        self.retrieveItems(withIdentifiersMatching: condition,
+                           completionHandler: completionHandler)
+    }
+    @objc public func retrieveItems(withIdentifiers identifiers: [String], completionHandler: @escaping (Error?, [KBQueueItem]) -> ()) {
+        KBObjectiveCAPIResultReturningInitiable(completionHandler: completionHandler) {
+            c in
+            self.retrieveItems(withIdentifiers: identifiers, completionHandler: c)
+        }
+    }
+    
+    /**
+     Retrieves a list of items in the queue if they exists, given a condition to be appllied to their identifiers
+     
+     - parameter withIdentifiersMatching: the condition to apply to the item identifiers
+     - parameter completionHandler: the callback method
+     
+     */
+    public func retrieveItems(withIdentifiersMatching condition: KBGenericCondition, 
+                              completionHandler: @escaping (Swift.Result<[KBQueueItem], Error>) -> ()) {
         self.keyValuesAndTimestamps(forKeysMatching: condition) { result in
             switch result {
             case .success(let kvPairsWithTimestamps):
@@ -209,10 +228,10 @@ extension KBQueueStore {
             }
         }
     }
-    @objc public func retrieveItems(withIdentifiers identifiers: [String], completionHandler: @escaping (Error?, [KBQueueItem]) -> ()) {
+    @objc public func retrieveItems(withIdentifiersMatching condition: KBGenericCondition, completionHandler: @escaping (Error?, [KBQueueItem]) -> ()) {
         KBObjectiveCAPIResultReturningInitiable(completionHandler: completionHandler) {
             c in
-            self.retrieveItems(withIdentifiers: identifiers, completionHandler: c)
+            self.retrieveItems(withIdentifiersMatching: condition, completionHandler: c)
         }
     }
 }
