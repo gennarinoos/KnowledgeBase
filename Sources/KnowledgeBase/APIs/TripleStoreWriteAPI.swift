@@ -31,7 +31,27 @@ extension KBKnowledgeStore {
         let condition = subjectMatches.or(objectMatches)
         
         self.backingStore.removeValues(forKeysMatching: condition.rawCondition) { [weak self] result in
-            self?.delegate?.linkedDataDidChange()
+            switch result {
+            case .failure(let err):
+                completionHandler(.failure(err))
+            case .success(_):
+                completionHandler(.success(()))
+                self?.delegate?.linkedDataDidChange()
+            }
+        }
+    }
+    
+    /**
+     Matches triples need against the condition passed as argument
+     
+     - parameter condition: matches only triples having satisfying this condition.
+     If nil, matches all triples
+     - parameter completionHandler: the callback method
+     */
+    public func removeTriples(matching condition: KBTripleCondition,
+                              completionHandler: @escaping KBActionCompletion)
+    {
+        self.backingStore.removeValues(forKeysMatching: condition.rawCondition) { [weak self] result in
             switch result {
             case .failure(let err):
                 completionHandler(.failure(err))
