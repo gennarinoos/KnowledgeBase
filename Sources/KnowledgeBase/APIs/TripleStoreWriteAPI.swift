@@ -16,7 +16,7 @@ extension KBKnowledgeStore {
      - parameter identifier: the identifier
      */
     public func removeEntity(_ identifier: Label, completionHandler: @escaping KBActionCompletion) {
-        log.trace("[<\(identifier)> $? $?] or [<\(identifier)> $? $?]")
+        log.trace("remove [<\(identifier)> $? $?] or [<\(identifier)> $? $?]")
         
         let subjectMatches = KBTripleCondition(
             subject: identifier,
@@ -42,15 +42,16 @@ extension KBKnowledgeStore {
     }
     
     /**
-     Matches triples need against the condition passed as argument
+     Removes triples matching the condition passed as argument
      
-     - parameter condition: matches only triples having satisfying this condition.
-     If nil, matches all triples
+     - parameter condition: the condition triples have to satisfy to be removed.
      - parameter completionHandler: the callback method
      */
     public func removeTriples(matching condition: KBTripleCondition,
                               completionHandler: @escaping KBActionCompletion)
     {
+        log.trace("remove \(condition.rawCondition)")
+        
         self.backingStore.removeValues(forKeysMatching: condition.rawCondition) { [weak self] result in
             switch result {
             case .failure(let err):

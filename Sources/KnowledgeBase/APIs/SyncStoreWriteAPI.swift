@@ -112,4 +112,16 @@ extension KBKnowledgeStore {
             self.removeEntity(identifier, completionHandler: c)
         }
     }
+    
+    /**
+     Removes triples matching the condition passed as argument
+     
+     - parameter condition: the condition triples have to satisfy to be removed.
+     - parameter completionHandler: the callback method
+     */
+    @objc public func removeTriples(matching condition: KBTripleCondition) throws {
+        try KBSyncMethodReturningVoid { c in
+            self.removeTriples(matching: condition, completionHandler: c)
+        }
+    }
 }

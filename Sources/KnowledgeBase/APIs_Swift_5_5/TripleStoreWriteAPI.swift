@@ -16,7 +16,7 @@ extension KBKnowledgeStore {
      - parameter identifier: the identifier
      */
     @objc public func removeEntity(_ identifier: Label) async throws {
-        log.debug("[$? <\(identifier)> $?]")
+        log.debug("remove [$? <\(identifier)> $?]")
         
         let subjectMatches = KBTripleCondition(
             subject: identifier,
@@ -30,6 +30,20 @@ extension KBKnowledgeStore {
         )
         let condition = subjectMatches.or(objectMatches)
         
+        let _ = try await self.backingStore.removeValues(forKeysMatching: condition.rawCondition)
+        self?.delegate?.linkedDataDidChange()
+    }
+    
+    /**
+     Matches triples need against the condition passed as argument
+     
+     - parameter condition: matches only triples having satisfying this condition.
+     If nil, matches all triples
+     - parameter completionHandler: the callback method
+     */
+    public func removeTriples(matching condition: KBTripleCondition) async throws
+    {
+        log.trace("remove \(condition.rawCondition)")
         let _ = try await self.backingStore.removeValues(forKeysMatching: condition.rawCondition)
         self?.delegate?.linkedDataDidChange()
     }

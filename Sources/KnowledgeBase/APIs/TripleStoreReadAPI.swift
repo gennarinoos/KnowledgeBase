@@ -36,10 +36,9 @@ extension KBKnowledgeStore {
     }
     
     /**
-     Matches triples need against the condition passed as argument
+     Removes triples matching the condition passed as argument
      
-     - parameter condition: matches only triples having satisfying this condition.
-     If nil, matches all triples
+     - parameter condition: the condition triples have to satisfy to be removed.
      - parameter completionHandler: the callback method
      */
     public func triples(matching condition: KBTripleCondition?,
