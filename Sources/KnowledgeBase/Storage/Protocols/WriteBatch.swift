@@ -47,7 +47,7 @@ class KBAbstractNoTimestampSQLWriteBatch : KBAbstractWriteBatch, KBKVStoreWriteB
         }
         
         if self.buffer.count == 0 {
-            log.warning("No values in writebatch to save. Returning early")
+            log.debug("No values in writebatch to save. Returning early")
             completionHandler(.success(()))
             return
         }
@@ -83,7 +83,7 @@ class KBUserDefaultsWriteBatch : KBAbstractWriteBatch, KBKVStoreWriteBatch {
         }
         
         if self.buffer.count == 0 {
-            log.warning("No values in writebatch to save. Returning early")
+            log.debug("No values in writebatch to save. Returning early")
             completionHandler(.success(()))
             return
         }
@@ -128,7 +128,7 @@ class KBSQLWriteBatch : KBAbstractWriteBatch, KBKVStoreWriteBatch {
         }
         
         if self.buffer.count == 0 {
-            log.warning("No values in writebatch to save. Returning early")
+            log.debug("No values in writebatch to save. Returning early")
             completionHandler(.success(()))
             return
         }
