@@ -127,7 +127,10 @@ public class KBSQLHandler: NSObject {
         
         var keys = [String]()
         
-        let query = SQLTableType.allValues.map { "select k from \($0.rawValue)" }.joined(separator: " union all ")
+        let query = SQLTableType.allValues
+            .map { "select k from \($0.rawValue)" }
+            .joined(separator: " union all ")
+        
         let stmt = try connection.prepare(query)
         for row in stmt {
             assert(row.count == 1, "retrieved the right number of columns")
@@ -144,7 +147,9 @@ public class KBSQLHandler: NSObject {
         
         var keys = [String]()
         
-        let query = SQLTableType.allValues.map { "select k from \($0.rawValue) where \(condition.sql)" }.joined(separator: " union all ")
+        let query = SQLTableType.allValues
+            .map { "select k from \($0.rawValue) where \(condition.sql)" }
+            .joined(separator: " union all ")
         
         let stmt = try connection.prepare(query)
         for row in stmt {
@@ -162,7 +167,10 @@ public class KBSQLHandler: NSObject {
         
         var values = [Any]()
         
-        let query = SQLTableType.allValues.map { "select v from \($0.rawValue)" }.joined(separator: " union all ")
+        let query = SQLTableType.allValues
+            .map { "select v from \($0.rawValue)" }
+            .joined(separator: " union all ")
+        
         let stmt = try connection.prepare(query)
         for row in stmt {
             assert(row.count == 1, "retrieved the right number of columns")
@@ -181,7 +189,10 @@ public class KBSQLHandler: NSObject {
         
         var values = [Any]()
         
-        let query = SQLTableType.allValues.map { "select v from \($0.rawValue) where \(condition.sql)" }.joined(separator: " union all ")
+        let query = SQLTableType.allValues
+            .map { "select v from \($0.rawValue) where \(condition.sql)" }
+            .joined(separator: " union all ")
+        
         let stmt = try connection.prepare(query)
         for row in stmt {
             assert(row.count == 1, "retrieved the right number of columns")
@@ -193,15 +204,33 @@ public class KBSQLHandler: NSObject {
         return values
     }
     
-    public func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition) throws -> [KBKVObjcPairWithTimestamp] {
+    public func keyValuesAndTimestamps(
+        forKeysMatching condition: KBGenericCondition,
+        paginate: KBPaginationOptions?,
+        sort: KBSortDirection?
+    ) throws -> [KBKVObjcPairWithTimestamp] {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
         
         var keyValuesAndTimestamp = [KBKVObjcPairWithTimestamp]()
         
-        let query = SQLTableType.allValues.map { "select k, v, t from \($0.rawValue) where \(condition.sql)" }.joined(separator: " union all ")
-        let stmt = try connection.prepare(query + " order by t asc")
+        var modifiers = ""
+        switch sort {
+        case  .ascending, .none:
+            modifiers += " order by t asc"
+        case .descending:
+            modifiers += " order by t desc"
+        }
+        if let paginate {
+            modifiers += " limit \(paginate.per) offset \(paginate.page - 1)"
+        }
+        
+        let query = SQLTableType.allValues
+            .map { "select k, v, t from \($0.rawValue) where \(condition.sql)" }
+            .joined(separator: " union all ")
+        
+        let stmt = try connection.prepare("select k, v, t from (\(query))\(modifiers)")
         for row in stmt {
             assert(row.count == 3, "retrieved the right number of columns")
             if let key = try self.deserializeValue(row[0]) as? String,
@@ -223,7 +252,10 @@ public class KBSQLHandler: NSObject {
         
         var dict = KBKVPairs()
         
-        let query = SQLTableType.allValues.map { "select k, v from \($0.rawValue)" }.joined(separator: " union all ")
+        let query = SQLTableType.allValues
+            .map { "select k, v from \($0.rawValue)" }
+            .joined(separator: " union all ")
+        
         let stmt = try connection.prepare(query)
         for row in stmt {
             assert(row.count == 2, "retrieved the right number of columns")
@@ -236,21 +268,33 @@ public class KBSQLHandler: NSObject {
         return dict
     }
     
-    @objc public func keysAndValues(within interval: DateInterval, limit: Int, order: ComparisonResult) throws -> [Date: KBKVPairs] {
+    @objc public func keysAndValues(
+        within interval: DateInterval,
+        paginate: KBPaginationOptions?,
+        sort: KBSortDirection.RawValue
+    ) throws -> [Date: KBKVPairs] {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
+        guard KBSortDirection(rawValue: sort) != nil else {
+            throw KBError.notSupported
+        }
         
         var pairsByDate = [Date: KBKVPairs]()
-        let sqlOrder: String = order == .orderedAscending ? "asc" : "desc"
         
-        let query = SQLTableType.allValues.map { "select k, v, t from \($0.rawValue) where t between ? and ?" }
-            .joined(separator: " union all ") + " order by t \(sqlOrder) limit ?"
+        var modifiers = " order by t \(sort)"
+        if let paginate {
+            modifiers += " limit \(paginate.per) offset \(paginate.page - 1)"
+        }
+        
+        let query = SQLTableType.allValues
+            .map { "select k, v, t from \($0.rawValue) where t between ? and ?" }
+            .joined(separator: " union all ")
+        
         let dateBindings: [Binding?] = [interval.start.timeIntervalSince1970, interval.end.timeIntervalSince1970]
-        var bindings: [Binding?] = ([[Binding?]](repeating: dateBindings, count: SQLTableType.allValues.count )).flatMap { $0 }
-        bindings.append(limit)
+        let bindings: [Binding?] = ([[Binding?]](repeating: dateBindings, count: SQLTableType.allValues.count )).flatMap { $0 }
         
-        let stmt = try connection.prepare(query, bindings)
+        let stmt = try connection.prepare("select k, v, t from (\(query))\(modifiers)", bindings)
         for row in stmt {
             var dict = KBKVPairs()
             assert(row.count == 3, "retrieved the right number of columns")
@@ -273,7 +317,10 @@ public class KBSQLHandler: NSObject {
         
         var dict = KBKVPairs()
         
-        let query = SQLTableType.allValues.map { "select k, v from \($0.rawValue) where \(condition.sql)" }.joined(separator: " union all ")
+        let query = SQLTableType.allValues
+            .map { "select k, v from \($0.rawValue) where \(condition.sql)" }
+            .joined(separator: " union all ")
+        
         let stmt = try connection.prepare(query)
         for row in stmt {
             assert(row.count == 2, "retrieved the right number of columns")
@@ -292,8 +339,11 @@ public class KBSQLHandler: NSObject {
         let arrayQuery = [String](repeating: "?", count: array.count).joined(separator: ",")
         let projection = project.joined(separator: ",")
         let query = SQLTableType.allValues
-            .map { "select \(projection) from \($0.rawValue) where \(whereField) in (\(arrayQuery))" }
+            .map {
+                "select \(projection) from \($0.rawValue) where \(whereField) in (\(arrayQuery))"
+            }
             .joined(separator: " union all ")
+        
         let bindings: [Binding?] = ([[Binding?]](repeating: array, count: SQLTableType.allValues.count )).flatMap { $0 }
         
         return (query, bindings)

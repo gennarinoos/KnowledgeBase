@@ -66,9 +66,21 @@ extension KBSQLBackingStoreProtocol {
         }
     }
     
-    func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<[KBKVPairWithTimestamp], Error>) -> ()) {
+    func keyValuesAndTimestamps(
+        forKeysMatching condition: KBGenericCondition,
+        paginate: KBPaginationOptions?,
+        sort: KBSortDirection?,
+        completionHandler: @escaping (Swift.Result<[KBKVPairWithTimestamp], Error>) -> ()
+    ) {
         genericMethodReturningInitiable(completionHandler) {
-            return try self.sqlHandler.keyValuesAndTimestamps(forKeysMatching: condition).map({ KBKVPairWithTimestamp(key: $0.key, value: NSNullToNil($0.value), timestamp: $0.timestamp) })
+            return try self.sqlHandler.keyValuesAndTimestamps(
+                forKeysMatching: condition,
+                paginate: paginate,
+                sort: sort
+            )
+            .map {
+                KBKVPairWithTimestamp(key: $0.key, value: NSNullToNil($0.value), timestamp: $0.timestamp)
+            }
         }
     }
     
@@ -92,11 +104,11 @@ extension KBSQLBackingStoreProtocol {
     }
     
     func dictionaryRepresentation(createdWithin interval: DateInterval,
-                                  limit: Int?,
-                                  order: ComparisonResult,
+                                  paginate: KBPaginationOptions?,
+                                  sort: KBSortDirection,
                                   completionHandler: @escaping (Swift.Result<[Date: KBKVPairs], Error>) -> ()) {
         genericMethodReturningInitiable(completionHandler) {
-            return try self.sqlHandler.keysAndValues(within: interval, limit: limit ?? -1, order: order)
+            return try self.sqlHandler.keysAndValues(within: interval, paginate: paginate, sort: sort.rawValue)
         }
     }
     

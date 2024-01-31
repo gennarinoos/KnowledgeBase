@@ -109,10 +109,20 @@ extension KBKVStore {
      Retrieves the values in the KVS whose keys pass the condition, asynchronously.
      
      - parameter condition: condition the keys need to satisfy
-     - returns the list of values for the keys matching the condition
+     - parameter paginate: pagination options
+     - parameter sort: in ascending or descending order
      
+     - Returns the list of values for the keys matching the condition
      */
-    public func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition) async throws -> [KBKVPairWithTimestamp] {
-        return try await self.backingStore.keyValuesAndTimestamps(forKeysMatching: condition)
+    public func keyValuesAndTimestamps(
+        forKeysMatching condition: KBGenericCondition,
+        paginate: KBPaginationOptions? = nil,
+        sort: KBSortDirection? = nil
+    ) async throws -> [KBKVPairWithTimestamp] {
+        return try await self.backingStore.keyValuesAndTimestamps(
+            forKeysMatching: condition,
+            paginate: paginate,
+            sort: sort
+        )
     }
 }

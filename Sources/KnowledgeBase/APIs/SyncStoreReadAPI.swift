@@ -111,12 +111,22 @@ extension KBKVStore {
      Blocking version.
      
      - parameter condition: condition the keys need to satisfy
+     - parameter paginate: pagination options
+     - parameter sort: in ascending or descending order
      
-     - returns: the values
+     - Returns: the values
      
      */
-    public func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition) throws -> [KBKVPairWithTimestamp] {
-        return try self.backingStore.keyValuesAndTimestamps(forKeysMatching: condition)
+    public func keyValuesAndTimestamps(
+        forKeysMatching condition: KBGenericCondition,
+        paginate: KBPaginationOptions? = nil,
+        sort: KBSortDirection? = nil
+    ) throws -> [KBKVPairWithTimestamp] {
+        return try self.backingStore.keyValuesAndTimestamps(
+            forKeysMatching: condition,
+            paginate: paginate,
+            sort: sort
+        )
     }
 }
 

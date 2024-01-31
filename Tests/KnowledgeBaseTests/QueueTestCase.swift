@@ -93,8 +93,11 @@ class KBQueueTestCase: KVStoreTestCase {
         XCTAssertEqual(allItems.count, 2)
         
         try store.insert("Hello", withIdentifier: "first", timestamp: previousDate)
-        try store.insert("Now.", withIdentifier: "third", timestamp: midDate)
-        try store.insert("Stop.", withIdentifier: "fifth", timestamp: Date()) // New date is later than date in items[0] and items[1] enqueue
+        try store.insert(2, withIdentifier: "third", timestamp: midDate)
+        try store.insert(0.1233, withIdentifier: "fifth", timestamp: Date()) // New date is later than date in items[0] and items[1] enqueue
+        
+        allItems = try store.peekItems(createdWithin: DateInterval.init(start: .distantPast, end: Date()), limit: 10)
+        XCTAssertEqual(allItems.count, 5)
         
         guard let firstItem = try store.dequeue() else {
             XCTFail("'Hello' was not inserted at queue head")
@@ -113,7 +116,7 @@ class KBQueueTestCase: KVStoreTestCase {
             return
         }
         XCTAssertEqual(midItem.identifier, "third")
-        XCTAssertEqual(midItem.content as! String, "Now.")
+        XCTAssertEqual(midItem.content as! Int, 2)
         
         if let item = try store.dequeue() {
             XCTAssertEqual(item.identifier, itemIds[1])
@@ -125,7 +128,7 @@ class KBQueueTestCase: KVStoreTestCase {
             return
         }
         XCTAssertEqual(lastItem.identifier, "fifth")
-        XCTAssertEqual(lastItem.content as! String, "Stop.")
+        XCTAssertEqual(lastItem.content as! Double, 0.1233)
         
         allItems = try self.sharedStore().peekItems(createdWithin: DateInterval.init(start: .distantPast, end: Date()), limit: 10)
         XCTAssertEqual(allItems.count, 0)

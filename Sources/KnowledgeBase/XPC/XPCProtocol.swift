@@ -22,13 +22,21 @@ public protocol KBStorageXPCProtocol {
     
     func keysAndValues(forKeysMatching: KBGenericCondition, inStoreWithIdentifier identifier: String, completionHandler: @escaping (Error?, KBKVPairs?) -> ())
     
-    func keyValuesAndTimestamps(forKeysMatching: KBGenericCondition, inStoreWithIdentifier identifier: String, completionHandler: @escaping (Error?, [KBKVObjcPairWithTimestamp]?) -> ())
+    func keyValuesAndTimestamps(
+        forKeysMatching: KBGenericCondition,
+        inStoreWithIdentifier identifier: String,
+        paginate: KBPaginationOptions?,
+        sort: KBSortDirection.RawValue?,
+        completionHandler: @escaping (Error?, [KBKVObjcPairWithTimestamp]?) -> ()
+    )
     
-    func keysAndValues(createdWithin interval: DateInterval,
-                       limit: Int,
-                       order: ComparisonResult,
-                       inStoreWithIdentifier identifier: String,
-                       completionHandler: @escaping (Error?, [Date: KBKVPairs]?) -> ())
+    func keysAndValues(
+        createdWithin interval: DateInterval,
+        paginate: KBPaginationOptions?,
+        sort: KBSortDirection.RawValue,
+        inStoreWithIdentifier identifier: String,
+        completionHandler: @escaping (Error?, [Date: KBKVPairs]?) -> ()
+    )
     
     func tripleComponents(matching: KBTripleCondition?, inStoreWithIdentifier identifier: String, completionHandler: @escaping (Error?, [KBTriple]?) -> ())
 

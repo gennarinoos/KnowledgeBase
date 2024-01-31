@@ -87,15 +87,23 @@ public class KnowledgeBaseXPCUtils : NSObject {
         
         // MARK: keysAndValues(createdWithin:limit:order:inStoreWithIdentifier:completionHandler:)
         interface.setClasses(NSSet(array: [DateInterval.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.keysAndValues(createdWithin:limit:order:inStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.keysAndValues(createdWithin:paginate:sort:inStoreWithIdentifier:completionHandler:)),
                              argumentIndex: 0,
                              ofReply: false)
+        interface.setClasses(NSSet(array: [KBPaginationOptions.self]) as! Set<AnyHashable>,
+                             for: #selector(KBStorageXPCProtocol.keysAndValues(createdWithin:paginate:sort:inStoreWithIdentifier:completionHandler:)),
+                             argumentIndex: 1,
+                             ofReply: false)
         interface.setClasses(NSSet(array: [NSString.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.keysAndValues(createdWithin:limit:order:inStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.keysAndValues(createdWithin:paginate:sort:inStoreWithIdentifier:completionHandler:)),
+                             argumentIndex: 2,
+                             ofReply: false)
+        interface.setClasses(NSSet(array: [NSString.self]) as! Set<AnyHashable>,
+                             for: #selector(KBStorageXPCProtocol.keysAndValues(createdWithin:paginate:sort:inStoreWithIdentifier:completionHandler:)),
                              argumentIndex: 3,
                              ofReply: false)
         interface.setClasses(NSSet(array: [NSDate.self, NSDictionary.self, NSString.self] + allowedValues) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.keysAndValues(createdWithin:limit:order:inStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.keysAndValues(createdWithin:paginate:sort:inStoreWithIdentifier:completionHandler:)),
                              argumentIndex: 1,
                              ofReply: true)
 
