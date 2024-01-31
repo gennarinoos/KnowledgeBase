@@ -33,10 +33,14 @@ extension KBQueueStore {
      */
     public func peekItems(createdWithin interval: DateInterval,
                           limit: Int? = nil,
-                          overrideOrder: ComparisonResult? = nil,
+                          overrideSort: KBSortDirection? = nil,
                           completionHandler: @escaping (Swift.Result<[KBQueueItem], Error>) -> ()) {
-        let order = overrideOrder ?? (self.queueType == .fifo ? ComparisonResult.orderedAscending : ComparisonResult.orderedDescending)
-        return self.backingStore.dictionaryRepresentation(createdWithin: interval, limit: limit, order: order) { result in
+        let order = overrideSort ?? (self.queueType == .fifo ? .ascending : .descending)
+        return self.backingStore.dictionaryRepresentation(
+            createdWithin: interval,
+            paginate: limit != nil ? KBPaginationOptions(page: 1, per: limit!) : nil,
+            sort: order
+        ) { result in
             switch result {
             case .success(let itemsKeyedByDate):
                 do {
@@ -71,8 +75,12 @@ extension KBQueueStore {
      
      */
     public func peekItems(createdWithin interval: DateInterval, limit: Int? = nil) throws -> [KBQueueItem] {
-        let order = self.queueType == .fifo ? ComparisonResult.orderedAscending : ComparisonResult.orderedDescending
-        let itemsKeyedByDate = try self.backingStore.dictionaryRepresentation(createdWithin: interval, limit: limit, order: order)
+        let order = self.queueType == .fifo ? KBSortDirection.ascending : KBSortDirection.descending
+        let itemsKeyedByDate = try self.backingStore.dictionaryRepresentation(
+            createdWithin: interval,
+            paginate: limit != nil ? KBPaginationOptions(page: 1, per: limit!) : nil,
+            sort: order
+        )
         return try toQueueItems(itemsKeyedByDate: itemsKeyedByDate)
     }
     
@@ -83,8 +91,10 @@ extension KBQueueStore {
 
      */
     public func peek(completionHandler: @escaping (Swift.Result<KBQueueItem?, Error>) -> ()) {
-        self.peekItems(createdWithin: DateInterval(start: Date.distantPast, end: Date()),
-                   limit: 1) { result in
+        self.peekItems(
+            createdWithin: DateInterval(start: Date.distantPast, end: Date()),
+            limit: 1
+        ) { result in
             switch result {
             case .success(let resultByDate):
                 completionHandler(.success(resultByDate.first))
@@ -206,7 +216,10 @@ extension KBQueueStore {
      */
     public func retrieveItems(withIdentifiersMatching condition: KBGenericCondition, 
                               completionHandler: @escaping (Swift.Result<[KBQueueItem], Error>) -> ()) {
-        self.keyValuesAndTimestamps(forKeysMatching: condition) { result in
+        self.keyValuesAndTimestamps(
+            forKeysMatching: condition,
+            sort: (self.queueType == .fifo ? .ascending : .descending)
+        ) { result in
             switch result {
             case .success(let kvPairsWithTimestamps):
                 var items = [KBQueueItem]()

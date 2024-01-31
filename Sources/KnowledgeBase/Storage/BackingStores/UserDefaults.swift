@@ -98,7 +98,16 @@ class KBUserDefaultsBackingStore : KBBackingStore {
         }
     }
     
-    func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<[KBKVPairWithTimestamp], Error>) -> ()) {
+    func keyValuesAndTimestamps(
+        forKeysMatching condition: KBGenericCondition,
+        paginate: KBPaginationOptions?,
+        sort: KBSortDirection?,
+        completionHandler: @escaping (Swift.Result<[KBKVPairWithTimestamp], Error>) -> ()
+    ) {
+        guard paginate == nil, sort == nil else {
+            completionHandler(.failure(KBError.notSupported))
+            return
+        }
         self.keys() { result in
             switch result {
             case .success(let allKeys):
@@ -139,8 +148,8 @@ class KBUserDefaultsBackingStore : KBBackingStore {
     }
     
     func dictionaryRepresentation(createdWithin interval: DateInterval,
-                                  limit: Int?,
-                                  order: ComparisonResult,
+                                  paginate: KBPaginationOptions?,
+                                  sort: KBSortDirection,
                                   completionHandler: @escaping (Swift.Result<[Date: KBKVPairs], Error>) -> ()) {
         log.fault(".UserDefaults store does not support timestamps")
         completionHandler(.failure(KBError.notSupported))

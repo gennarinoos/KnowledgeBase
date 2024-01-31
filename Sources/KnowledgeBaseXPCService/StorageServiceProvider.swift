@@ -100,19 +100,40 @@ class KBStorageServiceProviderXPC: KBStorageXPCProtocol {
         }
     }
     
-    func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition, inStoreWithIdentifier identifier: String, completionHandler: @escaping (Error?, [KBKVObjcPairWithTimestamp]?) -> ()) {
+    func keyValuesAndTimestamps(
+        forKeysMatching condition: KBGenericCondition,
+        inStoreWithIdentifier identifier: String,
+        paginate: KBPaginationOptions?,
+        sort: KBSortDirection.RawValue?,
+        completionHandler: @escaping (Error?, [KBKVObjcPairWithTimestamp]?) -> ()
+    ) {
         serializeReadMethodCall(storeIdentifier: identifier,
                                 completionHandler: completionHandler) { handler in
             log.trace("Getting all keys and values matching condition \(condition) in store with identifier \(identifier)")
-            return try handler.keyValuesAndTimestamps(forKeysMatching: condition)
+            var sortDirection: KBSortDirection? = nil
+            if let sort {
+                if let s = KBSortDirection(rawValue: sort) {
+                    sortDirection = s
+                } else {
+                    throw KBError.notSupported
+                }
+            }
+            return try handler.keyValuesAndTimestamps(forKeysMatching: condition, paginate: paginate, sort: sortDirection)
         }
     }
     
-    func keysAndValues(createdWithin interval: DateInterval, limit: Int, order: ComparisonResult, inStoreWithIdentifier identifier: String, completionHandler: @escaping (Error?, [Date: KBKVPairs]?) -> ()) {
+    func keysAndValues(createdWithin interval: DateInterval, 
+                       paginate: KBPaginationOptions?,
+                       sort: KBSortDirection.RawValue,
+                       inStoreWithIdentifier identifier: String,
+                       completionHandler: @escaping (Error?, [Date: KBKVPairs]?) -> ()) {
         serializeReadMethodCall(storeIdentifier: identifier,
                                 completionHandler: completionHandler) { handler in
-            log.trace("Getting all keys and values within interval \(interval) [limit=\(limit)] in store with identifier \(identifier)")
-            return try handler.keysAndValues(within: interval, limit: limit, order: order)
+            log.trace("Getting all keys and values within interval \(interval) in store with identifier \(identifier)")
+            guard let sortDirection = KBSortDirection(rawValue: sort) else {
+                throw KBError.notSupported
+            }
+            return try handler.keysAndValues(within: interval, paginate: paginate, sort: sortDirection.rawValue)
         }
     }
     

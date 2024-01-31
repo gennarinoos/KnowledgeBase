@@ -165,13 +165,23 @@ class KBSQLXPCBackingStore : KBBackingStore {
         }
     }
     
-    func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<[KBKVPairWithTimestamp], Error>) -> ()) {
+    func keyValuesAndTimestamps(
+        forKeysMatching condition: KBGenericCondition,
+        paginate: KBPaginationOptions?,
+        sort: KBSortDirection?,
+        completionHandler: @escaping (Swift.Result<[KBKVPairWithTimestamp], Error>) -> ()
+    ) {
         guard let service = self.xpcService() else {
             completionHandler(.failure(KBError.fatalError("Could not connect to XPC service")))
             return
         }
         
-        service.keyValuesAndTimestamps(forKeysMatching: condition, inStoreWithIdentifier: self.name) {
+        service.keyValuesAndTimestamps(
+            forKeysMatching: condition,
+            inStoreWithIdentifier: self.name,
+            paginate: paginate,
+            sort: sort?.rawValue
+        ) {
             error, keysAndValuesAndTimestamps in
             let _ = self // Retain self in the block to keep XPC connection alive
             if let error = error {
@@ -220,15 +230,20 @@ class KBSQLXPCBackingStore : KBBackingStore {
     }
     
     func dictionaryRepresentation(createdWithin interval: DateInterval,
-                                  limit: Int?,
-                                  order: ComparisonResult,
+                                  paginate: KBPaginationOptions?,
+                                  sort: KBSortDirection,
                                   completionHandler: @escaping (Swift.Result<[Date: KBKVPairs], Error>) -> ()) {
         guard let service = self.xpcService() else {
             completionHandler(.failure(KBError.fatalError("Could not connect to XPC service")))
             return
         }
         
-        service.keysAndValues(createdWithin: interval, limit: limit ?? -1, order: order, inStoreWithIdentifier: self.name) {
+        service.keysAndValues(
+            createdWithin: interval,
+            paginate: paginate,
+            sort: sort.rawValue,
+            inStoreWithIdentifier: self.name
+        ) {
             error, keysAndValuesByDate in
             let _ = self // Retain self in the block to keep XPC connection alive
             if let error = error {

@@ -16,14 +16,21 @@ protocol KBAsynchronousBackingStore {
     func values(completionHandler: @escaping (Swift.Result<[Any], Error>) -> ())
     func values(for keys: [String], completionHandler: @escaping (Swift.Result<[Any?], Error>) -> ())
     func values(forKeysMatching: KBGenericCondition, completionHandler: @escaping (Swift.Result<[Any?], Error>) -> ())
-    func keyValuesAndTimestamps(forKeysMatching: KBGenericCondition, completionHandler: @escaping (Swift.Result<[KBKVPairWithTimestamp], Error>) -> ())
+    func keyValuesAndTimestamps(
+        forKeysMatching: KBGenericCondition,
+        paginate: KBPaginationOptions?,
+        sort: KBSortDirection?,
+        completionHandler: @escaping (Swift.Result<[KBKVPairWithTimestamp], Error>) -> ()
+    )
     func dictionaryRepresentation(completionHandler: @escaping (Swift.Result<KBKVPairs, Error>) -> ())
     func dictionaryRepresentation(forKeysMatching: KBGenericCondition,
                                   completionHandler: @escaping (Swift.Result<KBKVPairs, Error>) -> ())
-    func dictionaryRepresentation(createdWithin: DateInterval,
-                                  limit: Int?,
-                                  order: ComparisonResult,
-                                  completionHandler: @escaping (Swift.Result<[Date: KBKVPairs], Error>) -> ())
+    func dictionaryRepresentation(
+        createdWithin: DateInterval,
+        paginate: KBPaginationOptions?,
+        sort: KBSortDirection,
+        completionHandler: @escaping (Swift.Result<[Date: KBKVPairs], Error>) -> ()
+    )
     func set(value: Any?, for key: String, completionHandler: @escaping KBActionCompletion)
     func removeValue(for key: String, completionHandler: @escaping KBActionCompletion)
     func removeValues(for keys: [String], completionHandler: @escaping KBActionCompletion)
@@ -74,10 +81,18 @@ protocol KBBackingStoreProtocol : KBAsynchronousBackingStore {
     func values() async throws -> [Any]
     func values(for keys: [String]) async throws -> [Any?]
     func values(forKeysMatching condition: KBGenericCondition) async throws -> [Any?]
-    func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition) async throws -> [KBKVPairWithTimestamp]
+    func keyValuesAndTimestamps(
+        forKeysMatching condition: KBGenericCondition,
+        paginate: KBPaginationOptions?,
+        sort: KBSortDirection?
+    ) async throws -> [KBKVPairWithTimestamp]
     func dictionaryRepresentation() async throws -> KBKVPairs
     func dictionaryRepresentation(forKeysMatching condition: KBGenericCondition) async throws -> KBKVPairs
-    func dictionaryRepresentation(createdWithin interval: DateInterval, limit: Int?, order: ComparisonResult) async throws -> [Date: KBKVPairs]
+    func dictionaryRepresentation(
+        createdWithin interval: DateInterval,
+        paginate: KBPaginationOptions?,
+        sort: KBSortDirection
+    ) async throws -> [Date: KBKVPairs]
     func set(value: Any?, for key: String) async throws
     func removeValue(for key: String) async throws
     func removeValues(for keys: [String]) async throws
@@ -197,9 +212,18 @@ extension KBBackingStoreProtocol {
         }
     }
     
-    func keyValuesAndTimestamps(forKeysMatching condition: KBGenericCondition) async throws -> [KBKVPairWithTimestamp] {
+    func keyValuesAndTimestamps(
+        forKeysMatching condition: KBGenericCondition,
+        paginate: KBPaginationOptions?,
+        sort: KBSortDirection
+    ) async throws -> [KBKVPairWithTimestamp] {
         return try await KBModernAsyncMethodReturningInitiable { c in
-            self.keyValuesAndTimestamps(forKeysMatching: condition, completionHandler: c)
+            self.keyValuesAndTimestamps(
+                forKeysMatching: condition,
+                paginate: paginate,
+                sort: sort,
+                completionHandler: c
+            )
         }
     }
     
@@ -215,7 +239,11 @@ extension KBBackingStoreProtocol {
         }
     }
     
-    func dictionaryRepresentation(createdWithin interval: DateInterval, limit: Int?, order: ComparisonResult) async throws -> [Date: KBKVPairs] {
+    func dictionaryRepresentation(
+        createdWithin interval: DateInterval,
+        paginate: KBPaginationOptions?,
+        sort: KBSortDirection
+    ) async throws -> [Date: KBKVPairs] {
         return try await KBModernAsyncMethodReturningInitiable { c in
             self.dictionaryRepresentation(createdWithin: interval, limit: limit, order: order, completionHandler: c)
         }
