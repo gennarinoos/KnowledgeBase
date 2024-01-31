@@ -6,7 +6,7 @@ public class KBPaginationOptions : NSObject, NSSecureCoding {
     let page: Int /// The page number
     let per: Int  /// The items per page
     
-    init?(page: Int, per: Int) {
+    public init?(page: Int, per: Int) {
         if page >= 1 {
             self.page = page
             self.per = per
