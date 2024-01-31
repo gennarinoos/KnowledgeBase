@@ -223,7 +223,7 @@ public class KBSQLHandler: NSObject {
             modifiers += " order by t desc"
         }
         if let paginate {
-            modifiers += " limit \(paginate.per) offset \(paginate.page - 1)"
+            modifiers += " limit \(paginate.limit) offset \(paginate.offset)"
         }
         
         let query = SQLTableType.allValues
@@ -284,7 +284,7 @@ public class KBSQLHandler: NSObject {
         
         var modifiers = " order by t \(sort)"
         if let paginate {
-            modifiers += " limit \(paginate.per) offset \(paginate.page - 1)"
+            modifiers += " limit \(paginate.limit) offset \(paginate.offset)"
         }
         
         let query = SQLTableType.allValues

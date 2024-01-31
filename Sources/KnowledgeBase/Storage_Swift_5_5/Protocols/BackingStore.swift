@@ -245,7 +245,12 @@ extension KBBackingStoreProtocol {
         sort: KBSortDirection
     ) async throws -> [Date: KBKVPairs] {
         return try await KBModernAsyncMethodReturningInitiable { c in
-            self.dictionaryRepresentation(createdWithin: interval, limit: limit, order: order, completionHandler: c)
+            self.dictionaryRepresentation(
+                createdWithin: interval,
+                paginate: paginate,
+                sort: sort,
+                completionHandler: c
+            )
         }
     }
     

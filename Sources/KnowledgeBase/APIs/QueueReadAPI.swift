@@ -35,10 +35,15 @@ extension KBQueueStore {
                           limit: Int? = nil,
                           overrideSort: KBSortDirection? = nil,
                           completionHandler: @escaping (Swift.Result<[KBQueueItem], Error>) -> ()) {
+        guard limit == nil || limit! > 0 else {
+            completionHandler(.failure(KBError.notSupported))
+            return
+        }
+        
         let order = overrideSort ?? (self.queueType == .fifo ? .ascending : .descending)
         return self.backingStore.dictionaryRepresentation(
             createdWithin: interval,
-            paginate: limit != nil ? KBPaginationOptions(page: 1, per: limit!) : nil,
+            paginate: limit != nil ? KBPaginationOptions(limit: limit!, offset: 0) : nil,
             sort: order
         ) { result in
             switch result {
@@ -75,10 +80,14 @@ extension KBQueueStore {
      
      */
     public func peekItems(createdWithin interval: DateInterval, limit: Int? = nil) throws -> [KBQueueItem] {
+        guard limit == nil || limit! > 0 else {
+            throw KBError.notSupported
+        }
+        
         let order = self.queueType == .fifo ? KBSortDirection.ascending : KBSortDirection.descending
         let itemsKeyedByDate = try self.backingStore.dictionaryRepresentation(
             createdWithin: interval,
-            paginate: limit != nil ? KBPaginationOptions(page: 1, per: limit!) : nil,
+            paginate: limit != nil ? KBPaginationOptions(limit: limit!, offset: 0) : nil,
             sort: order
         )
         return try toQueueItems(itemsKeyedByDate: itemsKeyedByDate)

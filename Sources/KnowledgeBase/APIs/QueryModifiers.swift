@@ -3,35 +3,35 @@ import Foundation
 @objc(KBPaginationOptions)
 public class KBPaginationOptions : NSObject, NSSecureCoding {
     
-    let page: Int /// The page number
-    let per: Int  /// The items per page
+    let limit: Int
+    let offset: Int
     
-    public init?(page: Int, per: Int) {
-        if page >= 1 {
-            self.page = page
-            self.per = per
+    public init?(limit: Int, offset: Int) {
+        if limit > 0, offset >= 0 {
+            self.limit = limit
+            self.offset = offset
         } else {
             return nil
         }
     }
     
     enum CodingKeys: String, CodingKey {
-        case per
-        case page
+        case limit
+        case offset
     }
     
     public static var supportsSecureCoding: Bool = true
     
     public func encode(with aCoder: NSCoder) {
-        aCoder.encode(self.page, forKey: CodingKeys.page.rawValue)
-        aCoder.encode(self.per, forKey: CodingKeys.per.rawValue)
+        aCoder.encode(self.limit, forKey: CodingKeys.limit.rawValue)
+        aCoder.encode(self.offset, forKey: CodingKeys.offset.rawValue)
     }
     
     public required convenience init?(coder aDecoder: NSCoder) {
-        let page = aDecoder.decodeInteger(forKey: CodingKeys.page.rawValue)
-        let per = aDecoder.decodeInteger(forKey: CodingKeys.per.rawValue)
+        let limit = aDecoder.decodeInteger(forKey: CodingKeys.limit.rawValue)
+        let offset = aDecoder.decodeInteger(forKey: CodingKeys.offset.rawValue)
         
-        self.init(page: page, per: per)
+        self.init(limit: limit, offset: offset)
     }
 }
 
