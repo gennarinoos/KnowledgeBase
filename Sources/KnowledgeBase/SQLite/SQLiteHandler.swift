@@ -55,6 +55,10 @@ public class KBSQLHandler: NSObject {
         super.init()
     }
     
+    deinit {
+        self.connection = nil
+    }
+    
     @objc public init?(name: String, baseURL: URL) {
         let allowedCharSet = NSMutableCharacterSet()
         allowedCharSet.formUnion(with: CharacterSet.alphanumerics)
