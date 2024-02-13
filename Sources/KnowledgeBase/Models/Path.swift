@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SQLite
 
 public struct KBPath {
     fileprivate var path: [Label]
