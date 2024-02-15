@@ -8,7 +8,10 @@
 import Foundation
 
 struct KBDataVault {
-    static func createDirectory(at path: String) throws {
+    static func createDirectory(
+        at path: String,
+        overrideProtection protection: URLFileProtection = .complete
+    ) throws {
         let result = Swift.Result { try FileManager.default.createDirectory(
             atPath: path,
             withIntermediateDirectories: true,
@@ -17,8 +20,8 @@ struct KBDataVault {
         if case let .failure(error) = result {
             throw KBError.fatalError("Error creating directory at path \(path): \(error)")
         }
-        
-        try (NSURL(fileURLWithPath: path, isDirectory: true)).setResourceValue(URLFileProtection.complete,
+            
+        try (NSURL(fileURLWithPath: path, isDirectory: true)).setResourceValue(protection,
                                                                                forKey: .fileProtectionKey)
     }
     
