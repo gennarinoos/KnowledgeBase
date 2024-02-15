@@ -55,6 +55,10 @@ public class KBSQLHandler: NSObject {
         super.init()
     }
     
+    deinit {
+        self.connection = nil
+    }
+    
     @objc public init?(name: String, baseURL: URL) {
         let allowedCharSet = NSMutableCharacterSet()
         allowedCharSet.formUnion(with: CharacterSet.alphanumerics)
@@ -97,8 +101,13 @@ public class KBSQLHandler: NSObject {
     /// directory sits inside the user directory, and if it were converted
     /// to a data vault it would prevent other system agents from deleting
     /// the user directory.
+    ///
+    /// **NOTE**: For apps that need to access the database in the background,
+    /// the protection needs to be set to `.none`.
+    /// Until we expose this behavior to the public API, defaulting to `.none`
+    ///
     private static func createDirectory(at path: String) throws {
-        try KBDataVault.createDirectory(at: path)
+        try KBDataVault.createDirectory(at: path, overrideProtection: .none)
     }
     
     private static func createConnection(location: Connection.Location) -> Connection? {
