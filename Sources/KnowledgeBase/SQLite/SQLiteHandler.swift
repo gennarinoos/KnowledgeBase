@@ -9,6 +9,12 @@ import Foundation
 import SQLite
 import SQLite3
 
+extension FailableIterator {
+    public func next() -> Element? {
+        try? failableNext()
+    }
+}
+
 public let kKBInvalidLinkWeight = -1
 
 enum SQLTableType : String {
