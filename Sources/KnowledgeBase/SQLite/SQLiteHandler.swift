@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import SQLite
 import SQLite3
 
 public let kKBInvalidLinkWeight = -1
