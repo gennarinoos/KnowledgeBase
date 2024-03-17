@@ -10,14 +10,14 @@ import XCTest
 
 class KBCloudKitSQLBackingStoreTests: KVStoreTestCase {
     
-    private static let _sharedStore = KBKVStore.defaultSynchedStore()!
+    private let internalStore = KBKVStore.defaultSynchedStore()!
     
     override func sharedStore() -> KBKVStore {
-        return KBCloudKitSQLBackingStoreTests._sharedStore
+        internalStore
     }
 
     deinit {
-        if let url = KBCloudKitSQLBackingStoreTests._sharedStore.fullURL {
+        if let url = sharedStore().fullURL {
             do {
                 try FileManager.default.removeItem(at: url)
             } catch {
@@ -27,7 +27,7 @@ class KBCloudKitSQLBackingStoreTests: KVStoreTestCase {
     }
     
     func testDisableAndDeleteCloudSync() {
-        KBCloudKitSQLBackingStoreTests._sharedStore.disableSyncAndDeleteCloudData() { (result: Swift.Result<Void, Error>) in
+        sharedStore().disableSyncAndDeleteCloudData() { (result: Swift.Result<Void, Error>) in
             switch result {
             case .failure(let err):
                 XCTAssertTrue(err is KnowledgeBase.KBError, "Error is a KBError")
@@ -40,14 +40,14 @@ class KBCloudKitSQLBackingStoreTests: KVStoreTestCase {
     }
 
     func testSQLNamedPath() {
-        let store = KBCloudKitSQLBackingStoreTests._sharedStore
+        let store = sharedStore()
         let sharedKnowledgeBase = KBKnowledgeStore.store(.sqlSynched(""))!
         
         XCTAssert(store.name == KnowledgeBaseSQLSynchedIdentifier, "KnowledgeBase test instance name")
 
         XCTAssert(sharedKnowledgeBase.name == KnowledgeBaseSQLSynchedIdentifier, "KnowledgeBase shared instance name")
         
-        guard let basePath = KBCloudKitSQLBackingStoreTests._sharedStore.baseURL else {
+        guard let basePath = sharedStore().baseURL else {
             XCTFail()
             return
         }

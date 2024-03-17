@@ -147,8 +147,7 @@ extension KBEntity {
      Remove the entity from the graph
      */
     public func remove(completionHandler: @escaping KBActionCompletion) {
-        self.store.backingStore.dropLinks(withLabel: nil, from: self.identifier, completionHandler: completionHandler)
-        self.store.backingStore.dropLinks(withLabel: nil, to: self.identifier, completionHandler: completionHandler)
+        self.store.backingStore.dropLinks(fromAndTo: self.identifier, completionHandler: completionHandler)
         self.store.delegate?.linkedDataDidChange()
     }
 }
@@ -167,10 +166,12 @@ extension KBEntity {
      - parameter complement: (defaults false) if true returns the complementary set
      - parameter completionHandler: the callback method
      */
-    public func linkedEntities(withPredicate predicate: Label,
-                               matchType: KBMatchType = .equal,
-                               complement wantsComplementarySet: Bool = false,
-                               completionHandler:@escaping (Swift.Result<[(predicate: Label, object: KBEntity)], Error>) -> ()) {
+    public func linkedEntities(
+        withPredicate predicate: Label,
+        matchType: KBMatchType = .equal,
+        complement wantsComplementarySet: Bool = false,
+        completionHandler:@escaping (Swift.Result<[(predicate: Label, object: KBEntity)], Error>) -> ()
+    ) {
         let negatedFlag = wantsComplementarySet  == true ? "NOT " : ""
         log.trace("\(negatedFlag, privacy: .public)[<\(self)> <\(predicate):\(matchType.description, privacy: .public)> $?]")
 
@@ -219,15 +220,12 @@ extension KBEntity {
 
      - parameter completionHandler: the callback method
      */
-    public func linkedEntities(completionHandler: @escaping (Swift.Result<[(predicate: Label, object: KBEntity)], Error>) -> ()) {
+    public func linkedEntities(
+        completionHandler: @escaping (Swift.Result<[(predicate: Label, object: KBEntity)], Error>) -> ()
+    ) {
         log.trace("[<\(self)> $? $?]")
 
-        let partial = KBHexastore.JOINER.combine(
-            KBHexastore.SPO.rawValue,
-            self.identifier,
-            end: true
-        )
-        let condition = KBTripleCondition(KBGenericCondition(.beginsWith, value: partial))
+        let condition = KBTripleCondition(subject: self.identifier, predicate: nil, object: nil)
 
         self.store.triples(matching: condition) {
             result in
@@ -254,10 +252,12 @@ extension KBEntity {
      - parameter complement: (defaults false) if true returns the complementary set
      - parameter completionHandler: the callback method
      */
-    public func linkingEntities(withPredicate predicate: Label,
-                                matchType: KBMatchType = .equal,
-                                complement wantsComplementarySet: Bool = false,
-                                completionHandler: @escaping (Swift.Result<[(subject: KBEntity, predicate: Label)], Error>) -> ()) {
+    public func linkingEntities(
+        withPredicate predicate: Label,
+        matchType: KBMatchType = .equal,
+        complement wantsComplementarySet: Bool = false,
+        completionHandler: @escaping (Swift.Result<[(subject: KBEntity, predicate: Label)], Error>) -> ()
+    ) {
         let negatedFlag = wantsComplementarySet ? "NOT " : ""
         log.trace("\(negatedFlag, privacy: .public)[$? <\(predicate):\(matchType.description, privacy: .public)> \(self)]")
 
@@ -281,31 +281,36 @@ extension KBEntity {
                     .beginsWith,
                     value: relaxedPartial
                 ))
-                condition = not(matches).and(matchesRelaxed)
+                condition = matchesRelaxed.and(not(matches))
             } else {
                 condition = matches
             }
         case .equal:
-            let matches = KBTripleCondition(
-                subject: nil,
-                predicate: predicate,
-                object: self.identifier
-            )
             if wantsComplementarySet {
-                let matchesRelaxed = KBTripleCondition(
+                let partial = KBHexastore.JOINER.combine(
+                    KBHexastore.OPS.rawValue,
+                    self.identifier,
+                    predicate,
+                    end: true
+                )
+                let matches = KBTripleCondition(KBGenericCondition(.beginsWith, value: partial))
+                let relaxedPartial = KBHexastore.JOINER.combine(
+                    KBHexastore.OPS.rawValue,
+                    self.identifier,
+                    end: true
+                )
+                let matchesRelaxed = KBTripleCondition(KBGenericCondition(
+                    .beginsWith,
+                    value: relaxedPartial
+                ))
+                condition = matchesRelaxed.and(not(matches))
+            } else {
+                condition = KBTripleCondition(
                     subject: nil,
-                    predicate: nil,
+                    predicate: predicate,
                     object: self.identifier
                 )
-                condition = not(matches).and(matchesRelaxed)
-            } else {
-                condition = matches
             }
-            let beginsWithOPS = KBTripleCondition(KBGenericCondition(
-                .beginsWith,
-                value: KBHexastore.OPS.rawValue
-            ))
-            condition = condition.and(beginsWithOPS)
         default:
             completionHandler(.failure(KBError.notSupported))
             return
@@ -334,15 +339,12 @@ extension KBEntity {
      
      - parameter completionHandler: the callback method
      */
-    public func linkingEntities(completionHandler: @escaping (Swift.Result<[(subject: KBEntity, predicate: Label)], Error>) -> ()) {
+    public func linkingEntities(
+        completionHandler: @escaping (Swift.Result<[(subject: KBEntity, predicate: Label)], Error>) -> ()
+    ) {
         log.trace("[$? $? <\(self)>]")
 
-        let partial = KBHexastore.JOINER.combine(
-            KBHexastore.OPS.rawValue,
-            self.identifier,
-            end: true
-        )
-        let condition = KBTripleCondition(KBGenericCondition(.beginsWith, value: partial))
+        let condition = KBTripleCondition(subject: nil, predicate: nil, object: self.identifier)
             
         self.store.triples(matching: condition) {
             result in

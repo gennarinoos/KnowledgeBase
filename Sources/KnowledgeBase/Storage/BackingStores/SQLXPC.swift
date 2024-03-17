@@ -429,9 +429,9 @@ class KBSQLXPCBackingStore : KBBackingStore {
         }
     }
     
-    func dropLink(withLabel predicate: String,
-                  between subjectIdentifier: String,
-                  and objectIdentifier: String,
+    func dropLink(withLabel predicate: Label,
+                  between subjectIdentifier: Label,
+                  and objectIdentifier: Label,
                   completionHandler: @escaping KBActionCompletion) {
         guard let service = self.xpcService() else {
             completionHandler(.failure(KBError.fatalError("Could not connect to XPC service")))
@@ -451,8 +451,8 @@ class KBSQLXPCBackingStore : KBBackingStore {
         }
     }
     
-    func dropLinks(withLabel predicate: String?,
-                   from subjectIdentifier: String,
+    func dropLinks(withLabel predicate: Label,
+                   from subjectIdentifier: Label,
                    completionHandler: @escaping KBActionCompletion) {
         guard let service = self.xpcService() else {
             completionHandler(.failure(KBError.fatalError("Could not connect to XPC service")))
@@ -471,8 +471,8 @@ class KBSQLXPCBackingStore : KBBackingStore {
         }
     }
     
-    func dropLinks(withLabel predicate: String?,
-                   to objectIdentifier: String,
+    func dropLinks(withLabel predicate: Label,
+                   to objectIdentifier: Label,
                    completionHandler: @escaping KBActionCompletion) {
         guard let service = self.xpcService() else {
             completionHandler(.failure(KBError.fatalError("Could not connect to XPC service")))
@@ -491,8 +491,8 @@ class KBSQLXPCBackingStore : KBBackingStore {
         }
     }
     
-    func dropLinks(between subjectIdentifier: String,
-                   and objectIdentifier: String,
+    func dropLinks(between subjectIdentifier: Label,
+                   and objectIdentifier: Label,
                    completionHandler: @escaping KBActionCompletion) {
         guard let service = self.xpcService() else {
             completionHandler(.failure(KBError.fatalError("Could not connect to XPC service")))
@@ -501,6 +501,24 @@ class KBSQLXPCBackingStore : KBBackingStore {
         
         service.dropLinks(between: subjectIdentifier,
                           and: objectIdentifier,
+                          inStoreWithIdentifier: self.name) { error in
+            let _ = self // Retain self in the block to keep XPC connection alive
+            if let error = error {
+                completionHandler(.failure(error))
+            } else {
+                completionHandler(.success(()))
+            }
+        }
+    }
+    
+    func dropLinks(fromAndTo entityIdentifier: Label,
+                   completionHandler: @escaping KBActionCompletion) {
+        guard let service = self.xpcService() else {
+            completionHandler(.failure(KBError.fatalError("Could not connect to XPC service")))
+            return
+        }
+        
+        service.dropLinks(fromAndTo: entityIdentifier,
                           inStoreWithIdentifier: self.name) { error in
             let _ = self // Retain self in the block to keep XPC connection alive
             if let error = error {

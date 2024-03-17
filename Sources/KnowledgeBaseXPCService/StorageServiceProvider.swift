@@ -275,10 +275,10 @@ class KBStorageServiceProviderXPC: KBStorageXPCProtocol {
                                       between: subject,
                                       and: object,
                                       toValue: value)
-                let keys = KBHexastore.allValues.map {
-                    $0.hexaValue(subject: subject, predicate: predicate, object: object)
-                }
-                self.notifyAboutUpsert(inStoreWithIdentifier: identifier, ofKeys: keys)
+//                let keys = KBHexastore.allValues.map {
+//                    $0.hexaValue(subject: subject, predicate: predicate, object: object)
+//                }
+//                self.notifyAboutUpsert(inStoreWithIdentifier: identifier, ofKeys: keys)
                 completionHandler(nil)
             } catch {
                 completionHandler(error)
@@ -295,10 +295,10 @@ class KBStorageServiceProviderXPC: KBStorageXPCProtocol {
                 let newWeight = try handler.increaseWeight(forLinkWithLabel: predicate,
                                                            between: subject,
                                                            and: object)
-                let keys = KBHexastore.allValues.map {
-                    $0.hexaValue(subject: subject, predicate: predicate, object: object)
-                }
-                self.notifyAboutUpsert(inStoreWithIdentifier: identifier, ofKeys: keys)
+//                let keys = KBHexastore.allValues.map {
+//                    $0.hexaValue(subject: subject, predicate: predicate, object: object)
+//                }
+//                self.notifyAboutUpsert(inStoreWithIdentifier: identifier, ofKeys: keys)
                 completionHandler(nil, newWeight)
             } catch {
                 completionHandler(error, kKBInvalidLinkWeight)
@@ -317,11 +317,11 @@ class KBStorageServiceProviderXPC: KBStorageXPCProtocol {
                 let keys = KBHexastore.allValues.map {
                     $0.hexaValue(subject: subject, predicate: predicate, object: object)
                 }
-                if newWeight == 0 {
-                    self.notifyAboutDeletion(inStoreWithIdentifier: identifier, ofKeys: keys)
-                } else {
-                    self.notifyAboutUpsert(inStoreWithIdentifier: identifier, ofKeys: keys)
-                }
+//                if newWeight == 0 {
+//                    self.notifyAboutDeletion(inStoreWithIdentifier: identifier, ofKeys: keys)
+//                } else {
+//                    self.notifyAboutUpsert(inStoreWithIdentifier: identifier, ofKeys: keys)
+//                }
                 completionHandler(nil, newWeight)
             } catch {
                 completionHandler(error, kKBInvalidLinkWeight)
@@ -329,17 +329,14 @@ class KBStorageServiceProviderXPC: KBStorageXPCProtocol {
         }
     }
     
-    func dropLink(withLabel predicate: String, between subject: String, and object: String, inStoreWithIdentifier identifier: String, completionHandler: @escaping KBObjCActionCompletion) {
+    func dropLink(withLabel predicate: Label, between subject: Label, and object: Label, inStoreWithIdentifier identifier: String, completionHandler: @escaping KBObjCActionCompletion) {
         
         self.serialQueue.async {
             log.trace("Dropping triple (\(subject),\(predicate),\(object)) in store with identifier \(identifier)")
             do {
                 let handler = try self.handler(forStoreWithIdentifier: identifier)
                 try handler.dropLink(withLabel: predicate, between: subject, and: object)
-                let keys = KBHexastore.allValues.map {
-                    $0.hexaValue(subject: subject, predicate: predicate, object: object)
-                }
-                self.notifyAboutDeletion(inStoreWithIdentifier: identifier, ofKeys: keys)
+//                self.notifyAboutDeletion(inStoreWithIdentifier: identifier, ofKeys: keys)
                 completionHandler(nil)
             } catch {
                 completionHandler(error)
@@ -347,15 +344,14 @@ class KBStorageServiceProviderXPC: KBStorageXPCProtocol {
         }
     }
     
-    func dropLinks(withLabel predicate: String?, from subject: String, inStoreWithIdentifier identifier: String, completionHandler: @escaping KBObjCActionCompletion) {
+    func dropLinks(withLabel predicate: Label, from subject: Label, inStoreWithIdentifier identifier: String, completionHandler: @escaping KBObjCActionCompletion) {
         
         self.serialQueue.async {
             log.trace("Dropping triples matching (\(subject),\(predicate ?? "<nil>"),*) in store with identifier \(identifier)")
             do {
                 let handler = try self.handler(forStoreWithIdentifier: identifier)
                 try handler.dropLinks(withLabel: predicate, from: subject)
-                let keys = try handler.keys(matching: KBTripleCondition(subject: subject, predicate: predicate, object: nil).rawCondition)
-                self.notifyAboutDeletion(inStoreWithIdentifier: identifier, ofKeys: keys)
+//                self.notifyAboutDeletion(inStoreWithIdentifier: identifier, ofKeys: keys)
                 completionHandler(nil)
             } catch {
                 completionHandler(error)
@@ -363,15 +359,14 @@ class KBStorageServiceProviderXPC: KBStorageXPCProtocol {
         }
     }
     
-    func dropLinks(withLabel predicate: String?, to object: String, inStoreWithIdentifier identifier: String, completionHandler: @escaping KBObjCActionCompletion) {
+    func dropLinks(withLabel predicate: Label, to object: Label, inStoreWithIdentifier identifier: String, completionHandler: @escaping KBObjCActionCompletion) {
         
         self.serialQueue.async {
             log.trace("Dropping triples matching (*,\(predicate ?? "<nil>"),\(object)) in store with identifier \(identifier)")
             do {
                 let handler = try self.handler(forStoreWithIdentifier: identifier)
                 try handler.dropLinks(withLabel: predicate, to: object)
-                let keys = try handler.keys(matching: KBTripleCondition(subject: nil, predicate: predicate, object: object).rawCondition)
-                self.notifyAboutDeletion(inStoreWithIdentifier: identifier, ofKeys: keys)
+//                self.notifyAboutDeletion(inStoreWithIdentifier: identifier, ofKeys: keys)
                 completionHandler(nil)
             } catch {
                 completionHandler(error)
@@ -379,14 +374,27 @@ class KBStorageServiceProviderXPC: KBStorageXPCProtocol {
         }
     }
     
-    func dropLinks(between subject: String, and object: String, inStoreWithIdentifier identifier: String, completionHandler: @escaping KBObjCActionCompletion) {
+    func dropLinks(between subject: Label, and object: Label, inStoreWithIdentifier identifier: String, completionHandler: @escaping KBObjCActionCompletion) {
         self.serialQueue.async {
             log.trace("Dropping triples matching (\(subject),*,\(object)) in store with identifier \(identifier)")
             do {
                 let handler = try self.handler(forStoreWithIdentifier: identifier)
                 try handler.dropLinks(between: subject, and: object)
-                let keys = try handler.keys(matching: KBTripleCondition(subject: subject, predicate: nil, object: object).rawCondition)
-                self.notifyAboutDeletion(inStoreWithIdentifier: identifier, ofKeys: keys)
+//                self.notifyAboutDeletion(inStoreWithIdentifier: identifier, ofKeys: keys)
+                completionHandler(nil)
+            } catch {
+                completionHandler(error)
+            }
+        }
+    }
+    
+    func dropLinks(fromAndTo entityIdentifier: Label, inStoreWithIdentifier identifier: String, completionHandler: @escaping KBObjCActionCompletion) {
+        self.serialQueue.async {
+            log.trace("Dropping triples matching (\(entityIdentifier),*,*) or (*,*,\(entityIdentifier)) in store with identifier \(identifier)")
+            do {
+                let handler = try self.handler(forStoreWithIdentifier: identifier)
+                try handler.dropLinks(fromAndTo: entityIdentifier)
+//                self.notifyAboutDeletion(inStoreWithIdentifier: identifier, ofKeys: keys)
                 completionHandler(nil)
             } catch {
                 completionHandler(error)

@@ -10,10 +10,10 @@ import XCTest
 
 class KVStoreTestCase : XCTestCase {
 
-    private static let _sharedStore = KBKVStore.store(.inMemory)
+    private let internalStore = KVStoreTestCase._sharedStore
     
     func sharedStore() -> KBKVStore {
-        return KVStoreTestCase._sharedStore
+        internalStore
     }
 
     private func cleanup() async {

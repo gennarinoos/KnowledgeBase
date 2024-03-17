@@ -54,18 +54,20 @@ protocol KBAsynchronousBackingStore {
                         between subjectIdentifier: Label,
                         and objectIdentifier: Label,
                         completionHandler: @escaping (Swift.Result<Int, Error>) -> ())
-    func dropLink(withLabel predicate: String,
-                  between subjectIdentifier: String,
-                  and objectIdentifier: String,
+    func dropLink(withLabel predicate: Label,
+                  between subjectIdentifier: Label,
+                  and objectIdentifier: Label,
                   completionHandler: @escaping KBActionCompletion)
-    func dropLinks(withLabel predicate: String?,
-                   from subjectIdentifier: String,
+    func dropLinks(withLabel predicate: Label,
+                   from subjectIdentifier: Label,
                    completionHandler: @escaping KBActionCompletion)
-    func dropLinks(withLabel predicate: String?,
-                   to objectIdentifier: String,
+    func dropLinks(withLabel predicate: Label,
+                   to objectIdentifier: Label,
                    completionHandler: @escaping KBActionCompletion)
-    func dropLinks(between subjectIdentifier: String,
-                   and objectIdentifier: String,
+    func dropLinks(between subjectIdentifier: Label,
+                   and objectIdentifier: Label,
+                   completionHandler: @escaping KBActionCompletion)
+    func dropLinks(fromAndTo entityIdentifier: Label,
                    completionHandler: @escaping KBActionCompletion)
     
     // MARK: Cloud sync
@@ -115,12 +117,13 @@ protocol KBBackingStoreProtocol : KBAsynchronousBackingStore {
     func dropLink(withLabel: Label,
                   between: Label,
                   and: Label) async throws
-    func dropLinks(withLabel: Label?,
+    func dropLinks(withLabel: Label,
                    from: Label) async throws
-    func dropLinks(withLabel: Label?,
+    func dropLinks(withLabel: Label,
                    to: Label) async throws
     func dropLinks(between: Label,
                    and: Label) async throws
+    func dropLinks(fromAndTo: Label) async throws
     
     // MARK: Cloud sync
     func disableSyncAndDeleteCloudData() async throws
@@ -341,14 +344,14 @@ extension KBBackingStoreProtocol {
         }
     }
     
-    func dropLinks(withLabel predicate: Label?,
+    func dropLinks(withLabel predicate: Label,
                    from subjectIdentifier: Label) async throws {
         try await KBModernAsyncMethodReturningVoid { c in
             self.dropLinks(withLabel: predicate, from: subjectIdentifier, completionHandler: c)
         }
     }
     
-    func dropLinks(withLabel predicate: Label?,
+    func dropLinks(withLabel predicate: Label,
                    to objectIdentifier: Label) async throws {
         try await KBModernAsyncMethodReturningVoid { c in
             self.dropLinks(withLabel: predicate, to: objectIdentifier, completionHandler: c)
@@ -359,6 +362,12 @@ extension KBBackingStoreProtocol {
                    and objectIdentifier: Label) async throws {
         try await KBModernAsyncMethodReturningVoid { c in
             self.dropLinks(between: subjectIdentifier, and: objectIdentifier, completionHandler: c)
+        }
+    }
+    
+    func dropLinks(fromAndTo entityIdentifier: Label) async throws {
+        try await KBModernAsyncMethodReturningVoid { c in
+            self.dropLinks(fromAndTo: entityIdentifier, completionHandler: c)
         }
     }
     

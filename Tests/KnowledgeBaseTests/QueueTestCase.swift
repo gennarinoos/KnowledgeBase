@@ -1,10 +1,3 @@
-//
-//  QueueTestCase.swift
-//  
-//
-//  Created by Gennaro Frazzingaro on 9/4/21.
-//
-
 import Foundation
 
 @testable import KnowledgeBase
@@ -12,13 +5,17 @@ import XCTest
 
 class KBQueueTestCase: KVStoreTestCase {
     
-    private static let _sharedStore = KBQueueStore.store(.inMemory, type: .fifo)!
+    private let internalStore = KBQueueStore.store(.inMemory, type: .fifo)!
     
-    override func sharedStore() -> KBQueueStore {
-        return KBQueueTestCase._sharedStore
+    override func sharedStore() -> KBKVStore {
+        internalStore
     }
     
-    private func cleanup() {
+    func sharedQueue() -> KBQueueStore {
+        self.sharedStore() as! KBQueueStore
+    }
+    
+    override func cleanup() {
         do {
             let store = self.sharedStore()
             let _ = try store.removeAll()
@@ -42,19 +39,19 @@ class KBQueueTestCase: KVStoreTestCase {
     func testFifoQueue() throws {
         let items = ["Hello", "world"]
         let itemIds = ["first", "second"]
-        try self.sharedStore().enqueue(items[0], withIdentifier: itemIds[0])
-        try self.sharedStore().enqueue(items[1], withIdentifier: itemIds[1])
-        var allItems = try self.sharedStore().peekItems(createdWithin: DateInterval.init(start: .distantPast, end: Date()), limit: 10)
+        try self.sharedQueue().enqueue(items[0], withIdentifier: itemIds[0])
+        try self.sharedQueue().enqueue(items[1], withIdentifier: itemIds[1])
+        var allItems = try self.sharedQueue().peekItems(createdWithin: DateInterval.init(start: .distantPast, end: Date()), limit: 10)
         XCTAssertEqual(allItems.count, 2)
         
         var count = 0
-        while let item = try self.sharedStore().dequeue() {
+        while let item = try self.sharedQueue().dequeue() {
             XCTAssertEqual(item.identifier, itemIds[count])
             XCTAssertEqual(item.content as! String, items[count])
             count += 1
         }
         
-        allItems = try self.sharedStore().peekItems(createdWithin: DateInterval.init(start: .distantPast, end: Date()), limit: 10)
+        allItems = try self.sharedQueue().peekItems(createdWithin: DateInterval.init(start: .distantPast, end: Date()), limit: 10)
         XCTAssertEqual(allItems.count, 0)
     }
     
@@ -130,7 +127,7 @@ class KBQueueTestCase: KVStoreTestCase {
         XCTAssertEqual(lastItem.identifier, "fifth")
         XCTAssertEqual(lastItem.content as! Double, 0.1233)
         
-        allItems = try self.sharedStore().peekItems(createdWithin: DateInterval.init(start: .distantPast, end: Date()), limit: 10)
+        allItems = try self.sharedQueue().peekItems(createdWithin: DateInterval.init(start: .distantPast, end: Date()), limit: 10)
         XCTAssertEqual(allItems.count, 0)
     }
     

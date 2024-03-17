@@ -250,30 +250,36 @@ class KBUserDefaultsBackingStore : KBBackingStore {
         completionHandler(.failure(KBError.notSupported))
     }
     
-    func dropLink(withLabel predicate: String,
-                  between subjectIdentifier: String,
-                  and objectIdentifier: String,
+    func dropLink(withLabel predicate: Label,
+                  between subjectIdentifier: Label,
+                  and objectIdentifier: Label,
                   completionHandler: @escaping KBActionCompletion) {
         log.fault(".UserDefaults store is not meant to store graphs")
         completionHandler(.failure(KBError.notSupported))
     }
     
-    func dropLinks(withLabel predicate: String?,
-                   from subjectIdentifier: String,
+    func dropLinks(withLabel predicate: Label,
+                   from subjectIdentifier: Label,
                    completionHandler: @escaping KBActionCompletion) {
         log.fault(".UserDefaults store is not meant to store graphs")
         completionHandler(.failure(KBError.notSupported))
     }
     
-    func dropLinks(withLabel predicate: String?,
-                   to objectIdentifier: String,
+    func dropLinks(withLabel predicate: Label,
+                   to objectIdentifier: Label,
                    completionHandler: @escaping KBActionCompletion) {
         log.fault(".UserDefaults store is not meant to store graphs")
         completionHandler(.failure(KBError.notSupported))
     }
     
-    func dropLinks(between subjectIdentifier: String,
-                   and objectIdentifier: String,
+    func dropLinks(between subjectIdentifier: Label,
+                   and objectIdentifier: Label,
+                   completionHandler: @escaping KBActionCompletion) {
+        log.fault(".UserDefaults store is not meant to store graphs")
+        completionHandler(.failure(KBError.notSupported))
+    }
+    
+    func dropLinks(fromAndTo entityIdentifier: Label,
                    completionHandler: @escaping KBActionCompletion) {
         log.fault(".UserDefaults store is not meant to store graphs")
         completionHandler(.failure(KBError.notSupported))

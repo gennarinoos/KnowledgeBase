@@ -53,7 +53,7 @@ extension KBEntity {
      
      */
     @objc public func link(to target: KBEntity,
-                         withPredicate predicate: Label) async throws {
+                           withPredicate predicate: Label) async throws {
         // TODO: IMPLEMENT
     }
     
@@ -76,8 +76,7 @@ extension KBEntity {
      Remove the entity from the graph
      */
     public func remove() async throws {
-        try await self.store.backingStore.dropLinks(withLabel: nil, from: self.identifier)
-        try await self.store.backingStore.dropLinks(withLabel: nil, to: self.identifier)
+        try await self.store.backingStore.dropLinks(fromAndTo: self.identifier)
     }
 
 }
@@ -167,9 +166,11 @@ extension KBEntity {
      - parameter complement: (defaults false) if true returns the complementary set
      
      */
-    public func linkedEntities(withPredicate predicate: Label,
-                             matchType: KBMatchType = .equal,
-                             complement wantsComplementarySet: Bool = false) async throws -> [(predicate: Label, object: KBEntity)] {
+    public func linkedEntities(
+        withPredicate predicate: Label,
+        matchType: KBMatchType = .equal,
+        complement wantsComplementarySet: Bool = false
+    ) async throws -> [(predicate: Label, object: KBEntity)] {
         let negatedFlag = wantsComplementarySet  == true ? "NOT " : ""
         log.trace("\(negatedFlag, privacy: .public)[<\(self)> <\(predicate):\(matchType.description, privacy: .public)> $?]")
 
@@ -213,12 +214,7 @@ extension KBEntity {
     public func linkedEntities() async throws -> [(predicate: Label, object: KBEntity)] {
         log.trace("[<\(self)> $? $?]")
 
-        let partial = KBHexastore.JOINER.combine(
-            KBHexastore.SPO.rawValue,
-            self.identifier,
-            end: true
-        )
-        let condition = KBTripleCondition(KBGenericCondition(.beginsWith, value: partial))
+        let condition = KBTripleCondition(subject: self.identifier, predicate: nil, object: nil)
 
         let triples = try await self.store.triples(matching: condition)
         return triples.map {
@@ -242,9 +238,11 @@ extension KBEntity {
      - returns: The array of KBEntity objects matching the condition
      
      */
-    public func linkingEntities(withPredicate predicate: Label,
-                              matchType: KBMatchType = .equal,
-                              complement wantsComplementarySet: Bool = false) async throws -> [(subject: KBEntity, predicate: Label)] {
+    public func linkingEntities(
+        withPredicate predicate: Label,
+        matchType: KBMatchType = .equal,
+        complement wantsComplementarySet: Bool = false
+    ) async throws -> [(subject: KBEntity, predicate: Label)] {
         let negatedFlag = wantsComplementarySet ? "NOT " : ""
         log.trace("\(negatedFlag, privacy: .public)[$? <\(predicate):\(matchType.description, privacy: .public)> <\(self)>]")
 
@@ -316,12 +314,7 @@ extension KBEntity {
     public func linkingEntities() async throws -> [(subject: KBEntity, predicate: Label)] {
         log.debug("[$? $? <\(self)>]")
 
-        let partial = KBHexastore.JOINER.combine(
-            KBHexastore.OPS.rawValue,
-            self.identifier,
-            end: true
-        )
-        let condition = KBTripleCondition(KBGenericCondition(.beginsWith, value: partial))
+        let condition = KBTripleCondition(subject: nil, predicate: nil, object: self.identifier)
         let triples = try await self.store.triples(matching: condition)
         return triples.map {
             triple in (subject: self.store.entity(withIdentifier: triple.subject), predicate: triple.predicate)
@@ -341,7 +334,7 @@ extension KBEntity {
      - returns: The array of predicate labels
      */
     @objc public func links(to target: KBEntity,
-                          matchType: KBMatchType = .equal) async throws -> [Label] {
+                            matchType: KBMatchType = .equal) async throws -> [Label] {
         log.debug("[<\(self)> $? <\(target):\(matchType.description)>]")
 
         let partial: String

@@ -62,19 +62,21 @@ public protocol KBStorageXPCProtocol {
 
     // LINKS
     
-    func setWeight(forLinkWithLabel: String, between: String, and: String, toValue: Int, inStoreWithIdentifier: String, completionHandler: @escaping KBObjCActionCompletion)
+    func setWeight(forLinkWithLabel: Label, between: Label, and: Label, toValue: Int, inStoreWithIdentifier: String, completionHandler: @escaping KBObjCActionCompletion)
     
-    func increaseWeight(forLinkWithLabel: String, between: String, and: String, inStoreWithIdentifier: String, completionHandler: @escaping (Error?, Int) -> ())
+    func increaseWeight(forLinkWithLabel: Label, between: Label, and: Label, inStoreWithIdentifier: String, completionHandler: @escaping (Error?, Int) -> ())
     
-    func decreaseWeight(forLinkWithLabel: String, between: String, and: String, inStoreWithIdentifier: String, completionHandler: @escaping (Error?, Int) -> ())
+    func decreaseWeight(forLinkWithLabel: Label, between: Label, and: Label, inStoreWithIdentifier: String, completionHandler: @escaping (Error?, Int) -> ())
     
-    func dropLink(withLabel: String, between: String, and: String, inStoreWithIdentifier: String, completionHandler: @escaping KBObjCActionCompletion)
+    func dropLink(withLabel: Label, between: Label, and: Label, inStoreWithIdentifier: String, completionHandler: @escaping KBObjCActionCompletion)
     
-    func dropLinks(withLabel: String?, from: String, inStoreWithIdentifier: String, completionHandler: @escaping KBObjCActionCompletion)
+    func dropLinks(withLabel: Label, from: Label, inStoreWithIdentifier: String, completionHandler: @escaping KBObjCActionCompletion)
     
-    func dropLinks(withLabel: String?, to: String, inStoreWithIdentifier: String, completionHandler: @escaping KBObjCActionCompletion)
+    func dropLinks(withLabel: Label, to: Label, inStoreWithIdentifier: String, completionHandler: @escaping KBObjCActionCompletion)
     
-    func dropLinks(between: String, and: String, inStoreWithIdentifier: String, completionHandler: @escaping KBObjCActionCompletion)
+    func dropLinks(between: Label, and: Label, inStoreWithIdentifier: String, completionHandler: @escaping KBObjCActionCompletion)
+    
+    func dropLinks(fromAndTo: Label, inStoreWithIdentifier: String, completionHandler: @escaping KBObjCActionCompletion)
 
     // CLOUD SYNC
 

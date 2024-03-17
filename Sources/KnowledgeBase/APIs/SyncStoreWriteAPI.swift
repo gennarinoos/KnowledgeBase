@@ -30,7 +30,7 @@ extension KBKVStore {
         let writeBatch = self.writeBatch()
         writeBatch.set(value: value, for: key)
         log.debug("setting value \(String(describing: value)) for key (\(key))")
-        try KBSyncMethodReturningVoid(execute:writeBatch.write)
+        try KBSyncMethodReturningVoid(execute: writeBatch.write)
         self.delegate?.kvDataDidChange(addedKeys: [key], removedKeys: [])
     }
     

@@ -12,14 +12,14 @@ let dbName = "relational-test"
 
 class KBSQLBackingStoreTests: KVStoreTestCase {
     
-    private static let _sharedStore = KBKVStore.store(.sql(dbName))!
+    private let internalStore = KBKVStore.store(.sql(dbName))!
     
     override func sharedStore() -> KBKVStore {
-        return KBSQLBackingStoreTests._sharedStore
+        internalStore
     }
 
     deinit {
-        if let url = KBSQLBackingStoreTests._sharedStore.fullURL {
+        if let url = sharedStore().fullURL {
             do {
                 try FileManager.default.removeItem(at: url)
             } catch {
@@ -29,14 +29,14 @@ class KBSQLBackingStoreTests: KVStoreTestCase {
     }
 
     func testSQLNamedPath() {
-        let store = KBSQLBackingStoreTests._sharedStore
+        let store = sharedStore()
         let sharedKnowledgeBase = KBKnowledgeStore.store(.sql(""))!
         
         XCTAssert(store.name == dbName, "KnowledgeBase test instance name")
 
         XCTAssert(sharedKnowledgeBase.name == KnowledgeBaseSQLDefaultIdentifier, "KnowledgeBase shared instance name")
         
-        guard let directory = KBSQLBackingStoreTests._sharedStore.baseURL else {
+        guard let directory = sharedStore().baseURL else {
             XCTFail()
             return
         }

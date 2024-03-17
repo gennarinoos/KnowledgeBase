@@ -539,8 +539,17 @@ public class KBSQLHandler: NSObject {
         if let c = condition {
             query += " where \(c.rawCondition.sql)"
         }
+        query += " group by k, v"
         
         let stmt = try connection.prepare(query)
+        
+        let tt = stmt.map({
+            let data = Data.fromDatatypeValue($0[1] as! Blob)
+            let unarchiver = NSKeyedUnarchiver(forReadingWith: data)
+            return unarchiver.decodeObject(of: KBTriple.self, forKey: NSKeyedArchiveRootObjectKey)
+        })
+        
+        
         for row in stmt {
             assert(row.count == 2, "retrieved the right number of columns")
             
@@ -679,8 +688,8 @@ public class KBSQLHandler: NSObject {
     }
     
     public func decreaseWeight(forLinkWithLabel predicate: Label,
-                            between subjectIdentifier: Label,
-                            and objectIdentifier: Label) throws -> Int {
+                               between subjectIdentifier: Label,
+                               and objectIdentifier: Label) throws -> Int {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
@@ -765,114 +774,135 @@ public class KBSQLHandler: NSObject {
     }
     
     @objc public func dropLink(withLabel predicate: Label,
-                             between subjectIdentifier: Label,
-                             and objectIdentifier: Label) throws {
+                               between subjectIdentifier: Label,
+                               and objectIdentifier: Label) throws {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
         
         let sql = "delete from link where id = ?"
         let linkID = KBSQLHandler.linkIdentifier(forLinkWithLabel: predicate,
-                                                             between: subjectIdentifier,
-                                                             and: objectIdentifier)
+                                                 between: subjectIdentifier,
+                                                 and: objectIdentifier)
         try connection.transaction(Connection.TransactionMode.immediate) {
             _ = try connection.run(sql, [linkID])
-        }
-
-        // reflect the change in the Hexastore
-        let condition = KBTripleCondition(
-            subject: subjectIdentifier,
-            predicate: predicate,
-            object: objectIdentifier
-        )
-        try self.removeValues(forKeysMatching: condition.rawCondition)
-    }
-
-    @objc public func dropLinks(withLabel predicate: String?,
-                                from subjectIdentifier: String) throws {
-        guard let connection = self.connection else {
-            throw KBError.databaseNotReady
-        }
-        
-        var sqlBindings = [Binding?]()
-        let whereClause: String
-        if let predicate = predicate {
-            whereClause = "subject = ? and predicate = ?"
-            sqlBindings.append(subjectIdentifier)
-            sqlBindings.append(predicate)
-        } else {
-            whereClause = "subject = ?"
-            sqlBindings.append(subjectIdentifier)
-        }
-        let sql = "delete from link where \(whereClause)"
-        
-        try connection.transaction(Connection.TransactionMode.immediate) {
-            _ = try connection.run(sql, sqlBindings)
             
-            // reflect the change in the Hexastore
-            let condition = KBTripleCondition(
+            ///
+            /// Reflect the change in the Hexastore
+            ///
+            let condition = KBGenericCondition.fullTripleHexaCondition(
                 subject: subjectIdentifier,
-                predicate: predicate,
-                object: nil
-            )
-            try self._removeValues(forKeysMatching: condition.rawCondition)
-        }
-    }
-    
-    @objc public func dropLinks(withLabel predicate: String?,
-                                to objectIdentifier: String) throws {
-        guard let connection = self.connection else {
-            throw KBError.databaseNotReady
-        }
-        
-        var sqlBindings = [Binding?]()
-        let whereClause: String
-        if let predicate = predicate {
-            whereClause = "object = ? and predicate = ?"
-            sqlBindings.append(objectIdentifier)
-            sqlBindings.append(predicate)
-        } else {
-            whereClause = "object = ?"
-            sqlBindings.append(objectIdentifier)
-        }
-        let sql = "delete from link where \(whereClause)"
-        
-        try connection.transaction(Connection.TransactionMode.immediate) {
-            _ = try connection.run(sql, sqlBindings)
-            
-            // reflect the change in the Hexastore
-            let condition = KBTripleCondition(
-                subject: nil,
                 predicate: predicate,
                 object: objectIdentifier
             )
-            try self._removeValues(forKeysMatching: condition.rawCondition)
+            try self._removeValues(forKeysMatching: condition)
+        }
+    }
+
+    @objc public func dropLinks(withLabel predicate: Label,
+                                from subjectIdentifier: Label) throws {
+        guard let connection = self.connection else {
+            throw KBError.databaseNotReady
+        }
+        
+        var sqlBindings = [Binding?]()
+        let whereClause = "subject = ? and predicate = ?"
+        sqlBindings.append(subjectIdentifier)
+        sqlBindings.append(predicate)
+        let sql = "delete from link where \(whereClause)"
+        
+        try connection.transaction(Connection.TransactionMode.immediate) {
+            _ = try connection.run(sql, sqlBindings)
+            
+            ///
+            /// Reflect the change in the Hexastore
+            ///
+            let condition = KBGenericCondition.partialTripleHexaCondition(
+                subject: subjectIdentifier,
+                predicate: predicate
+            )
+            try self._removeValues(forKeysMatching: condition)
+        }
+    }
+    
+    @objc public func dropLinks(withLabel predicate: Label,
+                                to objectIdentifier: Label) throws {
+        guard let connection = self.connection else {
+            throw KBError.databaseNotReady
+        }
+        
+        var sqlBindings = [Binding?]()
+        let whereClause = "object = ? and predicate = ?"
+        sqlBindings.append(objectIdentifier)
+        sqlBindings.append(predicate)
+        let sql = "delete from link where \(whereClause)"
+        
+        try connection.transaction(Connection.TransactionMode.immediate) {
+            _ = try connection.run(sql, sqlBindings)
+            
+            ///
+            /// Reflect the change in the Hexastore
+            ///
+            
+            let condition = KBGenericCondition.partialTripleHexaCondition(
+                predicate: predicate,
+                object: objectIdentifier
+            )
+            try self._removeValues(forKeysMatching: condition)
         }
     }
     
     @objc(dropLinksBetween:and:error:)
-    public func dropLinks(between subjectIdentifier: String,
-                          and objectIdentifier: String) throws {
+    public func dropLinks(between subjectIdentifier: Label,
+                          and objectIdentifier: Label) throws {
         guard let connection = self.connection else {
             throw KBError.databaseNotReady
         }
         
         let (whereClause, bindings) = KBSQLHandler.whereClause(forLinkWithLabel: nil,
-                                                                           between: subjectIdentifier,
-                                                                           and: objectIdentifier)
+                                                               between: subjectIdentifier,
+                                                               and: objectIdentifier)
 
         let sql = "delete from link where \(whereClause)"
         try connection.transaction(Connection.TransactionMode.immediate) {
             _ = try connection.run(sql, bindings)
+            
+            ///
+            /// Reflect the change in the Hexastore
+            ///
+            
+            let condition = KBGenericCondition.partialTripleHexaCondition(
+                subject: subjectIdentifier,
+                object: objectIdentifier
+            )
+            try self._removeValues(forKeysMatching: condition)
+        }
+    }
+    
+    @objc public func dropLinks(fromAndTo entityIdentifier: Label) throws {
+        guard let connection = self.connection else {
+            throw KBError.databaseNotReady
         }
         
-        // reflect the change in the Hexastore
-        let condition = KBTripleCondition(
-            subject: subjectIdentifier,
-            predicate: nil,
-            object: objectIdentifier
-        )
-        try self.removeValues(forKeysMatching: condition.rawCondition)
+        var sqlBindings = [Binding?]()
+        let whereClause = "object = ? or subject = ?"
+        sqlBindings.append(entityIdentifier)
+        sqlBindings.append(entityIdentifier)
+        
+        let sql = "delete from link where \(whereClause)"
+        
+        try connection.transaction(Connection.TransactionMode.immediate) {
+            _ = try connection.run(sql, sqlBindings)
+            
+            ///
+            /// Reflect the change in the Hexastore
+            ///
+            
+            let condition = KBGenericCondition.partialTripleHexaCondition(
+                entityIdentifier: entityIdentifier
+            )
+            try self._removeValues(forKeysMatching: condition)
+        }
     }
     
     //MARK: - Utils

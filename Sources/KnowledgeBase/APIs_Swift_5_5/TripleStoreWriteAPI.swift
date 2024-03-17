@@ -16,21 +16,10 @@ extension KBKnowledgeStore {
      - parameter identifier: the identifier
      */
     @objc public func removeEntity(_ identifier: Label) async throws {
-        log.debug("remove [$? <\(identifier)> $?]")
+        log.debug("remove [<\(identifier)> $? $?] or [$? $? <\(identifier)>]")
         
-        let subjectMatches = KBTripleCondition(
-            subject: identifier,
-            predicate: nil,
-            object: nil
-        )
-        let objectMatches = KBTripleCondition(
-            subject: nil,
-            predicate: nil,
-            object: identifier
-        )
-        let condition = subjectMatches.or(objectMatches)
-        
-        let _ = try await self.backingStore.removeValues(forKeysMatching: condition.rawCondition)
+        let condition = KBGenericCondition.partialTripleHexaCondition(entityIdentifier: identifier)
+        let _ = try await self.backingStore.removeValues(forKeysMatching: condition)
         self?.delegate?.linkedDataDidChange()
     }
     

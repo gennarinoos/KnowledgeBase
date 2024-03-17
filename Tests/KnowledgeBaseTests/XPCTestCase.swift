@@ -12,14 +12,14 @@ import XCTest
 #if true
 class KBXPCTestCase: KVStoreTestCase {
     
-    private static let _sharedStore = KBKVStore.store(withName: dbName)!
+    private let internalStore = KBKVStore.store(withName: dbName)!
     
     override func sharedStore() -> KBKVStore {
-        return KBXPCTestCase._sharedStore
+        internalStore
     }
 
     deinit {
-        if let url = KBXPCTestCase._sharedStore.fullURL {
+        if let url = sharedStore().fullURL {
             do {
                 try FileManager.default.removeItem(at: url)
             } catch {

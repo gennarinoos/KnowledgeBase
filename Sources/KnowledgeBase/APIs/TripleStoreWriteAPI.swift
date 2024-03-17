@@ -18,19 +18,7 @@ extension KBKnowledgeStore {
     public func removeEntity(_ identifier: Label, completionHandler: @escaping KBActionCompletion) {
         log.trace("remove [<\(identifier)> $? $?] or [<\(identifier)> $? $?]")
         
-        let subjectMatches = KBTripleCondition(
-            subject: identifier,
-            predicate: nil,
-            object: nil
-        )
-        let objectMatches = KBTripleCondition(
-            subject: nil,
-            predicate: nil,
-            object: identifier
-        )
-        let condition = subjectMatches.or(objectMatches)
-        
-        self.backingStore.removeValues(forKeysMatching: condition.rawCondition) { [weak self] result in
+        self.entity(withIdentifier: identifier).remove { [weak self] result in
             switch result {
             case .failure(let err):
                 completionHandler(.failure(err))

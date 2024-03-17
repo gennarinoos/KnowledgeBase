@@ -8,15 +8,19 @@
 import XCTest
 @testable import KnowledgeBase
 
-class KVStoreTestCase : XCTestCase {
+protocol KBXCTestCase {
+    func sharedStore() -> KBKVStore
+}
 
-    private static let _sharedStore = KBKVStore.store(.inMemory)!
+class KVStoreTestCase : XCTestCase, KBXCTestCase {
     
+    private let internalStore = KBKVStore.store(.inMemory)!
+
     func sharedStore() -> KBKVStore {
-        return KVStoreTestCase._sharedStore
+        internalStore
     }
 
-    private func cleanup() {
+    internal func cleanup() {
         do {
             let store = self.sharedStore()
             let _ = try store.removeAll()
@@ -87,47 +91,47 @@ class KVStoreTestCase : XCTestCase {
     
     func testPartialKeysAndValues() {
         do {
-            try KVStoreTestCase._sharedStore.set(value: "stringVal", for: "string")
-            print(try KVStoreTestCase._sharedStore.dictionaryRepresentation())
-            try KVStoreTestCase._sharedStore.set(value: 1, for: "int")
-            try KVStoreTestCase._sharedStore.set(value: true, for: "bool")
-            try KVStoreTestCase._sharedStore.set(value: false, for: "NOTbool")
-            try KVStoreTestCase._sharedStore.set(value: ["first", "second"], for: "array")
-            try KVStoreTestCase._sharedStore.set(value: ["first": "first", "second": "second"], for: "dictionary")
+            try self.sharedStore().set(value: "stringVal", for: "string")
+            print(try self.sharedStore().dictionaryRepresentation())
+            try self.sharedStore().set(value: 1, for: "int")
+            try self.sharedStore().set(value: true, for: "bool")
+            try self.sharedStore().set(value: false, for: "NOTbool")
+            try self.sharedStore().set(value: ["first", "second"], for: "array")
+            try self.sharedStore().set(value: ["first": "first", "second": "second"], for: "dictionary")
             
             let stringOrBool = KBGenericCondition(.equal, value: "string").or(KBGenericCondition(.equal, value: "bool"))
 
-            var partialKeysAndValues = try KVStoreTestCase._sharedStore.dictionaryRepresentation(forKeysMatching: stringOrBool) as Dictionary
+            var partialKeysAndValues = try self.sharedStore().dictionaryRepresentation(forKeysMatching: stringOrBool) as Dictionary
             XCTAssertEqual(partialKeysAndValues.keys.count, 2)
             XCTAssertEqual(partialKeysAndValues["string"] as? String, "stringVal")
              XCTAssertEqual(partialKeysAndValues["bool"] as? Bool, true)
 
-            var partialKeys = try KVStoreTestCase._sharedStore.keys(matching: stringOrBool).sorted { $0.compare($1) == .orderedAscending }
+            var partialKeys = try self.sharedStore().keys(matching: stringOrBool).sorted { $0.compare($1) == .orderedAscending }
             XCTAssert(partialKeys.count == 2)
             XCTAssertEqual(partialKeys, ["bool", "string"])
 
-            var partialValues = try KVStoreTestCase._sharedStore.values(for: partialKeys) as [Any?]
+            var partialValues = try self.sharedStore().values(for: partialKeys) as [Any?]
             XCTAssert(partialValues.count == 2)
 
-            partialValues = try KVStoreTestCase._sharedStore.values(forKeysMatching: stringOrBool)
+            partialValues = try self.sharedStore().values(forKeysMatching: stringOrBool)
             XCTAssert(partialValues.count == 2)
 
             let startWithSOrEndsWithOl = KBGenericCondition(.beginsWith, value: "s").or(KBGenericCondition(.endsWith, value: "ol"))
-            partialKeysAndValues = try KVStoreTestCase._sharedStore.dictionaryRepresentation(forKeysMatching: startWithSOrEndsWithOl) as Dictionary
+            partialKeysAndValues = try self.sharedStore().dictionaryRepresentation(forKeysMatching: startWithSOrEndsWithOl) as Dictionary
             XCTAssertEqual(partialKeysAndValues.keys.count, 3)
             XCTAssertEqual(partialKeysAndValues["string"] as? String, "stringVal")
             // TODO: rdar://50960552
             // XCTAssertEqual(partialKeysAndValues["bool"] as? Bool, true)
             // XCTAssertEqual(partialKeysAndValues["NOTbool"] as? Bool, false)
 
-            partialKeys = try KVStoreTestCase._sharedStore.keys(matching: startWithSOrEndsWithOl).sorted { $0.compare($1) == .orderedAscending }
+            partialKeys = try self.sharedStore().keys(matching: startWithSOrEndsWithOl).sorted { $0.compare($1) == .orderedAscending }
             XCTAssertEqual(partialKeys.count, 3)
             XCTAssertEqual(partialKeys, ["NOTbool", "bool", "string"])
 
-            partialValues = try KVStoreTestCase._sharedStore.values(for: partialKeys) as [Any?]
+            partialValues = try self.sharedStore().values(for: partialKeys) as [Any?]
             XCTAssertEqual(partialValues.count, 3)
 
-            partialValues = try KVStoreTestCase._sharedStore.values(forKeysMatching: startWithSOrEndsWithOl)
+            partialValues = try self.sharedStore().values(forKeysMatching: startWithSOrEndsWithOl)
             XCTAssertEqual(partialValues.count, 3)
         } catch {
             XCTFail("\(error)")
@@ -135,14 +139,14 @@ class KVStoreTestCase : XCTestCase {
     }
     
     func testAllKeyValues() throws {
-        try KVStoreTestCase._sharedStore.set(value: "stringVal", for: "string")
-        try KVStoreTestCase._sharedStore.set(value: 1, for: "int")
-        try KVStoreTestCase._sharedStore.set(value: true, for: "bool")
-        try KVStoreTestCase._sharedStore.set(value: false, for: "NOTbool")
-        try KVStoreTestCase._sharedStore.set(value: ["first", "second"], for: "array")
-        try KVStoreTestCase._sharedStore.set(value: ["first": "first", "second": "second"], for: "dictionary")
+        try self.sharedStore().set(value: "stringVal", for: "string")
+        try self.sharedStore().set(value: 1, for: "int")
+        try self.sharedStore().set(value: true, for: "bool")
+        try self.sharedStore().set(value: false, for: "NOTbool")
+        try self.sharedStore().set(value: ["first", "second"], for: "array")
+        try self.sharedStore().set(value: ["first": "first", "second": "second"], for: "dictionary")
         
-        let kvPairs = try KVStoreTestCase._sharedStore.dictionaryRepresentation() as Dictionary
+        let kvPairs = try self.sharedStore().dictionaryRepresentation() as Dictionary
         XCTAssertEqual(kvPairs.count, 6)
         XCTAssertEqual(kvPairs["string"] as? String, "stringVal")
         XCTAssertEqual(kvPairs["int"] as? Int, 1)
@@ -159,17 +163,84 @@ class KVStoreTestCase : XCTestCase {
         XCTAssertEqual(dictValue["first"], "first")
         XCTAssertEqual(dictValue["second"], "second")
 
-        let keys = try KVStoreTestCase._sharedStore
+        let keys = try self.sharedStore()
             .keys(matching: KBGenericCondition(value: true))
             .sorted { $0.compare($1) == .orderedAscending }
 
         XCTAssertEqual(keys, ["NOTbool", "array", "bool", "dictionary", "int", "string"])
 
-        let keyedValues = try KVStoreTestCase._sharedStore.values(for: keys)
+        let keyedValues = try self.sharedStore().values(for: keys)
         XCTAssertEqual(keyedValues.count, 6)
 
-        let conditionalValues = try KVStoreTestCase._sharedStore.values(forKeysMatching: KBGenericCondition(value: true))
+        let conditionalValues = try self.sharedStore().values(forKeysMatching: KBGenericCondition(value: true))
         XCTAssertEqual(conditionalValues.count, 6)
+    }
+    
+    func testKeyValuesAndTimestampsWithPagination() throws {
+        try self.sharedStore().set(value: "stringVal", for: "string")
+        
+        var kvPairs = try self.sharedStore().keyValuesAndTimestamps(forKeysMatching: KBGenericCondition(value: true))
+        XCTAssertEqual(kvPairs.count, 1)
+        
+        kvPairs = try self.sharedStore().keyValuesAndTimestamps(forKeysMatching: KBGenericCondition(.equal, value: "stringValue"))
+        XCTAssertEqual(kvPairs.count, 0)
+        
+        kvPairs = try self.sharedStore().keyValuesAndTimestamps(
+            forKeysMatching: KBGenericCondition(.equal, value: "string")
+        )
+        XCTAssertEqual(kvPairs.count, 1)
+        
+        kvPairs = try self.sharedStore().keyValuesAndTimestamps(
+            forKeysMatching: KBGenericCondition(.equal, value: "string"),
+            paginate: KBPaginationOptions(limit: 1, offset: 0)
+        )
+        XCTAssertEqual(kvPairs.count, 1)
+        
+        kvPairs = try self.sharedStore().keyValuesAndTimestamps(
+            forKeysMatching: KBGenericCondition(.equal, value: "string"),
+            paginate: KBPaginationOptions(limit: 1, offset: 0),
+            sort: .descending
+        )
+        XCTAssertEqual(kvPairs.count, 1)
+        
+        kvPairs = try self.sharedStore().keyValuesAndTimestamps(
+            forKeysMatching: KBGenericCondition(.equal, value: "string"),
+            paginate: KBPaginationOptions(limit: 1, offset: 0),
+            sort: .ascending
+        )
+        XCTAssertEqual(kvPairs.count, 1)
+        
+        kvPairs = try self.sharedStore().keyValuesAndTimestamps(
+            forKeysMatching: KBGenericCondition(.equal, value: "string"),
+            paginate: KBPaginationOptions(limit: 1, offset: 1)
+        )
+        XCTAssertEqual(kvPairs.count, 0)
+        
+        kvPairs = try self.sharedStore().keyValuesAndTimestamps(
+            forKeysMatching: KBGenericCondition(.equal, value: "string"),
+            paginate: KBPaginationOptions(limit: 1, offset: 1),
+            sort: .descending
+        )
+        XCTAssertEqual(kvPairs.count, 0)
+        
+        kvPairs = try self.sharedStore().keyValuesAndTimestamps(
+            forKeysMatching: KBGenericCondition(.equal, value: "string"),
+            paginate: KBPaginationOptions(limit: 1, offset: 1),
+            sort: .ascending
+        )
+        XCTAssertEqual(kvPairs.count, 0)
+        
+        kvPairs = try self.sharedStore().keyValuesAndTimestamps(
+            forKeysMatching: KBGenericCondition(.equal, value: "string"),
+            paginate: KBPaginationOptions(limit: 0, offset: 1)
+        )
+        XCTAssertEqual(kvPairs.count, 1)
+        
+        kvPairs = try self.sharedStore().keyValuesAndTimestamps(
+            forKeysMatching: KBGenericCondition(.equal, value: "string"),
+            paginate: KBPaginationOptions(limit: 10, offset: 0)
+        )
+        XCTAssertEqual(kvPairs.count, 1)
     }
     
     struct NonNSSecureCodingCompliantStruct {
@@ -183,35 +254,35 @@ class KVStoreTestCase : XCTestCase {
         let emptyString = ""
 
         for nonSecureValue in [NonNSSecureCodingCompliantStruct(), NonNSSecureCodingCompliantClass()] as [Any] {
-            try KVStoreTestCase._sharedStore.set(value: emptyString, for: key)
+            try self.sharedStore().set(value: emptyString, for: key)
             
-            let stringValue = try KVStoreTestCase._sharedStore.value(for: key)
+            let stringValue = try self.sharedStore().value(for: key)
             XCTAssertNotNil(stringValue as? String)
             XCTAssert((stringValue as? String) == emptyString)
             
-            try KVStoreTestCase._sharedStore.set(value: nonSecureValue, for: key)
-            let invalidValue = try KVStoreTestCase._sharedStore.value(for: key)
+            try self.sharedStore().set(value: nonSecureValue, for: key)
+            let invalidValue = try self.sharedStore().value(for: key)
             XCTAssertNotNil(invalidValue as? String)
             XCTAssert((invalidValue as? String) == emptyString)
             
-            do { try KVStoreTestCase._sharedStore.removeValue(for: key) } catch { XCTFail() }
-            let removedValue = try KVStoreTestCase._sharedStore.value(for: key)
+            do { try self.sharedStore().removeValue(for: key) } catch { XCTFail() }
+            let removedValue = try self.sharedStore().value(for: key)
             XCTAssertNil(removedValue)
             
-            try KVStoreTestCase._sharedStore.set(value: nonSecureValue, for: key)
-            let invalidValue2 = try KVStoreTestCase._sharedStore.value(for: key)
+            try self.sharedStore().set(value: nonSecureValue, for: key)
+            let invalidValue2 = try self.sharedStore().value(for: key)
             XCTAssertNil(invalidValue2)
         }
         
         let triple = KBTriple(subject: "Luca", predicate: "is", object: "awesome", weight: 1)
-        try KVStoreTestCase._sharedStore.set(value: triple, for: key)
-        let tripleValue = try KVStoreTestCase._sharedStore.value(for: key)
+        try self.sharedStore().set(value: triple, for: key)
+        let tripleValue = try self.sharedStore().value(for: key)
         XCTAssertNotNil(tripleValue)
         XCTAssert((tripleValue as? KBTriple) == triple)
     }
 
     func testWriteBatch() throws {
-        let writeBatch = KVStoreTestCase._sharedStore.writeBatch()
+        let writeBatch = self.sharedStore().writeBatch()
         writeBatch.set(value: "stringVal", for: "string")
         writeBatch.set(value: 1, for: "int")
         writeBatch.set(value: true, for: "bool")
@@ -224,28 +295,28 @@ class KVStoreTestCase : XCTestCase {
             XCTFail("\(error)")
         }
 
-        let none = try KVStoreTestCase._sharedStore.value(for: "none")
+        let none = try self.sharedStore().value(for: "none")
         XCTAssert(none == nil, "non existing attribute")
 
-        let string = try KVStoreTestCase._sharedStore.value(for: "string")
+        let string = try self.sharedStore().value(for: "string")
         XCTAssert(string != nil, "string exists")
         XCTAssert((string as? String) != nil, "string is a string")
         XCTAssert((string as? String) == "stringVal", "string value matches")
 
-        let int = try KVStoreTestCase._sharedStore.value(for: "int")
+        let int = try self.sharedStore().value(for: "int")
         XCTAssert(int != nil, "int exists")
         XCTAssert((int as? Int) != nil, "int is an int")
         XCTAssert((int as? Int) == 1, "int value matches")
 
-        let bool = try KVStoreTestCase._sharedStore.value(for: "bool")
+        let bool = try self.sharedStore().value(for: "bool")
         XCTAssert(bool != nil, "bool exists")
         XCTAssert((bool as? Bool) != nil, "bool is a bool")
         XCTAssert((bool as? Bool) == true, "bool value matches")
-        let notbool = try KVStoreTestCase._sharedStore.value(for: "NOTbool")
+        let notbool = try self.sharedStore().value(for: "NOTbool")
         XCTAssert((notbool as? Bool) != nil, "NOTbool is a bool")
         XCTAssert((notbool as? Bool) == false, "NOTbool value matches")
 
-        let array = try KVStoreTestCase._sharedStore.value(for: "array")
+        let array = try self.sharedStore().value(for: "array")
         XCTAssert(array != nil, "array exists")
         XCTAssert((array as? Array<String>) != nil, "array is an array")
         if let array = array as? Array<String> {
@@ -253,7 +324,7 @@ class KVStoreTestCase : XCTestCase {
             XCTAssert(array == ["first", "second"], "array values match")
         }
 
-        var dict = try KVStoreTestCase._sharedStore.value(for: "dictionary")
+        var dict = try self.sharedStore().value(for: "dictionary")
         XCTAssert(dict != nil, "dictionary exists")
         XCTAssert((dict as? Dictionary<String, String>) != nil, "dict is a dictionary")
         if let dict = array as? Dictionary<String, String> {
@@ -262,8 +333,8 @@ class KVStoreTestCase : XCTestCase {
             XCTAssert(dict["second"] == "second", "dictionary second value matches")
         }
         
-        try KVStoreTestCase._sharedStore.set(value: nil, for: "dictionary")
-        dict = try KVStoreTestCase._sharedStore.value(for: "dictionary")
+        try self.sharedStore().set(value: nil, for: "dictionary")
+        dict = try self.sharedStore().value(for: "dictionary")
         XCTAssert(dict == nil, "dictionary has been removed")
         
         writeBatch.set(value: nil, for: "bool")
@@ -273,72 +344,89 @@ class KVStoreTestCase : XCTestCase {
         } catch {
             XCTFail("\(error)")
         }
-        let b = try KVStoreTestCase._sharedStore.value(for: "bool")
+        let b = try self.sharedStore().value(for: "bool")
         XCTAssertNil(b)
-        let nb = try KVStoreTestCase._sharedStore.value(for: "NOTbool")
+        let nb = try self.sharedStore().value(for: "NOTbool")
         XCTAssertNil(nb)
     }
 }
 
 class KnowledgeStoreTestCase : KVStoreTestCase {
     
-    private static let _sharedStore = KBKnowledgeStore.store(.inMemory)!
+    private let internalStore = KBKnowledgeStore.store(.inMemory)!
     
-    override func sharedStore() -> KBKnowledgeStore {
-        return KnowledgeStoreTestCase._sharedStore
+    override func sharedStore() -> KBKVStore {
+        internalStore
+    }
+    
+    func sharedKnowledgeStore() -> KBKnowledgeStore {
+        self.sharedStore() as! KBKnowledgeStore
+    }
+    
+    override func cleanup() {
+        super.cleanup()
+        
+        do {
+            let store = self.sharedKnowledgeStore()
+            let _ = try store.removeAll()
+            let keys = try store.triples(matching: KBTripleCondition(value: true))
+            XCTAssert(keys.count == 0, "Removed all triple values")
+        } catch {
+            XCTFail("\(error)")
+        }
     }
     
     // Test times out. It tests unused, unmaintained code.
     func testLinkUnlink() {
         do {
-            let subject = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "subject")
+            let subject = sharedKnowledgeStore().entity(withIdentifier: "subject")
             let predicate = "predicate"
-            let object = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "object")
+            let object = sharedKnowledgeStore().entity(withIdentifier: "object")
 
             try subject.link(to: object, withPredicate: predicate)
 
-            var hexaCount = try KnowledgeStoreTestCase._sharedStore.keys().count
+            var hexaCount = try sharedKnowledgeStore().keys().count
             XCTAssert(hexaCount == 6, "1 hexatuple. \(hexaCount) tuples")
 
             let condition = KBTripleCondition(subject: subject.identifier,
                                               predicate: predicate,
                                               object: object.identifier)
-            var triples = try KnowledgeStoreTestCase._sharedStore.triples(matching: condition)
+            var triples = try sharedKnowledgeStore().triples(matching: condition)
             XCTAssert(triples.count == 1, "one triple. \(triples.count)")
             XCTAssert(triples[0].weight == 1, "weight is 1. \(triples[0].weight)")
 
             try subject.unlink(to: object, withPredicate: predicate)
 
-            hexaCount = try KnowledgeStoreTestCase._sharedStore.keys().count
-            XCTAssert(hexaCount == 0, "Tuples removed")
+            hexaCount = try sharedKnowledgeStore().keys().count
+            XCTAssertEqual(hexaCount, 0, "Tuples removed")
 
-            triples = try KnowledgeStoreTestCase._sharedStore.triples(matching: condition)
+            triples = try sharedKnowledgeStore().triples(matching: condition)
             XCTAssert(triples.count == 0, "no triples. \(triples.count)")
 
             try subject.link(to: object, withPredicate: predicate)
             try subject.link(to: object, withPredicate: predicate)
 
-            hexaCount = try KnowledgeStoreTestCase._sharedStore.keys().count
+            hexaCount = try sharedKnowledgeStore().keys().count
             XCTAssert(hexaCount == 6, "1 hexatuple. \(hexaCount) tuples")
 
-            triples = try KnowledgeStoreTestCase._sharedStore.triples(matching: condition)
+            triples = try sharedKnowledgeStore().triples(matching: condition)
             XCTAssert(triples.count == 1, "no triples. \(triples.count)")
             XCTAssert(triples[0].weight == 2, "weight is 2. \(triples[0].weight)")
 
             try subject.unlink(to: object, withPredicate: predicate)
 
-            hexaCount = try KnowledgeStoreTestCase._sharedStore.keys().count
+            hexaCount = try sharedKnowledgeStore().keys().count
             XCTAssert(hexaCount == 6, "1 hexatuple. \(hexaCount) tuples")
 
-            triples = try KnowledgeStoreTestCase._sharedStore.triples(matching: condition)
+            triples = try sharedKnowledgeStore().triples(matching: condition)
             XCTAssert(triples.count == 1, "no triples. \(triples.count)")
             XCTAssert(triples[0].weight == 1, "weight is 1. \(triples[0].weight)")
             
-            try KnowledgeStoreTestCase._sharedStore.backingStore.setWeight(forLinkWithLabel: predicate,
-                                                                                   between: subject.identifier,
-                                                                                   and: object.identifier,
-                                                                                   toValue: 4)
-            triples = try KnowledgeStoreTestCase._sharedStore.triples(matching: condition)
+            try sharedKnowledgeStore().backingStore.setWeight(forLinkWithLabel: predicate,
+                                                              between: subject.identifier,
+                                                              and: object.identifier,
+                                                              toValue: 4)
+            triples = try sharedKnowledgeStore().triples(matching: condition)
             XCTAssert(triples.count == 1, "no triples. \(triples.count)")
             XCTAssert(triples[0].weight == 4, "weight is 4. \(triples[0].weight)")
 
@@ -351,9 +439,9 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
     func testDuplicateLinkingWithCompletionHandler() {
         do {
             var triples: [KBTriple]
-            let subject = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "subject")
+            let subject = sharedKnowledgeStore().entity(withIdentifier: "subject")
             let predicate = "predicate"
-            let object = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "object")
+            let object = sharedKnowledgeStore().entity(withIdentifier: "object")
 
             try subject.link(to: object, withPredicate: predicate)
             try subject.link(to: object, withPredicate: predicate)
@@ -363,9 +451,9 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
             let condition = KBTripleCondition(subject: subject.identifier,
                                               predicate: predicate,
                                               object: object.identifier)
-            triples = try KnowledgeStoreTestCase._sharedStore.triples(matching: condition)
+            triples = try sharedKnowledgeStore().triples(matching: condition)
 
-            var hexaCount = try KnowledgeStoreTestCase._sharedStore.keys().count
+            var hexaCount = try sharedKnowledgeStore().keys().count
             XCTAssert(hexaCount == 6, "Insert first triple once results in 1 hexatuple. \(hexaCount)")
             XCTAssert(triples.count == 1, "one triple. \(triples.count)")
             XCTAssert(triples[0].weight == 4, "weight is 4. \(triples[0].weight)")
@@ -373,10 +461,10 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
             print(triples[0].weight)
 
             try subject.unlink(to: object, withPredicate: predicate)
-            triples = try KnowledgeStoreTestCase._sharedStore.triples(matching: condition)
+            triples = try sharedKnowledgeStore().triples(matching: condition)
             print(triples)
 
-            hexaCount = try KnowledgeStoreTestCase._sharedStore.keys().count
+            hexaCount = try sharedKnowledgeStore().keys().count
             XCTAssert(hexaCount == 6, "still 1 hexatuple. \(hexaCount)")
             XCTAssert(triples.count == 1, "one triple. \(triples.count)")
             XCTAssert(triples[0].weight == 3, "weight is 3. \(triples[0].weight)")
@@ -392,18 +480,18 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
             var po_pairs: [(predicate: Label, object: KBEntity)]
             var links: [Label]
 
-            let subject = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "subject")
-            let object = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "object")
+            let subject = sharedKnowledgeStore().entity(withIdentifier: "subject")
+            let object = sharedKnowledgeStore().entity(withIdentifier: "object")
             let predicate = "predicate"
 
             try subject.link(to: object, withPredicate: predicate)
 
-            let entities = try KnowledgeStoreTestCase._sharedStore.entities()
+            let entities = try sharedKnowledgeStore().entities()
             XCTAssert(entities.count == 2, "All entities are 2 (subject and object). \(entities.count)")
             XCTAssert(entities.contains(subject), "Retrieved subject")
             XCTAssert(entities.contains(object), "Retrieved object")
 
-            let triples = try KnowledgeStoreTestCase._sharedStore.triples(matching: nil)
+            let triples = try sharedKnowledgeStore().triples(matching: nil)
             XCTAssert(triples.count == 1, "Insert first triple once results in 1 triple. \(triples.count)")
             XCTAssert(triples[0].subject == subject.identifier, "Insert first triple once results in 1 triple: subject")
             XCTAssert(triples[0].predicate == predicate, "Insert first triple once results in 1 triple: predicate")
@@ -413,7 +501,7 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
             let tripleCondition = KBTripleCondition(subject: subject.identifier,
                                                     predicate: predicate,
                                                     object: object.identifier)
-            let strictTriples = try KnowledgeStoreTestCase._sharedStore.triples(matching: tripleCondition)
+            let strictTriples = try sharedKnowledgeStore().triples(matching: tripleCondition)
             XCTAssert(triples.count == strictTriples.count, "String or nil condition return same result with one triple. \(triples.count), \(strictTriples.count)")
             XCTAssert(triples[0] == strictTriples[0], "String or nil condition return same result with one triple")
             XCTAssert(triples[0].weight == strictTriples[0].weight, "weight is 1. \(triples[0].weight)")
@@ -461,6 +549,29 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
 
             sp_pairs = try object.linkingEntities(withPredicate: predicate, complement: true)
             XCTAssert(sp_pairs.count == 0, "linkingEntities to object with label (negated): 0 found")
+            
+            sp_pairs = try object.linkingEntities(withPredicate: "predicate", matchType: .beginsWith)
+            XCTAssert(sp_pairs.count == 1, "linkingEntities to object with BEGINS label: 1 found")
+            sp_pairs = try object.linkingEntities(withPredicate: "pred", matchType: .beginsWith)
+            XCTAssert(sp_pairs.count == 1, "linkingEntities to object with BEGINS label: 1 found")
+            sp_pairs = try object.linkingEntities(withPredicate: "invalidPred", matchType: .beginsWith)
+            XCTAssert(sp_pairs.count == 0, "linkingEntities to object with BEGINS label: 0 found")
+            sp_pairs = try object.linkingEntities(withPredicate: "predicate", matchType: .equal)
+            XCTAssert(sp_pairs.count == 1, "linkingEntities to object with EQUAL label: 1 found")
+            
+            do {
+                sp_pairs = try object.linkingEntities(withPredicate: "predicate", matchType: .contains)
+                XCTFail("contains is not currently supported")
+            }
+            catch {
+            }
+            
+            do {
+                sp_pairs = try object.linkingEntities(withPredicate: "predicate", matchType: .endsWith)
+                XCTFail("ends with is not currently supported")
+            }
+            catch {
+            }
 
             sp_pairs = try object.linkingEntities(withPredicate: "ANYLABEL")
             XCTAssert(sp_pairs.count == 0, "linkingEntities to object: 0 found")
@@ -485,11 +596,11 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
             var po_pairs: [(predicate: Label, object: KBEntity)]
             var links: [Label]
 
-            let subject = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "subject")
+            let subject = sharedKnowledgeStore().entity(withIdentifier: "subject")
             let predicate = "predicate"
             let secondPredicate = "newPredicate"
-            let object = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "object")
-            let secondObject = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "secondObject")
+            let object = sharedKnowledgeStore().entity(withIdentifier: "object")
+            let secondObject = sharedKnowledgeStore().entity(withIdentifier: "secondObject")
 
             try subject.link(to: object, withPredicate: predicate)
             try subject.link(to: object, withPredicate: secondPredicate)
@@ -609,11 +720,11 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
         let expectation = XCTestExpectation(description: #function)
 
         do {
-            let subject = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "subject")
+            let subject = sharedKnowledgeStore().entity(withIdentifier: "subject")
             let predicate = "predicate"
             let secondPredicate = "newPredicate"
-            let object = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "object")
-            let secondObject = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "secondObject")
+            let object = sharedKnowledgeStore().entity(withIdentifier: "object")
+            let secondObject = sharedKnowledgeStore().entity(withIdentifier: "secondObject")
 
             let graph = KBJSONLDGraph(withEntities: [subject, object, secondObject])
 
@@ -654,20 +765,20 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
             return
         }
 
-        KnowledgeStoreTestCase._sharedStore.importContentsOf(JSONLDFileAt: path) { result in
+        sharedKnowledgeStore().importContentsOf(JSONLDFileAt: path) { result in
             switch result {
             case .failure(let err):
                 XCTFail("\(String(describing: err))")
                 expectation.fulfill()
             case .success():
                 do {
-                    let entities = try KnowledgeStoreTestCase._sharedStore.entities()
+                    let entities = try sharedKnowledgeStore().entities()
                     let expectedCount: Int = 14
                     XCTAssert(entities.count == expectedCount, "There are \(expectedCount) entities in the store")
 
-                    let timCook = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "http://www.timcook.com")
-                    let jp = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "_:jp")
-                    let gennaro = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "_:gennaro")
+                    let timCook = sharedKnowledgeStore().entity(withIdentifier: "http://www.timcook.com")
+                    let jp = sharedKnowledgeStore().entity(withIdentifier: "_:jp")
+                    let gennaro = sharedKnowledgeStore().entity(withIdentifier: "_:gennaro")
 
                     XCTAssert(entities.contains(timCook), "One of the entities is Tim Cook")
                     XCTAssert(entities.contains(jp), "One of the entities is Joao Pedro")
@@ -696,14 +807,14 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
         do {
             var triples: [KBTriple], condition: KBTripleCondition
 
-            let first = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "first")
-            let second = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "second")
-            let third = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "third")
+            let first = sharedKnowledgeStore().entity(withIdentifier: "first")
+            let second = sharedKnowledgeStore().entity(withIdentifier: "second")
+            let third = sharedKnowledgeStore().entity(withIdentifier: "third")
             try first.link(to: second, withPredicate: "one")
             try second.link(to: third, withPredicate: "two")
 
             condition = KBTripleCondition(subject: nil, predicate: nil, object: second.identifier)
-            triples = try KnowledgeStoreTestCase._sharedStore.triples(matching: condition)
+            triples = try sharedKnowledgeStore().triples(matching: condition)
 
             XCTAssert(triples.count == 1, "One triple matching (?,?,\(second)). \(triples.count)")
             XCTAssert(triples[0].subject == first.identifier, "Subject of triple matching (?,?,\(second))")
@@ -711,11 +822,11 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
             XCTAssert(triples[0].predicate == "one", "Predicate of triple matching (?,?,\(second))")
             XCTAssert(triples[0].weight == 1, "weight of triple matching (?,?,\(second))")
 
-            let firstPrime = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "first-prime")
+            let firstPrime = sharedKnowledgeStore().entity(withIdentifier: "first-prime")
             try firstPrime.link(to: second, withPredicate: "one-prime")
 
             condition = KBTripleCondition(subject: nil, predicate: nil, object: second.identifier)
-            triples = try KnowledgeStoreTestCase._sharedStore.triples(matching: condition)
+            triples = try sharedKnowledgeStore().triples(matching: condition)
 
             XCTAssert(triples.count == 2, "Two triples matching (?,?,\(second))")
             XCTAssert(triples[0].subject == firstPrime.identifier || triples[1].subject == firstPrime.identifier, "Subject of triple matching (?,?,\(second))")
@@ -729,11 +840,11 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
         do {
             var triples = [KBTriple]()
 
-            let first = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "first")
-            let second = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "second")
-            let third = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "third")
-            let fourth = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "fourth")
-            let fifth = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "fifth")
+            let first = sharedKnowledgeStore().entity(withIdentifier: "first")
+            let second = sharedKnowledgeStore().entity(withIdentifier: "second")
+            let third = sharedKnowledgeStore().entity(withIdentifier: "third")
+            let fourth = sharedKnowledgeStore().entity(withIdentifier: "fourth")
+            let fifth = sharedKnowledgeStore().entity(withIdentifier: "fifth")
             try first.link(to: second, withPredicate: "positive")
             try first.link(to: second, withPredicate: "negative")
             try second.link(to: third, withPredicate: "_OTHER_")
@@ -746,7 +857,7 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
 
             // DISJUNCTION (or)
 
-            triples = try KnowledgeStoreTestCase._sharedStore.triples(matching: positiveCondition.or(negativeCondition))
+            triples = try sharedKnowledgeStore().triples(matching: positiveCondition.or(negativeCondition))
 
             XCTAssert(triples.count == 4, "4 triples matching the condition. Found \(triples.count)")
             XCTAssert(triples.filter({ $0.predicate == "positive" || $0.predicate == "negative" }).count == 4, "All triples have the constrained predicate")
@@ -779,7 +890,7 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
 
             print("No triples with condition \(positiveCondition.and(negativeCondition))")
 
-            triples = try KnowledgeStoreTestCase._sharedStore.triples(matching: positiveCondition.and(negativeCondition))
+            triples = try sharedKnowledgeStore().triples(matching: positiveCondition.and(negativeCondition))
 
             XCTAssert(triples.count == 0, "No triples with condition \(positiveCondition.and(negativeCondition))")
         } catch {
@@ -791,8 +902,8 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
         // This is an example of a performance test case.
         measure {
             do {
-                let subject = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "subject")
-                let object = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "object")
+                let subject = sharedKnowledgeStore().entity(withIdentifier: "subject")
+                let object = sharedKnowledgeStore().entity(withIdentifier: "object")
                 let predicate = "predicate"
 
                 try subject.link(to: object, withPredicate: predicate)
@@ -801,7 +912,7 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
                 XCTAssert(linked.count == 1, "[sync perfs] linking was successful")
 
                 let linkedCouplesCondition = try KBTripleCondition.havingPredicate(predicate)
-                let so_couples = try KnowledgeStoreTestCase._sharedStore.triples(matching: linkedCouplesCondition)
+                let so_couples = try sharedKnowledgeStore().triples(matching: linkedCouplesCondition)
                 XCTAssert(so_couples.count == 1, "[sync perfs] couples retrieved")
                 XCTAssert(so_couples[0].subject == subject.identifier, "[sync perfs] subject matches")
                 XCTAssert(so_couples[0].object == object.identifier, "[sync perfs] object matches")
@@ -815,8 +926,8 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
          measure {
              do {
                  // Simple Graph
-                 let yummlyApp = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "_:com.yummly")
-                 let yummlyActivity = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "_:com.yummly.activity.recipe.92205")
+                 let yummlyApp = sharedKnowledgeStore().entity(withIdentifier: "_:com.yummly")
+                 let yummlyActivity = sharedKnowledgeStore().entity(withIdentifier: "_:com.yummly.activity.recipe.92205")
                  try yummlyActivity.link(to: yummlyApp, withPredicate: "application")
              } catch {
                  XCTFail("\(error)")
@@ -825,13 +936,13 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
      }
 
     func testSimpleLinking() {
-        let yummlyApp = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "_:com.yummly")
-        let yummlyActivity = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "_:com.yummly.activity.recipe.92205")
+        let yummlyApp = sharedKnowledgeStore().entity(withIdentifier: "_:com.yummly")
+        let yummlyActivity = sharedKnowledgeStore().entity(withIdentifier: "_:com.yummly.activity.recipe.92205")
 
         do {
             try yummlyActivity.link(to: yummlyApp, withPredicate: "application")
 
-            let entities = try KnowledgeStoreTestCase._sharedStore.entities()
+            let entities = try sharedKnowledgeStore().entities()
             let expectedCount: Int = 2
             XCTAssert(entities.count == expectedCount, "There are \(expectedCount) entities in the store, found \(entities.count)")
 
@@ -851,10 +962,10 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
 
     func _testJSONLDImport() {
         self.importJSONLD(named: "bigGraph")
-        let yummlyApp = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "_:com.yummly")
-        let yummlyActivity = KnowledgeStoreTestCase._sharedStore.entity(withIdentifier: "_:com.yummly.activity.recipe.92205")
+        let yummlyApp = sharedKnowledgeStore().entity(withIdentifier: "_:com.yummly")
+        let yummlyActivity = sharedKnowledgeStore().entity(withIdentifier: "_:com.yummly.activity.recipe.92205")
         do {
-            let entities = try KnowledgeStoreTestCase._sharedStore.entities()
+            let entities = try sharedKnowledgeStore().entities()
             let expectedCount: Int = 84
             XCTAssert(entities.count == expectedCount, "There should be \(expectedCount) entities in // the store. Found \(entities.count)")
             let links = try yummlyActivity.links(to: yummlyApp)
@@ -946,7 +1057,7 @@ class KnowledgeStoreTestCase : KVStoreTestCase {
         if let path = bundle.path(forResource: name, ofType: "json") {
             let dispatch = KBTimedDispatch(timeout: .distantFuture)
 
-            KnowledgeStoreTestCase._sharedStore.importContentsOf(JSONLDFileAt: path) { result in
+            sharedKnowledgeStore().importContentsOf(JSONLDFileAt: path) { result in
                 switch result {
                 case .failure(let err):
                     dispatch.interrupt(err)
