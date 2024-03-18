@@ -248,10 +248,19 @@ public class KBSQLHandler: NSObject {
         for row in stmt {
             assert(row.count == 3, "retrieved the right number of columns")
             if let key = try self.deserializeValue(row[0]) as? String,
-               let value = try self.deserializeValue(row[1]),
-               let timestamp = row[2] as? TimeInterval
+               let value = try self.deserializeValue(row[1])
             {
-                let tuple = KBKVObjcPairWithTimestamp(key: key, value: value, timestamp: Date(timeIntervalSince1970: timestamp))
+                let date: Date
+                if let int64Val = row[2] as? Int64 {
+                    let interval = TimeInterval(int64Val)
+                    let d = Date(timeIntervalSince1970: interval)
+                    date = d
+                } else {
+                    log.error("invalid deserialization of timestamp \(String(describing: row[2])) from DB")
+                    date = Date(timeIntervalSince1970: 0)
+                }
+                
+                let tuple = KBKVObjcPairWithTimestamp(key: key, value: value, timestamp: date)
                 keyValuesAndTimestamp.append(tuple)
             }
         }
@@ -316,11 +325,19 @@ public class KBSQLHandler: NSObject {
             var dict = KBKVPairs()
             assert(row.count == 3, "retrieved the right number of columns")
             if let key = try self.deserializeValue(row[0]) as? String,
-               let value = try self.deserializeValue(row[1]),
-               let timestamp = row[2] as? TimeInterval
+               let value = try self.deserializeValue(row[1])
             {
+                let date: Date
+                if let int64Val = row[2] as? Int64 {
+                    let interval = TimeInterval(int64Val)
+                    let d = Date(timeIntervalSince1970: interval)
+                    date = d
+                } else {
+                    log.error("invalid deserialization of timestamp \(String(describing: row[2])) from DB")
+                    date = Date(timeIntervalSince1970: 0)
+                }
                 dict[key] = value
-                pairsByDate[Date(timeIntervalSince1970: timestamp)] = dict
+                pairsByDate[date] = dict
             }
         }
         
