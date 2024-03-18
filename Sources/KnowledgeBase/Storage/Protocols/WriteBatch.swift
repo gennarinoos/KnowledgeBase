@@ -90,9 +90,18 @@ class KBUserDefaultsWriteBatch : KBAbstractWriteBatch, KBKVStoreWriteBatch {
         let dispatch = KBTimedDispatch()
         
         for key in self.buffer.keys {
+            dispatch.group.enter()
             if let value = self.buffer[key]!.0 {
-                dispatch.group.enter()
                 backingStore.set(value: value, for: key) { result in
+                    switch result {
+                    case .failure(let err):
+                        dispatch.interrupt(err)
+                    case .success():
+                        dispatch.group.leave()
+                    }
+                }
+            } else {
+                backingStore.removeValue(for: key) { result in
                     switch result {
                     case .failure(let err):
                         dispatch.interrupt(err)

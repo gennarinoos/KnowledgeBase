@@ -95,6 +95,10 @@ class KBUserDefaultsKVStoreTests: KVStoreTestCase {
             XCTAssertNil(invalidValue2)
         }
     }
+    
+    override func testPaginateSortLargerKVS() throws {
+        // Not supported
+    }
 
     func testPerformances() {
         measure {
