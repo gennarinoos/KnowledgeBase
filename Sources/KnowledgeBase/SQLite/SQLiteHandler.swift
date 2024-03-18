@@ -251,8 +251,8 @@ public class KBSQLHandler: NSObject {
                let value = try self.deserializeValue(row[1])
             {
                 let date: Date
-                if let int64Val = row[2] as? Int64 {
-                    let interval = TimeInterval(int64Val)
+                if let doubleVal = row[2] as? Double {
+                    let interval = TimeInterval(doubleVal)
                     let d = Date(timeIntervalSince1970: interval)
                     date = d
                 } else {
@@ -328,8 +328,8 @@ public class KBSQLHandler: NSObject {
                let value = try self.deserializeValue(row[1])
             {
                 let date: Date
-                if let int64Val = row[2] as? Int64 {
-                    let interval = TimeInterval(int64Val)
+                if let doubleVal = row[2] as? Double {
+                    let interval = TimeInterval(doubleVal)
                     let d = Date(timeIntervalSince1970: interval)
                     date = d
                 } else {
