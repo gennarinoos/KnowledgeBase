@@ -255,6 +255,10 @@ public class KBSQLHandler: NSObject {
                     let interval = TimeInterval(doubleVal)
                     let d = Date(timeIntervalSince1970: interval)
                     date = d
+                } else if let int64Val = row[2] as? Int64 {
+                    let interval = TimeInterval(int64Val)
+                    let d = Date(timeIntervalSince1970: interval)
+                    date = d
                 } else {
                     log.error("invalid deserialization of timestamp \(String(describing: row[2])) from DB")
                     date = Date(timeIntervalSince1970: 0)
@@ -330,6 +334,10 @@ public class KBSQLHandler: NSObject {
                 let date: Date
                 if let doubleVal = row[2] as? Double {
                     let interval = TimeInterval(doubleVal)
+                    let d = Date(timeIntervalSince1970: interval)
+                    date = d
+                } else if let int64Val = row[2] as? Int64 {
+                    let interval = TimeInterval(int64Val)
                     let d = Date(timeIntervalSince1970: interval)
                     date = d
                 } else {
