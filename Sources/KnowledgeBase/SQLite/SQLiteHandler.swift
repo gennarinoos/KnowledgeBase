@@ -242,6 +242,8 @@ public class KBSQLHandler: NSObject {
             .map { "select k, v, t from \($0.rawValue) where \(condition.sql)" }
             .joined(separator: " union all ")
         
+        log.debug("[sql] running query: select k, v, t from (\(query))\(modifiers)")
+        
         let stmt = try connection.prepare("select k, v, t from (\(query))\(modifiers)")
         for row in stmt {
             assert(row.count == 3, "retrieved the right number of columns")
