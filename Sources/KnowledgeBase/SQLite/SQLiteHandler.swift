@@ -232,7 +232,10 @@ public class KBSQLHandler: NSObject {
             modifiers += " order by t desc"
         }
         if let paginate {
-            modifiers += " limit \(paginate.limit) offset \(paginate.offset)"
+            modifiers += " limit \(paginate.limit)"
+            if paginate.offset > 0 {
+                modifiers += " offset \(paginate.offset)"
+            }
         }
         
         let query = SQLTableType.allValues
@@ -293,7 +296,10 @@ public class KBSQLHandler: NSObject {
         
         var modifiers = " order by t \(sort)"
         if let paginate {
-            modifiers += " limit \(paginate.limit) offset \(paginate.offset)"
+            modifiers += " limit \(paginate.limit)"
+            if paginate.offset > 0 {
+                modifiers += " offset \(paginate.offset)"
+            }
         }
         
         let query = SQLTableType.allValues
@@ -542,13 +548,6 @@ public class KBSQLHandler: NSObject {
         query += " group by k, v"
         
         let stmt = try connection.prepare(query)
-        
-        let tt = stmt.map({
-            let data = Data.fromDatatypeValue($0[1] as! Blob)
-            let unarchiver = NSKeyedUnarchiver(forReadingWith: data)
-            return unarchiver.decodeObject(of: KBTriple.self, forKey: NSKeyedArchiveRootObjectKey)
-        })
-        
         
         for row in stmt {
             assert(row.count == 2, "retrieved the right number of columns")
