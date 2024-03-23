@@ -167,6 +167,7 @@ class KBSQLXPCBackingStore : KBBackingStore {
     
     func keyValuesAndTimestamps(
         forKeysMatching condition: KBGenericCondition,
+        timestampMatching timeCondition: KBTimestampCondition?,
         paginate: KBPaginationOptions?,
         sort: KBSortDirection?,
         completionHandler: @escaping (Swift.Result<[KBKVPairWithTimestamp], Error>) -> ()
@@ -178,6 +179,7 @@ class KBSQLXPCBackingStore : KBBackingStore {
         
         service.keyValuesAndTimestamps(
             forKeysMatching: condition,
+            timestampMatching: timeCondition,
             inStoreWithIdentifier: self.name,
             paginate: paginate,
             sort: sort?.rawValue

@@ -165,7 +165,7 @@ public class KBKVStore : NSObject {
             log.debug("using KBSQLXPCBackingStore")
             self.backingStore = KBSQLXPCBackingStore.mainInstance()
         case .sql(let name):
-            log.debug("using KBSQLXPCBackingStore with name \(name)")
+            log.debug("using KBSQLXPCBackingStore with name \(name, privacy: .public)")
             self.backingStore = KBSQLXPCBackingStore(name: name)
         case .sqlSynched(""):
             log.debug("using KBCloudKitSQLXPCBackingStore")
@@ -183,7 +183,7 @@ public class KBKVStore : NSObject {
                 return nil
             }
         case .sql(let name):
-            log.debug("using KBSQLBackingStore with name \(name)")
+            log.debug("using KBSQLBackingStore with name \(name, privacy: .public)")
             if let bs = KBSQLBackingStore(name: name) {
                 self.backingStore = bs
             } else {

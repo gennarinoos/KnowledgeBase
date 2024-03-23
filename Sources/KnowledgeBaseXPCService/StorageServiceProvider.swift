@@ -102,6 +102,7 @@ class KBStorageServiceProviderXPC: KBStorageXPCProtocol {
     
     func keyValuesAndTimestamps(
         forKeysMatching condition: KBGenericCondition,
+        timestampMatching timeCondition: KBTimestampCondition?,
         inStoreWithIdentifier identifier: String,
         paginate: KBPaginationOptions?,
         sort: KBSortDirection.RawValue?,
@@ -118,7 +119,12 @@ class KBStorageServiceProviderXPC: KBStorageXPCProtocol {
                     throw KBError.notSupported
                 }
             }
-            return try handler.keyValuesAndTimestamps(forKeysMatching: condition, paginate: paginate, sort: sortDirection)
+            return try handler.keyValuesAndTimestamps(
+                forKeysMatching: condition,
+                timestampMatching: timeCondition,
+                paginate: paginate,
+                sort: sortDirection
+            )
         }
     }
     

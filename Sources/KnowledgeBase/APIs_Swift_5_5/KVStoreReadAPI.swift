@@ -116,11 +116,13 @@ extension KBKVStore {
      */
     public func keyValuesAndTimestamps(
         forKeysMatching condition: KBGenericCondition,
+        timestampMatching timeCondition: KBTimestampCondition?,
         paginate: KBPaginationOptions? = nil,
         sort: KBSortDirection? = nil
     ) async throws -> [KBKVPairWithTimestamp] {
         return try await self.backingStore.keyValuesAndTimestamps(
             forKeysMatching: condition,
+            timestampMatching: timeCondition,
             paginate: paginate,
             sort: sort
         )

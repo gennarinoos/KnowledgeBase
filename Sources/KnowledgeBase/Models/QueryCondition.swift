@@ -438,3 +438,79 @@ extension KBTripleCondition {
         )
     }
 }
+
+@objc public enum KBTimestampComparison : Int, CustomStringConvertible {
+    case before = -2
+    case beforeOrEqual = -1
+    case afterOrEqual = 1
+    case after = 2
+    
+    public var description: String {
+        switch self {
+        case .before: return "<"
+        case .beforeOrEqual: return "<="
+        case .after: return ">"
+        case .afterOrEqual: return ">="
+        }
+    }
+}
+
+@objc(KBTimestampCondition)
+public class KBTimestampCondition : NSObject, NSCopying, NSSecureCoding {
+    
+    enum CodingKeys: String, CodingKey {
+        case `operator`
+        case value
+    }
+    
+    public func copy(with zone: NSZone? = nil) -> Any {
+        return KBTimestampCondition(self.operator, value: self.value)
+    }
+    
+    public static var supportsSecureCoding: Bool = true
+    
+    public func encode(with coder: NSCoder) {
+        coder.encode(self.operator.rawValue, forKey: CodingKeys.operator.rawValue)
+        coder.encode(self.value, forKey: CodingKeys.value.rawValue)
+    }
+    
+    public required convenience init?(coder: NSCoder) {
+        let op = coder.decodeInteger(forKey: CodingKeys.operator.rawValue)
+        
+        guard let value = coder.decodeObject(of: NSDate.self, forKey: CodingKeys.value.rawValue) as? Date else {
+            return nil
+        }
+        
+        guard let `operator` = KBTimestampComparison(rawValue: op) else {
+            return nil
+        }
+        
+        self.init(`operator`, value: value)
+    }
+    
+    
+    let `operator`: KBTimestampComparison
+    let value: Date
+    
+    @objc(initWithType:value:)
+    public init(_ op: KBTimestampComparison, value: Date) {
+        self.operator = op
+        self.value = value
+    }
+    
+    /**
+     The SQL representation of this condition
+     */
+    var sql: String {
+        switch self.operator {
+        case .beforeOrEqual:
+            return "t <= \(value.timeIntervalSince1970)"
+        case .before:
+            return "t < \(value.timeIntervalSince1970)"
+        case .afterOrEqual:
+            return "t >= \(value.timeIntervalSince1970)"
+        case .after:
+            return "t > \(value.timeIntervalSince1970)"
+        }
+    }
+}

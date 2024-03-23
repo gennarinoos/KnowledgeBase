@@ -167,6 +167,7 @@ extension KBKVStore {
      Retrieves tuples of (key, value, timestamp) in the KVS whose keys pass the condition.
      
      - parameter condition: condition the keys need to satisfy
+     - parameter timeCondition: (optional) condition the timestamp need to satisfy
      - parameter paginate: pagination options
      - parameter sort: in ascending or descending order
      - parameter completionHandler: the callback method
@@ -174,12 +175,14 @@ extension KBKVStore {
      */
     public func keyValuesAndTimestamps(
         forKeysMatching condition: KBGenericCondition,
+        timestampMatching timeCondition: KBTimestampCondition?,
         paginate: KBPaginationOptions? = nil,
         sort: KBSortDirection? = nil,
         completionHandler: @escaping (Swift.Result<[KBKVPairWithTimestamp], Error>) -> ()
     ) {
         return self.backingStore.keyValuesAndTimestamps(
             forKeysMatching: condition,
+            timestampMatching: timeCondition,
             paginate: paginate,
             sort: sort,
             completionHandler: completionHandler

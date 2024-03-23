@@ -21,6 +21,7 @@ protocol KBAsynchronousBackingStore {
     func values(forKeysMatching: KBGenericCondition, completionHandler: @escaping (Swift.Result<[Any?], Error>) -> ())
     func keyValuesAndTimestamps(
         forKeysMatching: KBGenericCondition,
+        timestampMatching timeCondition: KBTimestampCondition?,
         paginate: KBPaginationOptions?,
         sort: KBSortDirection?,
         completionHandler: @escaping (Swift.Result<[KBKVPairWithTimestamp], Error>) -> ()
@@ -90,6 +91,7 @@ protocol KBSynchronousBackingStore : KBAsynchronousBackingStore {
     func values(forKeysMatching: KBGenericCondition) throws -> [Any?]
     func keyValuesAndTimestamps(
         forKeysMatching: KBGenericCondition,
+        timestampMatching timeCondition: KBTimestampCondition?,
         paginate: KBPaginationOptions?,
         sort: KBSortDirection?
     ) throws -> [KBKVPairWithTimestamp]
@@ -182,6 +184,7 @@ extension KBSynchronousBackingStore {
     
     func keyValuesAndTimestamps(
         forKeysMatching condition: KBGenericCondition,
+        timestampMatching timeCondition: KBTimestampCondition?,
         paginate: KBPaginationOptions?,
         sort: KBSortDirection?
     ) throws -> [KBKVPairWithTimestamp] {
@@ -189,6 +192,7 @@ extension KBSynchronousBackingStore {
             (completionHandler) in
             self.keyValuesAndTimestamps(
                 forKeysMatching: condition,
+                timestampMatching: timeCondition,
                 paginate: paginate,
                 sort: sort,
                 completionHandler: completionHandler

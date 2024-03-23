@@ -180,48 +180,59 @@ class KVStoreTestCase : XCTestCase, KBXCTestCase {
         try self.sharedStore().set(value: "stringVal", for: "string")
         try self.sharedStore().set(value: 100, for: "integer")
         
-        var kvPairs = try self.sharedStore().keyValuesAndTimestamps(forKeysMatching: KBGenericCondition(value: true))
+        var kvPairs = try self.sharedStore().keyValuesAndTimestamps(
+            forKeysMatching: KBGenericCondition(value: true),
+            timestampMatching: nil
+        )
         XCTAssertEqual(kvPairs.count, 2)
         
         kvPairs = try self.sharedStore().keyValuesAndTimestamps(
-            forKeysMatching: KBGenericCondition(.equal, value: "stringValue")
+            forKeysMatching: KBGenericCondition(.equal, value: "stringValue"),
+            timestampMatching: nil
         )
         XCTAssertEqual(kvPairs.count, 0)
         kvPairs = try self.sharedStore().keyValuesAndTimestamps(
             forKeysMatching: KBGenericCondition(.equal, value: "stringValue"),
+            timestampMatching: nil,
             paginate: KBPaginationOptions(limit: 1, offset: 0),
             sort: .none
         )
         XCTAssertEqual(kvPairs.count, 0)
         kvPairs = try self.sharedStore().keyValuesAndTimestamps(
             forKeysMatching: KBGenericCondition(.equal, value: "stringValue"),
+            timestampMatching: nil,
             sort: .ascending
         )
         XCTAssertEqual(kvPairs.count, 0)
         kvPairs = try self.sharedStore().keyValuesAndTimestamps(
             forKeysMatching: KBGenericCondition(.equal, value: "stringValue"),
+            timestampMatching: nil,
             sort: .descending
         )
         XCTAssertEqual(kvPairs.count, 0)
         
         kvPairs = try self.sharedStore().keyValuesAndTimestamps(
-            forKeysMatching: KBGenericCondition(.equal, value: "string")
+            forKeysMatching: KBGenericCondition(.equal, value: "string"),
+            timestampMatching: nil
         )
         XCTAssertEqual(kvPairs.count, 1)
         
         kvPairs = try self.sharedStore().keyValuesAndTimestamps(
             forKeysMatching: KBGenericCondition(.equal, value: "string"),
+            timestampMatching: nil,
             paginate: KBPaginationOptions(limit: 1, offset: 0)
         )
         XCTAssertEqual(kvPairs.count, 1)
         kvPairs = try self.sharedStore().keyValuesAndTimestamps(
             forKeysMatching: KBGenericCondition(.equal, value: "string"),
+            timestampMatching: nil,
             paginate: KBPaginationOptions(limit: 10, offset: 0)
         )
         XCTAssertEqual(kvPairs.count, 1)
         
         kvPairs = try self.sharedStore().keyValuesAndTimestamps(
             forKeysMatching: KBGenericCondition(.equal, value: "string"),
+            timestampMatching: nil,
             paginate: KBPaginationOptions(limit: 1, offset: 0),
             sort: .descending
         )
@@ -229,6 +240,7 @@ class KVStoreTestCase : XCTestCase, KBXCTestCase {
         
         kvPairs = try self.sharedStore().keyValuesAndTimestamps(
             forKeysMatching: KBGenericCondition(.equal, value: "string"),
+            timestampMatching: nil,
             paginate: KBPaginationOptions(limit: 1, offset: 0),
             sort: .ascending
         )
@@ -236,12 +248,14 @@ class KVStoreTestCase : XCTestCase, KBXCTestCase {
         
         kvPairs = try self.sharedStore().keyValuesAndTimestamps(
             forKeysMatching: KBGenericCondition(.equal, value: "string"),
+            timestampMatching: nil,
             paginate: KBPaginationOptions(limit: 1, offset: 1)
         )
         XCTAssertEqual(kvPairs.count, 0)
         
         kvPairs = try self.sharedStore().keyValuesAndTimestamps(
             forKeysMatching: KBGenericCondition(.equal, value: "string"),
+            timestampMatching: nil,
             paginate: KBPaginationOptions(limit: 1, offset: 1),
             sort: .descending
         )
@@ -249,6 +263,7 @@ class KVStoreTestCase : XCTestCase, KBXCTestCase {
         
         kvPairs = try self.sharedStore().keyValuesAndTimestamps(
             forKeysMatching: KBGenericCondition(.equal, value: "string"),
+            timestampMatching: nil,
             paginate: KBPaginationOptions(limit: 1, offset: 1),
             sort: .ascending
         )
@@ -256,12 +271,14 @@ class KVStoreTestCase : XCTestCase, KBXCTestCase {
         
         kvPairs = try self.sharedStore().keyValuesAndTimestamps(
             forKeysMatching: KBGenericCondition(.equal, value: "string"),
+            timestampMatching: nil,
             paginate: KBPaginationOptions(limit: 0, offset: 1)
         )
         XCTAssertEqual(kvPairs.count, 1)
         
         kvPairs = try self.sharedStore().keyValuesAndTimestamps(
             forKeysMatching: KBGenericCondition(.equal, value: "string"),
+            timestampMatching: nil,
             paginate: KBPaginationOptions(limit: 10, offset: 0),
             sort: .descending
         )
@@ -273,6 +290,7 @@ class KVStoreTestCase : XCTestCase, KBXCTestCase {
         
         kvPairs = try self.sharedStore().keyValuesAndTimestamps(
             forKeysMatching: KBGenericCondition(.beginsWith, value: "string"),
+            timestampMatching: nil,
             paginate: KBPaginationOptions(limit: 10, offset: 0),
             sort: .descending
         )
@@ -280,6 +298,7 @@ class KVStoreTestCase : XCTestCase, KBXCTestCase {
         
         kvPairs = try self.sharedStore().keyValuesAndTimestamps(
             forKeysMatching: KBGenericCondition(.beginsWith, value: "string"),
+            timestampMatching: nil,
             paginate: KBPaginationOptions(limit: 2, offset: 1),
             sort: .descending
         )
@@ -289,6 +308,7 @@ class KVStoreTestCase : XCTestCase, KBXCTestCase {
         
         kvPairs = try self.sharedStore().keyValuesAndTimestamps(
             forKeysMatching: KBGenericCondition(.beginsWith, value: "string"),
+            timestampMatching: nil,
             paginate: KBPaginationOptions(limit: 2, offset: 1),
             sort: .ascending
         )
@@ -298,6 +318,7 @@ class KVStoreTestCase : XCTestCase, KBXCTestCase {
         
         kvPairs = try self.sharedStore().keyValuesAndTimestamps(
             forKeysMatching: KBGenericCondition(.beginsWith, value: "string"),
+            timestampMatching: nil,
             paginate: KBPaginationOptions(limit: 2, offset: 2),
             sort: .descending
         )
@@ -307,6 +328,7 @@ class KVStoreTestCase : XCTestCase, KBXCTestCase {
         
         kvPairs = try self.sharedStore().keyValuesAndTimestamps(
             forKeysMatching: KBGenericCondition(.beginsWith, value: "string"),
+            timestampMatching: nil,
             paginate: KBPaginationOptions(limit: 2, offset: 0),
             sort: .descending
         )
@@ -316,12 +338,118 @@ class KVStoreTestCase : XCTestCase, KBXCTestCase {
         
         kvPairs = try self.sharedStore().keyValuesAndTimestamps(
             forKeysMatching: KBGenericCondition(.beginsWith, value: "string"),
+            timestampMatching: nil,
             paginate: KBPaginationOptions(limit: 2, offset: 2),
             sort: .ascending
         )
         XCTAssertEqual(kvPairs.count, 2)
         XCTAssertEqual(kvPairs[0].key, "string-3")
         XCTAssertEqual(kvPairs[1].key, "string-4")
+    }
+    
+    
+    func testKeyValuesAndTimestampsWithTimeConditions() throws {
+        let beforeInsertion = Date()
+        
+        try self.sharedStore().set(value: "stringVal", for: "string")
+        try self.sharedStore().set(value: 100, for: "integer")
+        
+        var kvPairs = try self.sharedStore().keyValuesAndTimestamps(
+            forKeysMatching: KBGenericCondition(value: true),
+            timestampMatching: KBTimestampCondition(.after, value: Date())
+        )
+        XCTAssertEqual(kvPairs.count, 0)
+        
+        kvPairs = try self.sharedStore().keyValuesAndTimestamps(
+            forKeysMatching: KBGenericCondition(value: true),
+            timestampMatching: KBTimestampCondition(.afterOrEqual, value: Date())
+        )
+        XCTAssertEqual(kvPairs.count, 0)
+        
+        kvPairs = try self.sharedStore().keyValuesAndTimestamps(
+            forKeysMatching: KBGenericCondition(value: true),
+            timestampMatching: KBTimestampCondition(.before, value: Date())
+        )
+        XCTAssertEqual(kvPairs.count, 2)
+        
+        kvPairs = try self.sharedStore().keyValuesAndTimestamps(
+            forKeysMatching: KBGenericCondition(value: true),
+            timestampMatching: KBTimestampCondition(.beforeOrEqual, value: Date())
+        )
+        XCTAssertEqual(kvPairs.count, 2)
+        
+        kvPairs = try self.sharedStore().keyValuesAndTimestamps(
+            forKeysMatching: KBGenericCondition(.equal, value: "stringValue"),
+            timestampMatching: KBTimestampCondition(.beforeOrEqual, value: Date())
+        )
+        XCTAssertEqual(kvPairs.count, 0)
+        
+        kvPairs = try self.sharedStore().keyValuesAndTimestamps(
+            forKeysMatching: KBGenericCondition(.equal, value: "stringValue"),
+            timestampMatching: KBTimestampCondition(.beforeOrEqual, value: Date()),
+            paginate: KBPaginationOptions(limit: 1, offset: 0),
+            sort: .none
+        )
+        XCTAssertEqual(kvPairs.count, 0)
+        
+        kvPairs = try self.sharedStore().keyValuesAndTimestamps(
+            forKeysMatching: KBGenericCondition(.equal, value: "stringValue"),
+            timestampMatching: KBTimestampCondition(.beforeOrEqual, value: Date()),
+            sort: .ascending
+        )
+        XCTAssertEqual(kvPairs.count, 0)
+        
+        kvPairs = try self.sharedStore().keyValuesAndTimestamps(
+            forKeysMatching: KBGenericCondition(.equal, value: "stringValue"),
+            timestampMatching: KBTimestampCondition(.beforeOrEqual, value: Date()),
+            sort: .descending
+        )
+        XCTAssertEqual(kvPairs.count, 0)
+        
+        kvPairs = try self.sharedStore().keyValuesAndTimestamps(
+            forKeysMatching: KBGenericCondition(.equal, value: "string"),
+            timestampMatching: KBTimestampCondition(.beforeOrEqual, value: Date())
+        )
+        XCTAssertEqual(kvPairs.count, 1)
+        
+        
+        try self.sharedStore().set(value: "stringVal", for: "string-2")
+        try self.sharedStore().set(value: "stringVal", for: "string-3")
+        try self.sharedStore().set(value: "stringVal", for: "string-4")
+        
+        kvPairs = try self.sharedStore().keyValuesAndTimestamps(
+            forKeysMatching: KBGenericCondition(.beginsWith, value: "string"),
+            timestampMatching: KBTimestampCondition(.beforeOrEqual, value: Date()),
+            paginate: KBPaginationOptions(limit: 10, offset: 0),
+            sort: .descending
+        )
+        XCTAssertEqual(kvPairs.count, 4)
+        
+        kvPairs = try self.sharedStore().keyValuesAndTimestamps(
+            forKeysMatching: KBGenericCondition(.beginsWith, value: "string"),
+            timestampMatching: KBTimestampCondition(.afterOrEqual, value: Date()),
+            paginate: KBPaginationOptions(limit: 10, offset: 0),
+            sort: .descending
+        )
+        XCTAssertEqual(kvPairs.count, 0)
+        
+        kvPairs = try self.sharedStore().keyValuesAndTimestamps(
+            forKeysMatching: KBGenericCondition(.beginsWith, value: "string"),
+            timestampMatching: KBTimestampCondition(.afterOrEqual, value: beforeInsertion),
+            paginate: KBPaginationOptions(limit: 10, offset: 0),
+            sort: .descending
+        )
+        XCTAssertEqual(kvPairs.count, 4)
+        
+        kvPairs = try self.sharedStore().keyValuesAndTimestamps(
+            forKeysMatching: KBGenericCondition(.beginsWith, value: "string"),
+            timestampMatching: KBTimestampCondition(.afterOrEqual, value: beforeInsertion),
+            paginate: KBPaginationOptions(limit: 2, offset: 1),
+            sort: .descending
+        )
+        XCTAssertEqual(kvPairs.count, 2)
+//        XCTAssertEqual(kvPairs[0].key, "string-3")
+//        XCTAssertEqual(kvPairs[1].key, "string-2")
     }
     
     func testPaginateSortLargerKVS() throws {
@@ -420,11 +548,15 @@ class KVStoreTestCase : XCTestCase, KBXCTestCase {
         try self.sharedStore().set(value: "", for:  "user-threads::FEA6508C-688E-4CB4-8FDA-0A96C52313F6::5bfa6d1e5729a7d50479da04af83378be8a4c64fac75fffd9cbd10e1a003490b15c1a0f5f181790f5631a6e8a070d14792ba154cbb573c34760b2ca3c9a23ef8::::::664C4460-EA11-4B4D-A190-49CE3DD06667")
         try self.sharedStore().set(value: "", for:  "user-threads::FEA6508C-688E-4CB4-8FDA-0A96C52313F6::5bfa6d1e5729a7d50479da04af83378be8a4c64fac75fffd9cbd10e1a003490b15c1a0f5f181790f5631a6e8a070d14792ba154cbb573c34760b2ca3c9a23ef8::::::8A758BC9-7576-40BE-B627-7DC146D6FBDF")
         
-        var kvts = try self.sharedStore().keyValuesAndTimestamps(forKeysMatching: KBGenericCondition(.beginsWith, value: "user-threads::FEA6508C-688E-4CB4-8FDA-0A96C52313F6"))
+        var kvts = try self.sharedStore().keyValuesAndTimestamps(
+            forKeysMatching: KBGenericCondition(.beginsWith, value: "user-threads::FEA6508C-688E-4CB4-8FDA-0A96C52313F6"),
+            timestampMatching: nil
+        )
         XCTAssertEqual(kvts.count, 2)
         
         kvts = try self.sharedStore().keyValuesAndTimestamps(
             forKeysMatching: KBGenericCondition(.beginsWith, value: "user-threads::FEA6508C-688E-4CB4-8FDA-0A96C52313F6"),
+            timestampMatching: nil,
             sort: .descending
         )
         XCTAssertEqual(kvts[0].key, "user-threads::FEA6508C-688E-4CB4-8FDA-0A96C52313F6::5bfa6d1e5729a7d50479da04af83378be8a4c64fac75fffd9cbd10e1a003490b15c1a0f5f181790f5631a6e8a070d14792ba154cbb573c34760b2ca3c9a23ef8::::::8A758BC9-7576-40BE-B627-7DC146D6FBDF")
@@ -433,6 +565,7 @@ class KVStoreTestCase : XCTestCase, KBXCTestCase {
         
         kvts = try self.sharedStore().keyValuesAndTimestamps(
             forKeysMatching: KBGenericCondition(.beginsWith, value: "user-threads::FEA6508C-688E-4CB4-8FDA-0A96C52313F6"),
+            timestampMatching: nil,
             sort: .ascending
         )
         XCTAssertEqual(kvts.count, 2)
@@ -441,6 +574,7 @@ class KVStoreTestCase : XCTestCase, KBXCTestCase {
         
         kvts = try self.sharedStore().keyValuesAndTimestamps(
             forKeysMatching: KBGenericCondition(.beginsWith, value: "user-threads::FEA6508C-688E-4CB4-8FDA-0A96C52313F6"),
+            timestampMatching: nil,
             paginate: KBPaginationOptions(limit: 1, offset: 0),
             sort: .descending
         )
@@ -449,6 +583,7 @@ class KVStoreTestCase : XCTestCase, KBXCTestCase {
         
         kvts = try self.sharedStore().keyValuesAndTimestamps(
             forKeysMatching: KBGenericCondition(.beginsWith, value: "user-threads::FEA6508C-688E-4CB4-8FDA-0A96C52313F6"),
+            timestampMatching: nil,
             paginate: KBPaginationOptions(limit: 1, offset: 0),
             sort: .ascending
         )
@@ -457,6 +592,7 @@ class KVStoreTestCase : XCTestCase, KBXCTestCase {
         
         kvts = try self.sharedStore().keyValuesAndTimestamps(
             forKeysMatching: KBGenericCondition(.beginsWith, value: "user-threads::FEA6508C-688E-4CB4-8FDA-0A96C52313F6"),
+            timestampMatching: nil,
             paginate: KBPaginationOptions(limit: 1, offset: 1),
             sort: .ascending
         )
@@ -466,6 +602,7 @@ class KVStoreTestCase : XCTestCase, KBXCTestCase {
         
         kvts = try self.sharedStore().keyValuesAndTimestamps(
             forKeysMatching: KBGenericCondition(.beginsWith, value: "user-threads::FEA6508C-688E-4CB4-8FDA-0A96C52313F6"),
+            timestampMatching: nil,
             paginate: KBPaginationOptions(limit: 1, offset: 2),
             sort: .descending
         )

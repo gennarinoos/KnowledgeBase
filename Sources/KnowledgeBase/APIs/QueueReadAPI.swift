@@ -223,10 +223,13 @@ extension KBQueueStore {
      - parameter completionHandler: the callback method
      
      */
-    public func retrieveItems(withIdentifiersMatching condition: KBGenericCondition, 
-                              completionHandler: @escaping (Swift.Result<[KBQueueItem], Error>) -> ()) {
+    public func retrieveItems(
+        withIdentifiersMatching condition: KBGenericCondition,
+        completionHandler: @escaping (Swift.Result<[KBQueueItem], Error>) -> ()
+    ) {
         self.keyValuesAndTimestamps(
             forKeysMatching: condition,
+            timestampMatching: nil,
             sort: (self.queueType == .fifo ? .ascending : .descending)
         ) { result in
             switch result {

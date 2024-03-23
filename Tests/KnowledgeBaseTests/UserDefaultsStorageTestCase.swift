@@ -70,6 +70,10 @@ class KBUserDefaultsKVStoreTests: KVStoreTestCase {
         // Not supported
     }
     
+    override func testKeyValuesAndTimestampsWithTimeConditions() throws {
+        // Not supported
+    }
+    
     override func testSetValueForKeyUnsecure() throws {
         let key = "NonNSSecureCodingCompliant"
         let emptyString = ""

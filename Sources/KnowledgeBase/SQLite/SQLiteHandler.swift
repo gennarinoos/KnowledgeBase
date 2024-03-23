@@ -215,6 +215,7 @@ public class KBSQLHandler: NSObject {
     
     public func keyValuesAndTimestamps(
         forKeysMatching condition: KBGenericCondition,
+        timestampMatching timeCondition: KBTimestampCondition?,
         paginate: KBPaginationOptions?,
         sort: KBSortDirection?
     ) throws -> [KBKVObjcPairWithTimestamp] {
@@ -239,10 +240,16 @@ public class KBSQLHandler: NSObject {
         }
         
         let query = SQLTableType.allValues
-            .map { "select k, v, t from \($0.rawValue) where \(condition.sql)" }
+            .map {
+                var base = "select k, v, t from \($0.rawValue) where \(condition.sql)"
+                if let timeCondition {
+                    base += " and \(timeCondition.sql)"
+                }
+                return base
+            }
             .joined(separator: " union all ")
         
-        log.debug("[sql] running query: select k, v, t from (\(query))\(modifiers)")
+        log.debug("[sql] running query: select k, v, t from (\(query, privacy: .public))\(modifiers, privacy: .public)")
         
         let stmt = try connection.prepare("select k, v, t from (\(query))\(modifiers)")
         for row in stmt {

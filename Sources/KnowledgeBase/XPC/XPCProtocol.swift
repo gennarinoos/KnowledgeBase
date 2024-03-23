@@ -24,6 +24,7 @@ public protocol KBStorageXPCProtocol {
     
     func keyValuesAndTimestamps(
         forKeysMatching: KBGenericCondition,
+        timestampMatching timeCondition: KBTimestampCondition?,
         inStoreWithIdentifier identifier: String,
         paginate: KBPaginationOptions?,
         sort: KBSortDirection.RawValue?,
