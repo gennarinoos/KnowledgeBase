@@ -12,10 +12,14 @@ extension KBGenericCondition {
         return condition
     }
     
+    /// Generates a condition to retrieve all triples where the entity is either a subject or an object
+    /// - Parameter identifier: the entity identifier
+    /// - Returns: the condition
     static func partialTripleHexaCondition(entityIdentifier identifier: Label) -> KBGenericCondition {
         var condition = KBGenericCondition(value: false)
         
         condition = condition.or(
+            // SPO subject
             KBGenericCondition(
                 .beginsWith,
                 value: KBHexastore.JOINER.combine(
@@ -25,6 +29,18 @@ extension KBGenericCondition {
                 )
             )
         ).or(
+            // SPO object
+            KBGenericCondition(
+                .beginsWith,
+                value: KBHexastore.SPO.rawValue + KBHexastore.JOINER
+            ).and(
+                KBGenericCondition(
+                    .endsWith,
+                    value: KBHexastore.JOINER + identifier
+                )
+            )
+        ).or(
+            // SOP subject
             KBGenericCondition(
                 .beginsWith,
                 value: KBHexastore.JOINER.combine(
@@ -34,6 +50,49 @@ extension KBGenericCondition {
                 )
             )
         ).or(
+            // SOP object
+            KBGenericCondition(
+                .beginsWith,
+                value: "\(KBHexastore.SOP.rawValue)\(KBHexastore.JOINER)"
+            ).and(
+                KBGenericCondition(
+                    .contains,
+                    value: KBHexastore.JOINER + identifier + KBHexastore.JOINER
+                )
+            ).and(
+                KBGenericCondition(
+                    .beginsWith,
+                    value: KBHexastore.JOINER.combine(
+                        KBHexastore.SOP.rawValue,
+                        identifier,
+                        end: true
+                    ),
+                    negated: true
+                )
+            )
+        ).or(
+            // OSP subject
+            KBGenericCondition(
+                .beginsWith,
+                value: KBHexastore.OSP.rawValue + KBHexastore.JOINER
+            ).and(
+                KBGenericCondition(
+                    .contains,
+                    value: KBHexastore.JOINER + identifier + KBHexastore.JOINER
+                )
+            ).and(
+                KBGenericCondition(
+                    .beginsWith,
+                    value: KBHexastore.JOINER.combine(
+                        KBHexastore.OSP.rawValue,
+                        identifier,
+                        end: true
+                    ),
+                    negated: true
+                )
+            )
+        ).or(
+            // OSP object
             KBGenericCondition(
                 .beginsWith,
                 value: KBHexastore.JOINER.combine(
@@ -43,6 +102,18 @@ extension KBGenericCondition {
                 )
             )
         ).or(
+            // OPS subject
+            KBGenericCondition(
+                .beginsWith,
+                value: KBHexastore.OPS.rawValue + KBHexastore.JOINER
+            ).and(
+                KBGenericCondition(
+                    .endsWith,
+                    value: KBHexastore.JOINER + identifier
+                )
+            )
+        ).or(
+            // OPS object
             KBGenericCondition(
                 .beginsWith,
                 value: KBHexastore.JOINER.combine(
@@ -52,6 +123,29 @@ extension KBGenericCondition {
                 )
             )
         ).or(
+            // PSO subject
+            KBGenericCondition(
+                .beginsWith,
+                value: KBHexastore.PSO.rawValue + KBHexastore.JOINER
+            )
+            .and(
+                KBGenericCondition(
+                    .contains,
+                    value: KBHexastore.JOINER + identifier + KBHexastore.JOINER
+                )
+            ).and(
+                KBGenericCondition(
+                    .beginsWith,
+                    value: KBHexastore.JOINER.combine(
+                        KBHexastore.PSO.rawValue,
+                        identifier,
+                        end: true
+                    ),
+                    negated: true
+                )
+            )
+        ).or(
+            // PSO object
             KBGenericCondition(
                 .beginsWith,
                 value: KBHexastore.PSO.rawValue + KBHexastore.JOINER
@@ -63,6 +157,7 @@ extension KBGenericCondition {
                 )
             )
         ).or(
+            // POS subject
             KBGenericCondition(
                 .beginsWith,
                 value: KBHexastore.POS.rawValue + KBHexastore.JOINER
@@ -71,6 +166,24 @@ extension KBGenericCondition {
                 KBGenericCondition(
                     .endsWith,
                     value: KBHexastore.JOINER + identifier
+                )
+            )
+        ).or(
+            // POS object
+            KBGenericCondition(
+                .beginsWith,
+                value: KBHexastore.POS.rawValue + KBHexastore.JOINER
+            )
+            .and(
+                KBGenericCondition(
+                    .contains,
+                    value: KBHexastore.JOINER + identifier + KBHexastore.JOINER
+                )
+            ).and(
+                KBGenericCondition(
+                    .endsWith,
+                    value: KBHexastore.JOINER + identifier,
+                    negated: true
                 )
             )
         )
