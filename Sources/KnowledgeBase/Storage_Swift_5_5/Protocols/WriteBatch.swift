@@ -7,35 +7,6 @@
 
 import Foundation
 
-// TODO: Remove this once either Swift 5.5 supports exposing asynchronous API with completion handlers, or when the support for pre-Swift5.5 is dropped.
-// This is a simple port of the code in Storage_Pre_Swift_5_5/Protocols/WriteBatch.swift
-extension KBSQLWriteBatch {
-    func write(completionHandler: @escaping KBActionCompletion) {
-        guard let backingStore = self.backingStore as? KBSQLBackingStoreProtocol else {
-            log.fault("KBSQLWriteBatch should back a KBSQLBackingStoreProtocol")
-            completionHandler(.failure(KBError.notSupported))
-            return
-        }
-        
-        // Write buffer into the store
-        // No need to arbitrate writes through the XPC service for SQL stores (only SQLXPC do)
-        var unwrappedBuffer = Dictionary<String, Any>()
-        for (k, v) in self.buffer {
-            unwrappedBuffer[k] = nilToNSNull(v)
-        }
-        
-        do {
-            try backingStore.sqlHandler.save(keysAndValues: unwrappedBuffer)
-            self.buffer.removeAll()
-            completionHandler(.success(()))
-        } catch {
-            completionHandler(.failure(error))
-        }
-    }
-}
-
-
-
 @objc public protocol KBKVStoreWriteBatch {
     func set(value: Any?, for key: String)
     func write() async throws
@@ -99,14 +70,8 @@ class KBCloudKitSQLWriteBatch : KBSQLWriteBatch {
     }
 }
 
-#if !os(macOS)
+#if os(macOS)
 // Use XPC only on macOS
-
-class KBSQLXPCWriteBatch : KBSQLWriteBatch {
-}
-
-#else
-
 class KBSQLXPCWriteBatch : KBAbstractWriteBatch, KBKVStoreWriteBatch {
     func write() async throws {
         guard let backingStore = self.backingStore as? KBSQLXPCBackingStore else {
@@ -131,24 +96,7 @@ class KBSQLXPCWriteBatch : KBAbstractWriteBatch, KBKVStoreWriteBatch {
 }
 #endif
 
-#if !os(macOS)
+#if os(macOS)
 // Use XPC only on macOS
-
-class KBCloudKitSQLXPCWriteBatch : KBSQLXPCWriteBatch {
-}
-
-#else
-class KBCloudKitSQLXPCWriteBatch : KBSQLXPCWriteBatch {
-    
-    override func write() async throws {
-        guard let backingStore = self.backingStore as? CKCloudKitBackingStore else {
-            log.fault("KBCloudKitWriteBatch should back a CKCloudKitBackingStore")
-            completionHandler(KBError.notSupported)
-            return
-        }
-        
-        try await super.write()
-    }
-}
-
+class KBCloudKitSQLXPCWriteBatch : KBSQLXPCWriteBatch {}
 #endif

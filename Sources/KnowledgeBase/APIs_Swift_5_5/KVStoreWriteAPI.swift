@@ -26,7 +26,7 @@ extension KBKVStore {
         writeBatch.set(value: value, for: key)
         log.debug("setting value (\(String(describing: value))) for key (\(key)")
         try await writeBatch.write()
-        self.store.delegate?.kvDataDidChange(addedKeys: [key], removedKeys: [])
+        self.delegate?.kvDataDidChange(addedKeys: [key], removedKeys: [])
     }
     
     /**
@@ -37,7 +37,7 @@ extension KBKVStore {
      */
     @objc public func removeValue(for key: String) async throws {
         try await self.backingStore.removeValue(for: key)
-        self.store.delegate?.kvDataDidChange(addedKeys: [], removedKeys: [key])
+        self.delegate?.kvDataDidChange(addedKeys: [], removedKeys: [key])
     }
     
     /**
@@ -49,7 +49,7 @@ extension KBKVStore {
      */
     @objc public func removeValues(for keys: [String]) async throws {
         try await self.backingStore.removeValues(for: keys)
-        self.store.delegate?.kvDataDidChange(addedKeys: [], removedKeys: keys)
+        self.delegate?.kvDataDidChange(addedKeys: [], removedKeys: keys)
     }
     
     /**
@@ -59,7 +59,7 @@ extension KBKVStore {
      */
     @objc public func removeValues(forKeysMatching condition: KBGenericCondition) async throws -> [String] {
         let keys = try await self.backingStore.removeValues(forKeysMatching: condition)
-        self.store.delegate?.kvDataDidChange(addedKeys: [], removedKeys: keys)
+        self.delegate?.kvDataDidChange(addedKeys: [], removedKeys: keys)
         return keys
     }
     
@@ -71,7 +71,7 @@ extension KBKVStore {
         if let s = self as? KBKnowledgeStore {
             s.delegate?.linkedDataDidChange()
         }
-        self.store.delegate?.kvDataDidChange(addedKeys: [], removedKeys: removedKeys)
+        self.delegate?.kvDataDidChange(addedKeys: [], removedKeys: removedKeys)
         return removedKeys
     }
     

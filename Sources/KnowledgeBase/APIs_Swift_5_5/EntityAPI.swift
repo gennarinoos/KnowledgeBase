@@ -16,8 +16,10 @@ extension KBEntity {
         return try await self.store.value(for: key)
     }
     
-    @objc public func set(value: Any,
-                        forAttribute key: String) async throws {
+    @objc public func set(
+        value: Any,
+        forAttribute key: String
+    ) async throws {
         let writeBatch = self.store.backingStore.writeBatch()
         let entityKey = KBHexastore.JOINER.combine(self.identifier, key)
         writeBatch.set(value: value, for: entityKey)
@@ -52,9 +54,26 @@ extension KBEntity {
      - parameter completionHandler: the callback method
      
      */
-    @objc public func link(to target: KBEntity,
-                           withPredicate predicate: Label) async throws {
-        // TODO: IMPLEMENT
+    @objc public func link(
+        to target: KBEntity,
+        withPredicate predicate: Label
+    ) async throws {
+        log.trace("Linking [<\(self)> <\(predicate)> <\(target)>]")
+
+        let subject = self.identifier
+        let predicate = predicate
+        let object = target.identifier
+        
+        let newWeight = try await self.store.backingStore.increaseWeight(
+            forLinkWithLabel: predicate,
+            between: subject,
+            and: object
+        )
+        
+        log.debug("New weight for triple [<\(self)> <\(predicate)> <\(target)>]: \(newWeight, privacy: .public)")
+        
+        try await self.linkBasedOnRules(afterConnecting: target)
+        self.store.delegate?.linkedDataDidChange()
     }
     
     /**
@@ -66,10 +85,27 @@ extension KBEntity {
      - parameter completionHandler: the callback method
 
      */
-    public func unlink(to target: KBEntity,
-                     withPredicate label: Label,
-                     ignoreWeights: Bool = false) async throws {
-        // TODO: IMPLEMENT
+    public func unlink(
+        to target: KBEntity,
+        withPredicate label: Label,
+        ignoreWeights: Bool = false
+    ) async throws {
+        if ignoreWeights {
+            try await self.store.backingStore.dropLinks(
+                withLabel: label,
+                between: self.identifier,
+                and: target.identifier
+            )
+            log.debug("Deleted link [<\(self!)> <\(label)> <\(target)>]")
+        } else {
+            try await self.store.backingStore.decreaseWeight(
+                withLabel: label,
+                between: self.identifier,
+                and: target.identifier
+            )
+            log.debug("New weight for triple [\(self!)> <\(label)> <\(target)>]: \(newWeight, privacy: .public)")
+        }
+        self?.store.delegate?.linkedDataDidChange()
     }
     
     /**
@@ -77,8 +113,8 @@ extension KBEntity {
      */
     public func remove() async throws {
         try await self.store.backingStore.dropLinks(fromAndTo: self.identifier)
+        self.store.delegate?.linkedDataDidChange()
     }
-
 }
 
 
@@ -194,11 +230,13 @@ extension KBEntity {
             condition = condition.and(not(matchesLabel))
         }
 
-        let triples = try await self.store.triples(matching: condition)
-        return triples.map {
-            triple in
-            (predicate: triple.predicate, object: self.store.entity(withIdentifier: triple.object))
-        }
+        return try await self.store.triples(matching: condition)
+            .map { triple in
+                (
+                    predicate: triple.predicate,
+                    object: self.store.entity(withIdentifier: triple.object)
+                )
+            }
     }
     
     /**
@@ -217,8 +255,11 @@ extension KBEntity {
         let condition = KBTripleCondition(subject: self.identifier, predicate: nil, object: nil)
 
         let triples = try await self.store.triples(matching: condition)
-        return triples.map {
-            triple in (predicate: triple.predicate, object: self.store.entity(withIdentifier: triple.object))
+        return triples.map { triple in 
+            (
+                predicate: triple.predicate,
+                object: self.store.entity(withIdentifier: triple.object)
+            )
         }
     }
     
@@ -295,10 +336,13 @@ extension KBEntity {
             throw KBError.notSupported
         }
         
-        let triples = try await self.store.triples(matching: condition)
-        return triples.map {
-            triple in (subject: self.store.entity(withIdentifier: triple.subject), predicate: triple.predicate)
-        }
+        return try await self.store.triples(matching: condition)
+            .map { triple in
+                (
+                    subject: self.store.entity(withIdentifier: triple.subject),
+                    predicate: triple.predicate
+                )
+            }
     }
     
     /**
@@ -316,8 +360,11 @@ extension KBEntity {
 
         let condition = KBTripleCondition(subject: nil, predicate: nil, object: self.identifier)
         let triples = try await self.store.triples(matching: condition)
-        return triples.map {
-            triple in (subject: self.store.entity(withIdentifier: triple.subject), predicate: triple.predicate)
+        return triples.map { triple in
+            (
+                subject: self.store.entity(withIdentifier: triple.subject),
+                predicate: triple.predicate
+            )
         }
     }
 
@@ -358,10 +405,8 @@ extension KBEntity {
         }
 
         let condition = KBTripleCondition(KBGenericCondition(.beginsWith, value: partial))
-        let triples = try await self.store.triples(matching: condition)
-        return triples.map {
-            triple in triple.predicate
-        }
+        return try await self.store.triples(matching: condition)
+            .map { triple in triple.predicate }
     }
 }
 
@@ -376,15 +421,94 @@ extension KBEntity {
     ///   - target: the entity being linked to this entity
     ///   - completionHandler: the completion handler
     internal func linkBasedOnRules(afterConnecting target: KBEntity) async throws {
-        // TODO: Implement as a wrapper on top of existing API
+        
+        let satisfiableRules = try await self.satisfiableRules(afterConnecting: target)
+        
+        guard satisfiableRules.isEmpty == false else {
+            return
+        }
+        
+        for rule in satisfiableRules {
+            if rule.predicate.beginsWith(CLOSURE_PREFIX) {
+//                    assert(rule.predicate.endIndex > CLOSURE_PREFIX.endIndex)
+//                    let closureIdentifier = rule.predicate.substring(from: CLOSURE_PREFIX.endIndex)
+//
+//                    if let data = self.store._value(forKey: closureIdentifier) as? Data {
+//                        if let closure = NSKeyedUnarchiver.unarchiveObject(with: data)
+//                            as? KBExecutableClosure {
+//                            log.debug("executing behavior \(closure.identifier, privacy: .public) fired by linking [<\(self)> <\(rule.predicate)> <\(target)>]")
+//                            closure.execute()
+//                        } else {
+//                            log.error("bad data for \(closure.identifier, privacy: .public)")
+//                            dispatch.interrupt(KBError.unexpectedData)
+//                        }
+//                        dispatch.interrupt(KBError.notSupported)
+//                    }
+            } else {
+                try await self.link(
+                    to: rule.object,
+                    withPredicate: rule.predicate)
+            }
+        }
     }
     
-    private func nonNegatedRuleComponentsAreSatisfied(inRule ruleEntity: KBEntity) async throws {
-        // TODO: Implement as a wrapper on top of existing API
+    private func nonNegatedRuleComponentsAreSatisfied(inRule ruleEntity: KBEntity) async throws -> Bool {
+        let nonNegatedRuleComponents = try await ruleEntity.linkingEntities(
+            withPredicate: NEGATION_PREFIX,
+            matchType: .beginsWith,
+            complement: true
+        )
+        guard nonNegatedRuleComponents.isEmpty == false else {
+            return true
+        }
+        
+        for ruleBody in nonNegatedRuleComponents {
+            let existsCondition = KBTripleCondition(
+                subject: self.identifier,
+                predicate: ruleBody.predicate,
+                object: ruleBody.subject.identifier
+            )
+            
+            let triples = try await self.store.triples(matching: existsCondition)
+            if triples.count == 0 {
+                return false
+            }
+        }
+        
+        return true
     }
     
-    private func negatedRuleComponentsAreSatisfied(inRule ruleEntity: KBEntity) async throws {
-        // TODO: Implement as a wrapper on top of existing API
+    private func negatedRuleComponentsAreSatisfied(inRule ruleEntity: KBEntity) async throws -> Bool {
+        let negatedRuleComponents = try await ruleEntity.linkingEntities(
+            withPredicate: NEGATION_PREFIX,
+            matchType: .beginsWith
+        )
+        
+        guard negatedRuleComponents.isEmpty == false else {
+            return true
+        }
+        
+        for negatedRuleBody in negatedRuleComponents {
+            assert(negatedRuleBody.predicate.beginsWith(NEGATION_PREFIX))
+            assert(negatedRuleBody.predicate.endIndex > NEGATION_PREFIX.endIndex)
+            let predicate = String(negatedRuleBody.predicate[NEGATION_PREFIX.endIndex...])
+            
+            let notExistsCondition = KBTripleCondition(
+                subject: self.identifier,
+                predicate: predicate,
+                object: negatedRuleBody.subject.identifier
+            )
+            
+            let triples = try await self.store.triples(
+                matching: notExistsCondition
+            )
+            
+            if triples.count > 0 {
+                return false
+            }
+        }
+        
+        return true
     }
     
     /**
@@ -396,7 +520,44 @@ extension KBEntity {
      - parameter completionHandler: the callback method
      */
     private func satisfiableRules(afterConnecting entity: KBEntity) async throws -> [(predicate: Label, object: KBEntity)] {
-        // TODO: Implement as a wrapper on top of existing API
-        return [("", self)]
+        var inferredLinks = [(predicate: Label, object: KBEntity)]()
+        let allRulesFromTarget = KBTripleCondition.forRules(from: entity)
+        
+        let triplesFromTarget = try await self.store.triples(matching: allRulesFromTarget)
+        
+        // FIXME: This filter should be done on DB
+        let ruleTriplesFromTarget = triplesFromTarget.filter {
+            $0.object.beginsWith(RULE_PREFIX) ||
+                $0.object.beginsWith(NEGATION_PREFIX, RULE_PREFIX)
+        }
+        
+        if ruleTriplesFromTarget.count == 0 {
+            return
+        }
+        
+        // For each rule …
+        for rule in ruleTriplesFromTarget {
+            let ruleEntity = self.store.entity(withIdentifier: rule.object)
+            
+            // … check all the REQUIRED links are there …
+            guard try await self.nonNegatedRuleComponentsAreSatisfied(inRule: ruleEntity) == true
+            else {
+                // … and terminate early if some is missing!
+                return
+            }
+            
+            // … then check all the NOT condition of the rule are satisfied (links are NOT there) …
+            guard try await self.negatedRuleComponentsAreSatisfied(inRule: ruleEntity) == true
+            else {
+                // … and terminate early if there is some!
+                return
+            }
+            
+            // Now if the rule is satisfied, retrieve all the links to infer
+            let linkedEntities = try await ruleEntity.linkedEntities()
+            inferredLinks += linkedEntities
+        }
+        
+        return inferredLinks
     }
 }

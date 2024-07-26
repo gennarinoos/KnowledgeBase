@@ -7,8 +7,6 @@
 
 import Foundation
 
-public typealias KBKVPairs = [String: Any]
-
 enum JSONLDParseError: Error {
     case unexpectedFormat, resourceNotAvailable
 }

@@ -23,169 +23,169 @@ public class KnowledgeBaseXPCUtils : NSObject {
             NSDictionary.self
         ]
         
-        // MARK: keys(inStoreWithIdentifier:completionHandler:)
+        // MARK: keys(inStoreWithIdentifier:)
         interface.setClasses(NSSet(array: [NSString.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.keys(inStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.keys(inStoreWithIdentifier:)),
                              argumentIndex: 0,
                              ofReply: false)
         interface.setClasses(NSSet(array: [NSArray.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.keys(inStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.keys(inStoreWithIdentifier:)),
                              argumentIndex: 1,
                              ofReply: true)
 
-        // MARK: keys(matching:inStoreWithIdentifier:completionHandler:)
+        // MARK: keys(matching:inStoreWithIdentifier:)
         interface.setClasses(NSSet(array: [KBGenericCondition.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.keys(matching:inStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.keys(matching:inStoreWithIdentifier:)),
                              argumentIndex: 0,
                              ofReply: false)
         interface.setClasses(NSSet(array: [NSString.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.keys(matching:inStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.keys(matching:inStoreWithIdentifier:)),
                              argumentIndex: 1,
                              ofReply: false)
         interface.setClasses(NSSet(array: [NSArray.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.keys(matching:inStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.keys(matching:inStoreWithIdentifier:)),
                              argumentIndex: 1,
                              ofReply: true)
 
-        // MARK: value(forKey:inStoreWithIdentifier:completionHandler:)
+        // MARK: value(forKey:inStoreWithIdentifier:)
         interface.setClasses(NSSet(array: [NSString.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.value(forKey:inStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.value(forKey:inStoreWithIdentifier:)),
                              argumentIndex: 0,
                              ofReply: false)
         interface.setClasses(NSSet(array: [NSString.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.value(forKey:inStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.value(forKey:inStoreWithIdentifier:)),
                              argumentIndex: 1,
                              ofReply: false)
         interface.setClasses(NSSet(array: allowedValues) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.value(forKey:inStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.value(forKey:inStoreWithIdentifier:)),
                              argumentIndex: 1,
                              ofReply: true)
 
-        // MARK: keysAndValues(inStoreWithIdentifier:completionHandler:)
+        // MARK: keysAndValues(inStoreWithIdentifier:)
         interface.setClasses(NSSet(array: [NSString.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.keysAndValues(inStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.keysAndValues(inStoreWithIdentifier:)),
                              argumentIndex: 0,
                              ofReply: false)
         interface.setClasses(NSSet(array: [NSDictionary.self, NSString.self] + allowedValues) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.keysAndValues(inStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.keysAndValues(inStoreWithIdentifier:)),
                              argumentIndex: 1,
                              ofReply: true)
 
-        // MARK: keysAndValues(forKeysMatching:inStoreWithIdentifier:completionHandler:)
+        // MARK: keysAndValues(forKeysMatching:inStoreWithIdentifier:)
         interface.setClasses(NSSet(array: [KBGenericCondition.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.keysAndValues(forKeysMatching:inStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.keysAndValues(forKeysMatching:inStoreWithIdentifier:)),
                              argumentIndex: 0,
                              ofReply: false)
         interface.setClasses(NSSet(array: [NSString.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.keysAndValues(forKeysMatching:inStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.keysAndValues(forKeysMatching:inStoreWithIdentifier:)),
                              argumentIndex: 1,
                              ofReply: false)
         interface.setClasses(NSSet(array: [NSDictionary.self, NSString.self] + allowedValues) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.keysAndValues(forKeysMatching:inStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.keysAndValues(forKeysMatching:inStoreWithIdentifier:)),
                              argumentIndex: 1,
                              ofReply: true)
         
-        // MARK: keysAndValues(createdWithin:limit:order:inStoreWithIdentifier:completionHandler:)
+        // MARK: keysAndValues(createdWithin:limit:order:inStoreWithIdentifier:)
         interface.setClasses(NSSet(array: [DateInterval.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.keysAndValues(createdWithin:paginate:sort:inStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.keysAndValues(createdWithin:paginate:sort:inStoreWithIdentifier:)),
                              argumentIndex: 0,
                              ofReply: false)
         interface.setClasses(NSSet(array: [KBPaginationOptions.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.keysAndValues(createdWithin:paginate:sort:inStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.keysAndValues(createdWithin:paginate:sort:inStoreWithIdentifier:)),
                              argumentIndex: 1,
                              ofReply: false)
         interface.setClasses(NSSet(array: [NSString.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.keysAndValues(createdWithin:paginate:sort:inStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.keysAndValues(createdWithin:paginate:sort:inStoreWithIdentifier:)),
                              argumentIndex: 2,
                              ofReply: false)
         interface.setClasses(NSSet(array: [NSString.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.keysAndValues(createdWithin:paginate:sort:inStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.keysAndValues(createdWithin:paginate:sort:inStoreWithIdentifier:)),
                              argumentIndex: 3,
                              ofReply: false)
         interface.setClasses(NSSet(array: [NSDate.self, NSDictionary.self, NSString.self] + allowedValues) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.keysAndValues(createdWithin:paginate:sort:inStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.keysAndValues(createdWithin:paginate:sort:inStoreWithIdentifier:)),
                              argumentIndex: 1,
                              ofReply: true)
 
-        // MARK: tripleComponents(matching:inStoreWithIdentifier:completionHandler:)
+        // MARK: tripleComponents(matching:inStoreWithIdentifier:)
         interface.setClasses(NSSet(array: [KBTripleCondition.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.tripleComponents(matching:inStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.tripleComponents(matching:inStoreWithIdentifier:)),
                              argumentIndex: 0,
                              ofReply: false)
         interface.setClasses(NSSet(array: [NSString.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.tripleComponents(matching:inStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.tripleComponents(matching:inStoreWithIdentifier:)),
                              argumentIndex: 1,
                              ofReply: false)
         interface.setClasses(NSSet(array: [NSArray.self, KBTriple.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.tripleComponents(matching:inStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.tripleComponents(matching:inStoreWithIdentifier:)),
                              argumentIndex: 1,
                              ofReply: true)
 
-        // MARK: save(_:toStoreWithIdentifier:completionHandler:)
+        // MARK: save(_:toStoreWithIdentifier:)
         interface.setClasses(NSSet(array: [NSDictionary.self, NSString.self] + allowedValues) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.save(_:toStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.save(_:toStoreWithIdentifier:)),
                              argumentIndex: 0,
                              ofReply: false)
         interface.setClasses(NSSet(array: [NSString.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.save(_:toStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.save(_:toStoreWithIdentifier:)),
                              argumentIndex: 1,
                              ofReply: false)
 
-        // MARK: save(_:toSynchedStoreWithIdentifier:completionHandler:)
+        // MARK: save(_:toSynchedStoreWithIdentifier:)
         interface.setClasses(NSSet(array: [NSDictionary.self, NSString.self] + allowedValues) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.save(_:toSynchedStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.save(_:toSynchedStoreWithIdentifier:)),
                              argumentIndex: 0,
                              ofReply: false)
         interface.setClasses(NSSet(array: [NSString.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.save(_:toSynchedStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.save(_:toSynchedStoreWithIdentifier:)),
                              argumentIndex: 1,
                              ofReply: false)
 
-        // MARK: removeValues(forKeysMatching:fromStoreWithIdentifier:completionHandler:)
+        // MARK: removeValues(forKeysMatching:fromStoreWithIdentifier:)
         interface.setClasses(NSSet(array: [KBGenericCondition.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.removeValues(forKeysMatching:fromStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.removeValues(forKeysMatching:fromStoreWithIdentifier:)),
                              argumentIndex: 0,
                              ofReply: false)
         interface.setClasses(NSSet(array: [NSString.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.removeValues(forKeysMatching:fromStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.removeValues(forKeysMatching:fromStoreWithIdentifier:)),
                              argumentIndex: 1,
                              ofReply: false)
         interface.setClasses(NSSet(array: [NSArray.self, NSString.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.removeValues(forKeysMatching:fromStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.removeValues(forKeysMatching:fromStoreWithIdentifier:)),
                              argumentIndex: 1,
                              ofReply: true)
 
-        // MARK: removeValues(forKeysMatching:fromSynchedStoreWithIdentifier:completionHandler:
+        // MARK: removeValues(forKeysMatching:fromSynchedStoreWithIdentifier:
         interface.setClasses(NSSet(array: [KBGenericCondition.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.removeValues(forKeysMatching:fromSynchedStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.removeValues(forKeysMatching:fromSynchedStoreWithIdentifier:)),
                              argumentIndex: 0,
                              ofReply: false)
         interface.setClasses(NSSet(array: [NSString.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.removeValues(forKeysMatching:fromSynchedStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.removeValues(forKeysMatching:fromSynchedStoreWithIdentifier:)),
                              argumentIndex: 1,
                              ofReply: false)
         interface.setClasses(NSSet(array: [NSArray.self, NSString.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.removeValues(forKeysMatching:fromSynchedStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.removeValues(forKeysMatching:fromSynchedStoreWithIdentifier:)),
                              argumentIndex: 1,
                              ofReply: true)
         
-        // MARK: removeAll(fromStoreWithIdentifier:completionHandler:)
+        // MARK: removeAll(fromStoreWithIdentifier:)
         interface.setClasses(NSSet(array: [NSString.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.removeAll(fromStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.removeAll(fromStoreWithIdentifier:)),
                              argumentIndex: 0,
                              ofReply: false)
         interface.setClasses(NSSet(array: [NSArray.self, NSString.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.removeAll(fromStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.removeAll(fromStoreWithIdentifier:)),
                              argumentIndex: 1,
                              ofReply: true)
         
-        // MARK: removeAll(fromSynchedStoreWithIdentifier:completionHandler:)
+        // MARK: removeAll(fromSynchedStoreWithIdentifier:)
         interface.setClasses(NSSet(array: [NSString.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.removeAll(fromSynchedStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.removeAll(fromSynchedStoreWithIdentifier:)),
                              argumentIndex: 0,
                              ofReply: false)
         interface.setClasses(NSSet(array: [NSArray.self, NSString.self]) as! Set<AnyHashable>,
-                             for: #selector(KBStorageXPCProtocol.removeAll(fromSynchedStoreWithIdentifier:completionHandler:)),
+                             for: #selector(KBStorageXPCProtocol.removeAll(fromSynchedStoreWithIdentifier:)),
                              argumentIndex: 1,
                              ofReply: true)
 
