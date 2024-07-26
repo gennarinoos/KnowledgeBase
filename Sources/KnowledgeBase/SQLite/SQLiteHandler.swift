@@ -294,7 +294,8 @@ public class KBSQLHandler: NSObject {
         for row in stmt {
             assert(row.count == 2, "retrieved the right number of columns")
             if let key = try self.deserializeValue(row[0]) as? String,
-                let value = try self.deserializeValue(row[1]){
+                let value = try self.deserializeValue(row[1])
+            {
                 dict[key] = value
             }
         }
@@ -990,6 +991,9 @@ public class KBSQLHandler: NSObject {
             }
             let unarchived = unarchiver.decodeObject(of: BlobValueAllowedClasses, forKey: NSKeyedArchiveRootObjectKey)
             unarchiver.finishDecoding()
+            if unarchived == nil {
+                throw KBError.serializationError
+            }
             return unarchived
         default:
             throw KBError.unexpectedData(value)
