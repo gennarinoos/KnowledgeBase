@@ -144,7 +144,7 @@ class KBSQLWriteBatch : KBAbstractWriteBatch, KBKVStoreWriteBatch {
         var unwrappedBuffer = [KBKVPairWithTimestamp]()
         for (k, (v, t)) in self.buffer {
             unwrappedBuffer.append(
-                KBKVPairWithTimestamp(key: k, value: v, timestamp: t)
+                KBKVPairWithTimestamp(key: k, value: nilToNSNull(v), timestamp: t)
             )
         }
         
