@@ -17,9 +17,7 @@ extension KBSQLBackingStoreProtocol {
         return try self.sqlHandler.keys(matching: condition)
     }
     
-    func value(
-        forKey key: String
-    ) async throws -> Any? {
+    func value(for key: String) async throws -> Any? {
         let value = try self.sqlHandler.values(for: [key]).first
         if let v = value {
             return NSNullToNil(v)
@@ -42,7 +40,7 @@ extension KBSQLBackingStoreProtocol {
         timestampMatching timeCondition: KBTimestampCondition?,
         paginate: KBPaginationOptions?,
         sort: KBSortDirection?
-    ) -> [KBKVPairWithTimestamp] {
+    ) async throws -> [KBKVPairWithTimestamp] {
         return try self.sqlHandler.keyValuesAndTimestamps(
             forKeysMatching: condition,
             timestampMatching: timeCondition,
@@ -52,6 +50,10 @@ extension KBSQLBackingStoreProtocol {
         .map {
             KBKVPairWithTimestamp(key: $0.key, value: NSNullToNil($0.value), timestamp: $0.timestamp)
         }
+    }
+    
+    func values() async throws -> [Any] {
+        try self.sqlHandler.values()
     }
     
     
@@ -90,118 +92,112 @@ extension KBSQLBackingStoreProtocol {
         try await (self.writeBatch() as! KBSQLWriteBatch).write()
     }
     
-    func setWeight(forLinkWithLabel predicate: String,
-                   between subjectIdentifier: String,
-                   and objectIdentifier: String,
-                   toValue newValue: Int,
-                   completionHandler: @escaping KBActionCompletion) {
-        genericMethodReturningVoid(completionHandler) {
-            try self.sqlHandler.setWeight(forLinkWithLabel: predicate,
-                                          between: subjectIdentifier,
-                                          and: objectIdentifier,
-                                          toValue: newValue)
-        }
+    func setWeight(
+        forLinkWithLabel predicate: String,
+        between subjectIdentifier: String,
+        and objectIdentifier: String,
+        toValue newValue: Int
+    ) async throws {
+        try self.sqlHandler.setWeight(
+            forLinkWithLabel: predicate,
+            between: subjectIdentifier,
+            and: objectIdentifier,
+            toValue: newValue
+        )
     }
     
-    func increaseWeight(forLinkWithLabel predicate: String,
-                        between subjectIdentifier: String,
-                        and objectIdentifier: String,
-                        completionHandler: @escaping (Swift.Result<Int, Error>) -> ()) {
-        genericMethodReturningInitiable(completionHandler) {
-            try self.sqlHandler.increaseWeight(forLinkWithLabel: predicate,
-                                               between: subjectIdentifier,
-                                               and: objectIdentifier)
-        }
+    func increaseWeight(
+        forLinkWithLabel predicate: String,
+        between subjectIdentifier: String,
+        and objectIdentifier: String
+    ) async throws -> Int {
+        try self.sqlHandler.increaseWeight(
+            forLinkWithLabel: predicate,
+            between: subjectIdentifier,
+            and: objectIdentifier
+        )
     }
     
-    func decreaseWeight(forLinkWithLabel predicate: Label,
-                        between subjectIdentifier: Label,
-                        and objectIdentifier: Label,
-                        completionHandler: @escaping (Swift.Result<Int, Error>) -> ()) {
-        genericMethodReturningInitiable(completionHandler) {
-            try self.sqlHandler.decreaseWeight(forLinkWithLabel: predicate,
-                                               between: subjectIdentifier,
-                                               and: objectIdentifier)
-        }
+    func decreaseWeight(
+        forLinkWithLabel predicate: Label,
+        between subjectIdentifier: Label,
+        and objectIdentifier: Label
+    ) async throws -> Int {
+        try self.sqlHandler.decreaseWeight(
+            forLinkWithLabel: predicate,
+            between: subjectIdentifier,
+            and: objectIdentifier
+        )
     }
     
     //MARK: DELETE
     
-    func removeValue(for key: String, completionHandler: @escaping KBActionCompletion) {
-        genericMethodReturningVoid(completionHandler) {
-            try self.sqlHandler.removeValue(for: key)
-        }
+    func removeValue(for key: String) async throws {
+        try self.sqlHandler.removeValue(for: key)
     }
     
-    func removeValues(for keys: [String], completionHandler: @escaping KBActionCompletion) {
-        genericMethodReturningVoid(completionHandler) {
-            try self.sqlHandler.removeValues(for: keys)
-        }
+    func removeValues(for keys: [String]) async throws {
+        try self.sqlHandler.removeValues(for: keys)
     }
     
-    func removeValues(forKeysMatching condition: KBGenericCondition, completionHandler: @escaping (Swift.Result<[String], Error>) -> ()) {
-        genericMethodReturningInitiable(completionHandler) {
-            let keys = try self.sqlHandler.keys(matching: condition)
-            try self.sqlHandler.removeValues(for: keys)
-            return keys
-        }
+    func removeValues(
+        forKeysMatching condition: KBGenericCondition
+    ) async throws -> [String] {
+        let keys = try self.sqlHandler.keys(matching: condition)
+        try self.sqlHandler.removeValues(for: keys)
+        return keys
     }
     
-    func removeAll(completionHandler: @escaping (Swift.Result<[String], Error>) -> ()) {
-        genericMethodReturningInitiable(completionHandler) {
-            let keys = try self.sqlHandler.keys()
-            try self.sqlHandler.removeValues(for: keys)
-            return keys
-        }
+    func removeAll() async throws -> [String] {
+        let keys = try self.sqlHandler.keys()
+        try self.sqlHandler.removeValues(for: keys)
+        return keys
     }
     
-    func dropLink(withLabel predicate: Label,
-                  between subjectIdentifier: Label,
-                  and objectIdentifier: Label,
-                  completionHandler: @escaping KBActionCompletion) {
-        genericMethodReturningVoid(completionHandler) {
-            try self.sqlHandler.dropLink(withLabel: predicate,
-                                         between: subjectIdentifier,
-                                         and: objectIdentifier)
-        }
+    func dropLink(
+        withLabel predicate: Label,
+        between subjectIdentifier: Label,
+        and objectIdentifier: Label
+    ) async throws {
+        try self.sqlHandler.dropLink(
+            withLabel: predicate,
+            between: subjectIdentifier,
+            and: objectIdentifier
+        )
     }
     
-    func dropLinks(withLabel predicate: Label,
-                   from subjectIdentifier: Label,
-                   completionHandler: @escaping KBActionCompletion) {
-        genericMethodReturningVoid(completionHandler) {
-            try self.sqlHandler.dropLinks(withLabel: predicate,
-                                          from: subjectIdentifier)
-        }
+    func dropLinks(
+        withLabel predicate: Label,
+        from subjectIdentifier: Label
+    ) async throws {
+        try self.sqlHandler.dropLinks(
+            withLabel: predicate,
+            from: subjectIdentifier
+        )
     }
     
-    func dropLinks(withLabel predicate: Label,
-                   to objectIdentifier: Label,
-                   completionHandler: @escaping KBActionCompletion) {
-        genericMethodReturningVoid(completionHandler) {
-            try self.sqlHandler.dropLinks(withLabel: predicate,
-                                          to: objectIdentifier)
-        }
+    func dropLinks(
+        withLabel predicate: Label,
+        to objectIdentifier: Label
+    ) async throws {
+        try self.sqlHandler.dropLinks(withLabel: predicate,
+                                      to: objectIdentifier)
     }
     
-    func dropLinks(between subjectIdentifier: Label,
-                   and objectIdentifier: Label,
-                   completionHandler: @escaping KBActionCompletion) {
-        genericMethodReturningVoid(completionHandler) {
-            try self.sqlHandler.dropLinks(between: subjectIdentifier,
-                                          and: objectIdentifier)
-        }
+    func dropLinks(
+        between subjectIdentifier: Label,
+        and objectIdentifier: Label
+    ) async throws {
+        try self.sqlHandler.dropLinks(between: subjectIdentifier,
+                                      and: objectIdentifier)
     }
     
-    func dropLinks(fromAndTo entityIdentifier: Label,
-                   completionHandler: @escaping KBActionCompletion) {
-        genericMethodReturningVoid(completionHandler) {
-            try self.sqlHandler.dropLinks(fromAndTo: entityIdentifier)
-        }
+    func dropLinks(fromAndTo entityIdentifier: Label) async throws {
+        try self.sqlHandler.dropLinks(fromAndTo: entityIdentifier)
     }
     
-    func disableSyncAndDeleteCloudData(completionHandler: @escaping KBActionCompletion) {
-        completionHandler(.failure(KBError.notSupported))
+    func disableSyncAndDeleteCloudData() async throws {
+        throw KBError.notSupported
     }
 }
 

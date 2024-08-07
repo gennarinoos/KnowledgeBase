@@ -1,10 +1,3 @@
-//
-//  CloudKitDataStore.swift
-//  
-//
-//  Created by Gennaro Frazzingaro on 8/1/21.
-//
-
 import Foundation
 
 struct KBCloudKitDataStore {

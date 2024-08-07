@@ -1,10 +1,3 @@
-//
-//  SPARQLAPIs.swift
-//
-//
-//  Created by Gennaro Frazzingaro on 7/18/21.
-//
-
 import RDFStorage
 
 extension KBKnowledgeStore {

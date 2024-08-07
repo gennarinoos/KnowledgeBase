@@ -70,7 +70,7 @@ class KBSQLXPCBackingStore : KBBackingStore {
     }
     
     func value(
-        forKey key: String
+        for key: String
     ) async throws -> Any? {
         guard let service = self.xpcService() else {
             throw KBError.fatalError("Could not connect to XPC service")

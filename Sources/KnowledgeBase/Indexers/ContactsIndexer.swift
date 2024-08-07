@@ -55,25 +55,29 @@ public class KBAddressBookIndexer : KBKnowledgeStore, KBAddressBookChangesDelega
     }
 
     public func wasDeleted(contactIdentifier: String) throws {
-        let contactId = self.entity(withIdentifier: contactIdentifier)
-        try contactId.remove()
+        Task {
+            let contactId = self.entity(withIdentifier: contactIdentifier)
+            try await contactId.remove()
+        }
     }
 
     public func wasUpdated(contactIdentifier: String, toContact contact: CNContact) throws {
-        // Invalidate previous connections
-        // TODO: Should we be less agressisve, and invalidate/update only changed fields?
-        try self.wasDeleted(contactIdentifier: contactIdentifier)
-
-        let contactId = self.entity(withIdentifier: contactIdentifier)
-
-        // Link the relevant names associated to this contact
-        try contactId.link(to: self.entity(withIdentifier: contact.givenName),
-                           withPredicate: KBCanonicalName.givenName)
-        try contactId.link(to: self.entity(withIdentifier: contact.familyName),
-                           withPredicate: KBCanonicalName.familyName)
-        try contactId.link(to: self.entity(withIdentifier: contact.nickname),
-                           withPredicate: KBCanonicalName.nickName)
-        try contactId.link(to: self.entity(withIdentifier: contact.organizationName),
-                           withPredicate: KBCanonicalName.organizationName)
+        Task {
+            // Invalidate previous connections
+            // TODO: Should we be less agressisve, and invalidate/update only changed fields?
+            try self.wasDeleted(contactIdentifier: contactIdentifier)
+            
+            let contactId = self.entity(withIdentifier: contactIdentifier)
+            
+            // Link the relevant names associated to this contact
+            try await contactId.link(to: self.entity(withIdentifier: contact.givenName),
+                                     withPredicate: KBCanonicalName.givenName)
+            try await contactId.link(to: self.entity(withIdentifier: contact.familyName),
+                                     withPredicate: KBCanonicalName.familyName)
+            try await contactId.link(to: self.entity(withIdentifier: contact.nickname),
+                                     withPredicate: KBCanonicalName.nickName)
+            try await contactId.link(to: self.entity(withIdentifier: contact.organizationName),
+                                     withPredicate: KBCanonicalName.organizationName)
+        }
     }
 }

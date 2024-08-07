@@ -1,10 +1,3 @@
-//
-//  EntityAPI.swift
-//  
-//
-//  Created by Gennaro Frazzingaro on 7/18/21.
-//
-
 import Foundation
 
 extension KBEntity {
@@ -91,21 +84,21 @@ extension KBEntity {
         ignoreWeights: Bool = false
     ) async throws {
         if ignoreWeights {
-            try await self.store.backingStore.dropLinks(
+            try await self.store.backingStore.dropLink(
                 withLabel: label,
                 between: self.identifier,
                 and: target.identifier
             )
-            log.debug("Deleted link [<\(self!)> <\(label)> <\(target)>]")
+            log.debug("Deleted link [<\(self)> <\(label)> <\(target)>]")
         } else {
-            try await self.store.backingStore.decreaseWeight(
-                withLabel: label,
+            let newWeight = try await self.store.backingStore.decreaseWeight(
+                forLinkWithLabel: label,
                 between: self.identifier,
                 and: target.identifier
             )
-            log.debug("New weight for triple [\(self!)> <\(label)> <\(target)>]: \(newWeight, privacy: .public)")
+            log.debug("New weight for triple [\(self)> <\(label)> <\(target)>]: \(newWeight, privacy: .public)")
         }
-        self?.store.delegate?.linkedDataDidChange()
+        self.store.delegate?.linkedDataDidChange()
     }
     
     /**
@@ -209,25 +202,61 @@ extension KBEntity {
     ) async throws -> [(predicate: Label, object: KBEntity)] {
         let negatedFlag = wantsComplementarySet  == true ? "NOT " : ""
         log.trace("\(negatedFlag, privacy: .public)[<\(self)> <\(predicate):\(matchType.description, privacy: .public)> $?]")
-
-        var partial = KBHexastore.JOINER.combine(KBHexastore.SPO.rawValue, self.identifier)
-
-        switch (wantsComplementarySet, matchType) {
-        case (false, let match) where match == .equal || match == .beginsWith:
-            partial = KBHexastore.JOINER.combine(partial, predicate, end: true)
-        case(true, .equal):
-            partial += KBHexastore.JOINER
-        case(_, .beginsWith):
-            break
+        
+        var condition: KBTripleCondition
+        
+        switch matchType {
+        case .beginsWith:
+            let partial = KBHexastore.JOINER.combine(
+                KBHexastore.SPO.rawValue,
+                self.identifier,
+                predicate
+            )
+            let matches = KBTripleCondition(KBGenericCondition(.beginsWith, value: partial))
+            if wantsComplementarySet {
+                let relaxedPartial = KBHexastore.JOINER.combine(
+                    KBHexastore.SPO.rawValue,
+                    self.identifier,
+                    end: true
+                )
+                let matchesRelaxed = KBTripleCondition(KBGenericCondition(
+                    .beginsWith,
+                    value: relaxedPartial
+                ))
+                condition = not(matches).and(matchesRelaxed)
+            } else {
+                condition = matches
+            }
+        case .equal:
+            if wantsComplementarySet {
+                condition = KBTripleCondition(
+                    KBGenericCondition(
+                        .beginsWith,
+                        value: KBHexastore.JOINER.combine(
+                            KBHexastore.SPO.rawValue,
+                            self.identifier,
+                            end: true
+                        )
+                    ).and(KBGenericCondition(
+                        .beginsWith,
+                        value: KBHexastore.JOINER.combine(
+                            KBHexastore.SPO.rawValue,
+                            self.identifier,
+                            predicate,
+                            end: true
+                        ),
+                        negated: true
+                    ))
+                )
+            } else {
+                condition = KBTripleCondition(
+                    subject: self.identifier,
+                    predicate: predicate,
+                    object: nil
+                )
+            }
         default:
             throw KBError.notSupported
-        }
-
-        var condition = KBTripleCondition(KBGenericCondition(.beginsWith, value: partial))
-        if wantsComplementarySet  {
-            let value = partial + (matchType == .beginsWith ? KBHexastore.JOINER + predicate : predicate + KBHexastore.JOINER)
-            let matchesLabel = KBTripleCondition(KBGenericCondition(.beginsWith, value: value))
-            condition = condition.and(not(matchesLabel))
         }
 
         return try await self.store.triples(matching: condition)
@@ -312,26 +341,33 @@ extension KBEntity {
                 condition = matches
             }
         case .equal:
-            let matches = KBTripleCondition(
-                subject: nil,
-                predicate: predicate,
-                object: self.identifier
-            )
             if wantsComplementarySet {
-                let matchesRelaxed = KBTripleCondition(
+                condition = KBTripleCondition(
+                    KBGenericCondition(
+                        .beginsWith,
+                        value: KBHexastore.JOINER.combine(
+                            KBHexastore.OPS.rawValue,
+                            self.identifier,
+                            end: true
+                        )
+                    ).and(KBGenericCondition(
+                        .beginsWith,
+                        value: KBHexastore.JOINER.combine(
+                            KBHexastore.OPS.rawValue,
+                            self.identifier,
+                            predicate,
+                            end: true
+                        ),
+                        negated: true
+                    ))
+                )
+            } else {
+                condition = KBTripleCondition(
                     subject: nil,
-                    predicate: nil,
+                    predicate: predicate,
                     object: self.identifier
                 )
-                condition = not(matches).and(matchesRelaxed)
-            } else {
-                condition = matches
             }
-            let beginsWithOPS = KBTripleCondition(KBGenericCondition(
-                .beginsWith,
-                value: KBHexastore.OPS.rawValue
-            ))
-            condition = condition.and(beginsWithOPS)
         default:
             throw KBError.notSupported
         }
@@ -375,36 +411,13 @@ extension KBEntity {
      and the one passed as argument
      
      - parameter target: constraints the query to a particular KBEntity
-     - parameter matchType: (defaults .Equal) defines the match type
-     on the identifier of the linked KBEntity (target)
      
      - returns: The array of predicate labels
      */
-    @objc public func links(to target: KBEntity,
-                            matchType: KBMatchType = .equal) async throws -> [Label] {
-        log.debug("[<\(self)> $? <\(target):\(matchType.description)>]")
+    @objc public func links(to target: KBEntity) async throws -> [Label] {
+        log.debug("[<\(self)> $? <\(target)>]")
 
-        let partial: String
-
-        switch matchType {
-        case .beginsWith:
-            partial = KBHexastore.JOINER.combine(
-                KBHexastore.SOP.rawValue,
-                self.identifier,
-                target.identifier
-            )
-        case .equal:
-            partial = KBHexastore.JOINER.combine(
-                KBHexastore.SOP.rawValue,
-                self.identifier,
-                target.identifier,
-                end: true
-            )
-        default:
-            throw KBError.notSupported
-        }
-
-        let condition = KBTripleCondition(KBGenericCondition(.beginsWith, value: partial))
+        let condition = KBTripleCondition(subject: self.identifier, predicate: nil, object: target.identifier)
         return try await self.store.triples(matching: condition)
             .map { triple in triple.predicate }
     }
@@ -532,7 +545,7 @@ extension KBEntity {
         }
         
         if ruleTriplesFromTarget.count == 0 {
-            return
+            return inferredLinks
         }
         
         // For each rule …
@@ -543,14 +556,14 @@ extension KBEntity {
             guard try await self.nonNegatedRuleComponentsAreSatisfied(inRule: ruleEntity) == true
             else {
                 // … and terminate early if some is missing!
-                return
+                return inferredLinks
             }
             
             // … then check all the NOT condition of the rule are satisfied (links are NOT there) …
             guard try await self.negatedRuleComponentsAreSatisfied(inRule: ruleEntity) == true
             else {
                 // … and terminate early if there is some!
-                return
+                return inferredLinks
             }
             
             // Now if the rule is satisfied, retrieve all the links to infer

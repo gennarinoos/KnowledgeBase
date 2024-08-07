@@ -1,10 +1,3 @@
-//
-//  BackingStore.swift
-//  
-//
-//  Created by Gennaro Frazzingaro on 7/15/21.
-//
-
 import Foundation
 
 protocol KBBackingStoreProtocol {

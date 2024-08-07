@@ -1,10 +1,3 @@
-//
-//  SynchedSQL.swift
-//
-//
-//  Created by Gennaro Frazzingaro on 6/28/21.
-//
-
 import Foundation
 
 #if !os(macOS)
