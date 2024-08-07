@@ -12,9 +12,9 @@ class KBStorageServiceDelegate : NSObject, NSXPCListenerDelegate {
     func listener(_ listener: NSXPCListener, shouldAcceptNewConnection newConnection: NSXPCConnection) -> Bool {
         newConnection.exportedInterface = NSXPCInterface(with: KBStorageXPCProtocol.self)
 
-        let exportedObject = KBStorageServiceProviderXPC()
-        newConnection.exportedObject = exportedObject
-        newConnection.resume()
+//        let exportedObject = KBStorageServiceProviderXPC()
+//        newConnection.exportedObject = exportedObject
+//        newConnection.resume()
         return true
     }
 }

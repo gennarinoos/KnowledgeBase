@@ -1,61 +1,36 @@
-//
-//  WriteBatch.swift
-//  
-//
-//  Created by Gennaro Frazzingaro on 7/18/21.
-//
-
 import Foundation
 
-// TODO: Remove this once either Swift 5.5 supports exposing asynchronous API with completion handlers, or when the support for pre-Swift5.5 is dropped.
-// This is a simple port of the code in Storage_Pre_Swift_5_5/Protocols/WriteBatch.swift
-extension KBSQLWriteBatch {
-    func write(completionHandler: @escaping KBActionCompletion) {
-        guard let backingStore = self.backingStore as? KBSQLBackingStoreProtocol else {
-            log.fault("KBSQLWriteBatch should back a KBSQLBackingStoreProtocol")
-            completionHandler(.failure(KBError.notSupported))
-            return
-        }
-        
-        // Write buffer into the store
-        // No need to arbitrate writes through the XPC service for SQL stores (only SQLXPC do)
-        var unwrappedBuffer = Dictionary<String, Any>()
-        for (k, v) in self.buffer {
-            unwrappedBuffer[k] = nilToNSNull(v)
-        }
-        
-        do {
-            try backingStore.sqlHandler.save(keysAndValues: unwrappedBuffer)
-            self.buffer.removeAll()
-            completionHandler(.success(()))
-        } catch {
-            completionHandler(.failure(error))
-        }
-    }
-}
-
-
-
-@objc public protocol KBKVStoreWriteBatch {
+public protocol KBKVStoreWriteBatch {
     func set(value: Any?, for key: String)
+    func set(value: Any?, for key: String, timestamp: Date)
+    func set(keysAndValues: [String: Any?])
     func write() async throws
 }
 
 class KBAbstractWriteBatch {
-    var buffer: Dictionary<String, Any?>
+    var buffer: Dictionary<String, (Any?, Date)>
     let backingStore: KBBackingStore
     
     init(backingStore: KBBackingStore) {
-        self.buffer = Dictionary<String, Any?>()
+        self.buffer = Dictionary<String, (Any?, Date)>()
         self.backingStore = backingStore
     }
     
     @objc func set(value: Any?, for key: String) {
-        self.buffer[key] = value
+        self.buffer[key] = (value, Date())
+    }
+    
+    @objc func set(value: Any?, for key: String, timestamp: Date) {
+        self.buffer[key] = (value, timestamp)
+    }
+    
+    func set(keysAndValues: [String: Any?]) {
+        let kvts = keysAndValues.map({ ($0.key, ($0.value, Date()))})
+        self.buffer.merge(kvts, uniquingKeysWith: { (_, last) in last })
     }
 }
 
-class KBSQLWriteBatch : KBAbstractWriteBatch, KBKVStoreWriteBatch {
+class KBAbstractNoTimestampSQLWriteBatch : KBAbstractWriteBatch, KBKVStoreWriteBatch {
     func write() async throws {
         guard let backingStore = self.backingStore as? KBSQLBackingStoreProtocol else {
             log.fault("KBSQLWriteBatch should back a KBSQLBackingStoreProtocol")
@@ -75,6 +50,11 @@ class KBSQLWriteBatch : KBAbstractWriteBatch, KBKVStoreWriteBatch {
 }
 
 class KBUserDefaultsWriteBatch : KBAbstractWriteBatch, KBKVStoreWriteBatch {
+    
+    override func set(value: Any?, for key: String, timestamp: Date) {
+        fatalError("KBUserDefaultsWriteBatch does not support timestamps")
+    }
+    
     func write() async throws {
         guard let backingStore = self.backingStore as? KBUserDefaultsBackingStore else {
             log.fault("KBUserDefaultsWriteBatch should back a KBUserDefaultsBackingStore")
@@ -82,12 +62,37 @@ class KBUserDefaultsWriteBatch : KBAbstractWriteBatch, KBKVStoreWriteBatch {
         }
         
         for key in self.buffer.keys {
-            if let value = self.buffer[key] {
+            if let value = self.buffer[key]!.0 {
                 try await backingStore.set(value: value, for: key)
+            }
+            else {
+                try await backingStore.removeValue(for: key)
             }
         }
         
         backingStore.synchronize()
+        self.buffer.removeAll()
+    }
+}
+
+class KBSQLWriteBatch : KBAbstractWriteBatch, KBKVStoreWriteBatch {
+    
+    func write() async throws {
+        guard let backingStore = self.backingStore as? KBSQLBackingStoreProtocol else {
+            log.fault("KBSQLWriteBatch should back a KBSQLBackingStoreProtocol")
+            throw KBError.notSupported
+        }
+        
+        // Write buffer into the store
+        // No need to arbitrate writes through the XPC service for SQL stores (only SQLXPC do)
+        var unwrappedBuffer = [KBKVPairWithTimestamp]()
+        for (k, (v, t)) in self.buffer {
+            unwrappedBuffer.append(
+                KBKVPairWithTimestamp(key: k, value: nilToNSNull(v), timestamp: t)
+            )
+        }
+        
+        try backingStore.sqlHandler.save(keysAndValuesAndTimestamp: unwrappedBuffer)
         self.buffer.removeAll()
     }
 }
@@ -99,14 +104,8 @@ class KBCloudKitSQLWriteBatch : KBSQLWriteBatch {
     }
 }
 
-#if !os(macOS)
+#if false // os(macOS)
 // Use XPC only on macOS
-
-class KBSQLXPCWriteBatch : KBSQLWriteBatch {
-}
-
-#else
-
 class KBSQLXPCWriteBatch : KBAbstractWriteBatch, KBKVStoreWriteBatch {
     func write() async throws {
         guard let backingStore = self.backingStore as? KBSQLXPCBackingStore else {
@@ -129,26 +128,15 @@ class KBSQLXPCWriteBatch : KBAbstractWriteBatch, KBKVStoreWriteBatch {
         self.buffer.removeAll()
     }
 }
-#endif
 
-#if !os(macOS)
-// Use XPC only on macOS
-
-class KBCloudKitSQLXPCWriteBatch : KBSQLXPCWriteBatch {
-}
+class KBCloudKitSQLXPCWriteBatch : KBSQLXPCWriteBatch {}
 
 #else
+
+class KBSQLXPCWriteBatch : KBAbstractNoTimestampSQLWriteBatch {
+}
+
 class KBCloudKitSQLXPCWriteBatch : KBSQLXPCWriteBatch {
-    
-    override func write() async throws {
-        guard let backingStore = self.backingStore as? CKCloudKitBackingStore else {
-            log.fault("KBCloudKitWriteBatch should back a CKCloudKitBackingStore")
-            completionHandler(KBError.notSupported)
-            return
-        }
-        
-        try await super.write()
-    }
 }
 
 #endif

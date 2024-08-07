@@ -1,10 +1,3 @@
-//
-//  TripleStoreWriteAPIs.swift
-//  
-//
-//  Created by Gennaro Frazzingaro on 7/18/21.
-//
-
 import Foundation
 
 extension KBKnowledgeStore {
@@ -20,7 +13,7 @@ extension KBKnowledgeStore {
         
         let condition = KBGenericCondition.partialTripleHexaCondition(entityIdentifier: identifier)
         let _ = try await self.backingStore.removeValues(forKeysMatching: condition)
-        self?.delegate?.linkedDataDidChange()
+        self.delegate?.linkedDataDidChange()
     }
     
     /**
@@ -34,7 +27,7 @@ extension KBKnowledgeStore {
     {
         log.trace("remove \(condition.rawCondition)")
         let _ = try await self.backingStore.removeValues(forKeysMatching: condition.rawCondition)
-        self?.delegate?.linkedDataDidChange()
+        self.delegate?.linkedDataDidChange()
     }
     
     public func verify(path: KBPath) async throws -> Bool {

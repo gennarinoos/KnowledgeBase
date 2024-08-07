@@ -292,28 +292,28 @@ public class KBTripleCondition : NSObject, NSCopying, NSSecureCoding {
             condition = KBGenericCondition(.beginsWith, value: ospValue)
             
         case (.some(let subject), .some(let predicate), .none):
-            condition = KBGenericCondition(.contains, value: KBHexastore.SPO.hexaValue(
+            condition = KBGenericCondition(.beginsWith, value: KBHexastore.SPO.hexaValue(
                 subject: subject,
                 predicate: predicate,
                 object: "")
             )
 
         case (.some(let subject), .none, .some(let object)):
-            condition = KBGenericCondition(.contains, value: KBHexastore.SOP.hexaValue(
+            condition = KBGenericCondition(.beginsWith, value: KBHexastore.SOP.hexaValue(
                 subject: subject,
                 predicate: "",
                 object: object
             ))
             
         case (.none, .some(let predicate), .some(let object)):
-            condition = KBGenericCondition(.contains, value: KBHexastore.POS.hexaValue(
+            condition = KBGenericCondition(.beginsWith, value: KBHexastore.POS.hexaValue(
                 subject: "",
                 predicate: predicate,
                 object: object
             ))
             
         case (.some(let subject), .some(let predicate), .some(let object)):
-            condition = KBGenericCondition(.contains, value: KBHexastore.SPO.hexaValue(
+            condition = KBGenericCondition(.beginsWith, value: KBHexastore.SPO.hexaValue(
                 subject: subject,
                 predicate: predicate,
                 object: object
